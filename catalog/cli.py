@@ -8,16 +8,21 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
+
+from catalog.acquisition import discovery
 
 
 def cmd_discover(args: argparse.Namespace) -> None:
     """Découverte des fabricants, catalogues et pages produit."""
-    raise NotImplementedError
+    lignes = Path(args.fabricants).read_text(encoding="utf-8").splitlines()
+    fabricants = [ligne.strip() for ligne in lignes if ligne.strip()]
+    discovery.decouvrir(fabricants)
 
 
 def cmd_acquire(args: argparse.Namespace) -> None:
-    """Téléchargement et archivage des documents découverts."""
-    raise NotImplementedError
+    """Téléchargement et archivage des documents découverts, pour un fabricant."""
+    discovery.decouvrir_fabricant(args.fabricant)
 
 
 def cmd_extract(args: argparse.Namespace) -> None:
