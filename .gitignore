@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Sources archivées : non versionnées mais conservées sur disque.
+data/sources/
+data/catalog.db
+data/catalog.json
