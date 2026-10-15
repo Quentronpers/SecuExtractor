@@ -9,6 +9,7 @@ class Repository:
     """Accès à la base SQLite pour les commandes du CLI et l'interface de relecture."""
 
     def __init__(self, conn: sqlite3.Connection) -> None:
+        """Lie le dépôt à une connexion SQLite ouverte."""
         self._conn = conn
 
     def file_de_relecture(self) -> list[dict]:

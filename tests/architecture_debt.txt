@@ -1,0 +1,4 @@
+# Dette d'architecture gelée au 2026-10-15 (voir tests/test_architecture.py).
+# Format : « file <chemin> », « function <chemin>::<nom> »,
+# « params <chemin>::<nom> ». La liste ne peut que rétrécir : une entrée
+# touchée dans un lot en sort dans ce lot.

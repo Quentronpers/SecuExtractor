@@ -1,4 +1,14 @@
 services:
+  # Conteneur de développement, toujours démarré : les hooks de Claude Code
+  # et les vérifications y passent par `docker exec dev_catalog`.
+  dev:
+    build: .
+    container_name: dev_catalog
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["sleep", "infinity"]
+
   catalog:
     build: .
     volumes:

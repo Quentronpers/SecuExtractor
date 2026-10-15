@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -18,14 +18,16 @@ MANIFESTE_PATH = SOURCES_DIR / "manifeste.json"
 
 
 def empreinte_sha256(contenu: bytes) -> str:
+    """Calcule l'empreinte SHA-256 d'un document archivé."""
     return hashlib.sha256(contenu).hexdigest()
 
 
 def _horodatage() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def charger() -> list[dict[str, Any]]:
+    """Lit le manifeste, vide s'il n'existe pas encore."""
     if not MANIFESTE_PATH.exists():
         return []
     with MANIFESTE_PATH.open(encoding="utf-8") as f:
@@ -38,7 +40,9 @@ def _sauvegarder(entrees: list[dict[str, Any]]) -> None:
         json.dump(entrees, f, ensure_ascii=False, indent=2)
 
 
-def enregistrer(fichier: str, url: str, type_document: str, outil: str, statut: str = "archive") -> dict[str, Any]:
+def enregistrer(
+    fichier: str, url: str, type_document: str, outil: str, statut: str = "archive"
+) -> dict[str, Any]:
     """Ajoute une entrée au manifeste après archivage d'un document.
 
     ``fichier`` est un chemin relatif à data/sources/ (ex. "dahua/notice.pdf"),

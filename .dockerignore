@@ -5,3 +5,7 @@ __pycache__
 data/sources
 data/catalog.db
 data/catalog.json
+.claude
+.github
+.mypy_cache
+.ruff_cache

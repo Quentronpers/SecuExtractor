@@ -15,13 +15,21 @@ from __future__ import annotations
 import re
 from urllib.parse import urljoin, urlparse
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from catalog.acquisition import fetcher
 
 CANDIDATS_TLD = ("com", "fr", "eu")
 
-MOTS_CATALOGUE = ("produit", "product", "catalogue", "catalog", "gamme", "range", "shop")
+MOTS_CATALOGUE = (
+    "produit",
+    "product",
+    "catalogue",
+    "catalog",
+    "gamme",
+    "range",
+    "shop",
+)
 MOTS_NOTICE = ("datasheet", "notice", "specification", "spec", "manual", "fiche", "pdf")
 
 PREFIXES_EXCLUS = ("mailto:", "tel:", "javascript:", "#")
@@ -41,6 +49,11 @@ CHEMINS_EXCLUS = (
     "compte",
     "account",
 )
+
+
+def _href(lien: Tag) -> str:
+    """Retourne l'attribut href d'un lien, toujours sous forme de chaîne."""
+    return str(lien.get("href", ""))
 
 
 class AdaptateurGenerique:
@@ -74,9 +87,9 @@ class AdaptateurGenerique:
         liens: set[str] = set()
         for a in soup.find_all("a", href=True):
             texte = a.get_text(strip=True).lower()
-            href = a["href"].lower()
+            href = _href(a).lower()
             if any(mot in texte or mot in href for mot in MOTS_CATALOGUE):
-                liens.add(urljoin(site_url, a["href"]))
+                liens.add(urljoin(site_url, _href(a)))
         return sorted(liens)
 
     def trouver_pages_produit(self, page_catalogue_url: str) -> list[str]:
@@ -94,7 +107,7 @@ class AdaptateurGenerique:
         domaine = urlparse(page_catalogue_url).netloc
         liens: set[str] = set()
         for a in soup.find_all("a", href=True):
-            href = a["href"]
+            href = _href(a)
             if href.startswith(PREFIXES_EXCLUS):
                 continue
             url = urljoin(page_catalogue_url, href).split("#")[0]
@@ -107,15 +120,17 @@ class AdaptateurGenerique:
         return sorted(liens)
 
     def trouver_notice(self, page_produit_url: str) -> str | None:
-        """Retourne l'URL d'un PDF de notice si un lien correspondant existe sur la page."""
+        """Retourne l'URL du PDF de notice si la page produit en propose un."""
         resultat = fetcher.fetch_texte(page_produit_url)
         if resultat is None:
             return None
         soup = BeautifulSoup(resultat.contenu, "html.parser")
         for a in soup.find_all("a", href=True):
-            href = a["href"]
+            href = _href(a)
             texte = a.get_text(strip=True).lower()
-            if href.lower().split("?")[0].endswith(".pdf") or any(mot in texte for mot in MOTS_NOTICE):
+            if href.lower().split("?")[0].endswith(".pdf") or any(
+                mot in texte for mot in MOTS_NOTICE
+            ):
                 return urljoin(page_produit_url, href)
         return None
 

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -35,10 +35,12 @@ def _charger_json(chemin: Path, defaut: Any) -> Any:
 
 
 def _horodatage() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def journaliser_echec(fabricant: str, etape: str, raison: str, action_attendue: str) -> None:
+def journaliser_echec(
+    fabricant: str, etape: str, raison: str, action_attendue: str
+) -> None:
     """Ajoute une entrée au journal des échecs, jamais silencieux."""
     echecs = _charger_json(ECHECS_PATH, [])
     echecs.append(
@@ -71,13 +73,17 @@ def _trouver_site(fabricant: str, adaptateur: AdaptateurGenerique) -> str | None
     return site
 
 
-def _trouver_pages_produit(fabricant: str, site_url: str, adaptateur: AdaptateurGenerique) -> list[str]:
+def _trouver_pages_produit(
+    fabricant: str, site_url: str, adaptateur: AdaptateurGenerique
+) -> list[str]:
     produits_manuels = _charger_json(PRODUITS_MANUELS_PATH, {})
     if fabricant in produits_manuels:
         return produits_manuels[fabricant]
 
     catalogues_manuels = _charger_json(CATALOGUES_MANUELS_PATH, {})
-    pages_catalogue = catalogues_manuels.get(fabricant) or adaptateur.trouver_pages_catalogue(site_url)
+    pages_catalogue = catalogues_manuels.get(
+        fabricant
+    ) or adaptateur.trouver_pages_catalogue(site_url)
     if not pages_catalogue:
         journaliser_echec(
             fabricant,
@@ -100,7 +106,9 @@ def _trouver_pages_produit(fabricant: str, site_url: str, adaptateur: Adaptateur
     return pages_produit
 
 
-def _archiver_produit(fabricant: str, page_produit_url: str, adaptateur: AdaptateurGenerique) -> None:
+def _archiver_produit(
+    fabricant: str, page_produit_url: str, adaptateur: AdaptateurGenerique
+) -> None:
     """Applique [0c] à une page produit : PDF, sinon page elle-même, sinon échec."""
     dossier = _slug(fabricant)
     (manifest.SOURCES_DIR / dossier).mkdir(parents=True, exist_ok=True)
@@ -109,15 +117,20 @@ def _archiver_produit(fabricant: str, page_produit_url: str, adaptateur: Adaptat
     if notice_url is not None:
         contenu = fetcher.fetch_binaire(notice_url)
         if contenu is not None:
-            nom_fichier = f"{dossier}/{Path(urlparse(notice_url).path).name or _slug(notice_url) + '.pdf'}"
+            nom = Path(urlparse(notice_url).path).name or _slug(notice_url) + ".pdf"
+            nom_fichier = f"{dossier}/{nom}"
             (manifest.SOURCES_DIR / nom_fichier).write_bytes(contenu)
             manifest.enregistrer(nom_fichier, notice_url, "pdf", "requests")
             return
 
     resultat = fetcher.fetch_texte(page_produit_url)
     if resultat is not None:
-        nom_fichier = f"{dossier}/{_slug(page_produit_url)}_{_horodatage_fichier()}.html"
-        (manifest.SOURCES_DIR / nom_fichier).write_text(resultat.contenu, encoding="utf-8")
+        nom_fichier = (
+            f"{dossier}/{_slug(page_produit_url)}_{_horodatage_fichier()}.html"
+        )
+        (manifest.SOURCES_DIR / nom_fichier).write_text(
+            resultat.contenu, encoding="utf-8"
+        )
         manifest.enregistrer(nom_fichier, page_produit_url, "html", resultat.outil)
         return
 
@@ -129,7 +142,9 @@ def _archiver_produit(fabricant: str, page_produit_url: str, adaptateur: Adaptat
     )
 
 
-def decouvrir_fabricant(fabricant: str, adaptateur: AdaptateurGenerique | None = None) -> None:
+def decouvrir_fabricant(
+    fabricant: str, adaptateur: AdaptateurGenerique | None = None
+) -> None:
     """Exécute la cascade [0a]→[0c] pour un fabricant et archive ce qui est trouvé.
 
     Sert aussi bien à `discover` (première passe) qu'à `acquire` (reprise
@@ -155,4 +170,4 @@ def _slug(texte: str) -> str:
 
 
 def _horodatage_fichier() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    return datetime.now(UTC).strftime("%Y%m%d%H%M%S")

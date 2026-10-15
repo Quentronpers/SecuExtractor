@@ -14,23 +14,27 @@ commande tout »).
 from __future__ import annotations
 
 import json
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
-from typing import Any, Generic, Literal, TypeVar, Union
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
-SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schema" / "specifications-equipements.json"
+SCHEMA_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "schema"
+    / "specifications-equipements.json"
+)
 
 
-class NiveauFiabilite(str, Enum):
+class NiveauFiabilite(StrEnum):
     """Niveau de fiabilité porté par chaque champ, indépendamment des autres."""
 
     EXTRAIT = "extrait"
     VERIFIE = "verifie"
 
 
-class EtatExtraction(str, Enum):
+class EtatExtraction(StrEnum):
     """État produit par le pipeline au sein du niveau ``extrait``."""
 
     SUR = "sur"
@@ -58,12 +62,10 @@ class SourceHTML(BaseModel):
     extrait: str
 
 
-Source = Union[SourcePDF, SourceHTML]
-
-T = TypeVar("T")
+Source = SourcePDF | SourceHTML
 
 
-class Champ(BaseModel, Generic[T]):
+class Champ[T](BaseModel):
     """Une valeur extraite, avec son état, son niveau et sa citation source.
 
     Sans citation, la valeur est ``douteux`` quelle que soit la confiance du
@@ -115,17 +117,15 @@ def _construire_modele(nom_type: str, definition: dict[str, Any]) -> type[BaseMo
     de traçabilité plutôt qu'une valeur à extraire : il n'est pas dupliqué
     ici, chaque ``Champ`` portant déjà sa propre citation.
     """
-    champs: dict[str, tuple[Any, Any]] = {}
+    champs: dict[str, Any] = {}
     for nom_champ, champ_def in definition["champs"].items():
         if nom_champ == "source" and champ_def.get("type") == "object":
             continue
-        type_python = _type_python(champ_def)
+        # Type construit à l'exécution depuis le schéma : invisible pour mypy.
+        type_champ: Any = Champ[_type_python(champ_def)]  # type: ignore[misc]
         champs[nom_champ] = (
-            Champ[type_python],
-            Field(
-                default_factory=lambda t=type_python: Champ[t](),
-                description=champ_def.get("note"),
-            ),
+            type_champ,
+            Field(default_factory=type_champ, description=champ_def.get("note")),
         )
     return create_model(
         _pascal_case(nom_type),

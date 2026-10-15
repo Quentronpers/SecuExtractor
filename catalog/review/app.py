@@ -13,6 +13,7 @@ import streamlit as st
 
 
 def main() -> None:
+    """Affiche la file de relecture."""
     st.title("Relecture — SecurScope Catalog")
     st.info("File de relecture à brancher sur catalog.storage.repository.")
 

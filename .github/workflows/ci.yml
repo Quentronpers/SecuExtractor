@@ -1,0 +1,32 @@
+# Continuous integration: the full checks on every push and pull request,
+# so that a green verdict never depends on reading a local progress bar.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Format and lint
+        run: |
+          uv run ruff format --check catalog tests
+          uv run ruff check catalog tests
+      - name: Types
+        run: uv run mypy
+      - name: Tests
+        run: uv run pytest

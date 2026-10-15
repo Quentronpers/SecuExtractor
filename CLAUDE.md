@@ -70,7 +70,8 @@ le faux positif fait dimensionner un switch trop petit sur un chantier réel.
 
 ## Stack
 
-- **Python** 3.12
+- **Python** 3.13 dans le conteneur (code compatible 3.12)
+- **Outillage** : `uv` (dépendances, `uv.lock`), `ruff` (format et lint), `mypy`, `pytest`
 - **Acquisition** : `requests` + `BeautifulSoup` en premier, repli `playwright`
   quand la page dépend du JavaScript
 - **Lecture** : `pdfplumber` pour les PDF, conversion en texte structuré pour
@@ -161,6 +162,12 @@ c'est ce qui permet à l'acquisition de casser sans emporter le reste avec elle.
 
 ## Commandes
 
+L'hôte (NAS) n'a ni Python ni jq : **tout tourne dans le conteneur
+`dev_catalog`**, démarré par `docker compose up -d dev` (le dépôt y est
+monté sur `/app`, l'environnement est dans `/opt/venv`). Les commandes
+ci-dessous se lancent donc sous la forme
+`docker exec dev_catalog sh -c "cd /app && <commande>"`.
+
 ```bash
 # Découverte : à partir d'une liste de fabricants
 python -m catalog.cli discover --fabricants data/fabricants.txt
@@ -180,6 +187,28 @@ python -m catalog.cli export --out data/catalog.json
 # État : découvert, extrait, vérifié, échecs par étape
 python -m catalog.cli status
 ```
+
+### Vérifications
+
+```bash
+ruff format --check catalog tests && ruff check catalog tests   # format + lint
+mypy                                                             # types
+pytest                                                           # tests, architecture comprise
+```
+
+La CI (`.github/workflows/ci.yml`) rejoue les trois à chaque push sur
+`master`. Les hooks de `.claude/` formatent et contrôlent chaque fichier
+édité, et bloquent un commit dont les fichiers indexés ne passent pas.
+
+`tests/test_architecture.py` garde : la frontière de l'acquisition (seul
+`catalog/cli.py` importe `catalog.acquisition`, et l'acquisition n'importe
+rien de l'aval), fichier ≤ 300 lignes, fonction ≤ 30 lignes hors
+docstring, ≤ 5 paramètres. Les écarts gelés vont dans
+`tests/architecture_debt.txt`, qui ne peut que rétrécir.
+
+Aucun test n'appelle le réseau ni l'API Anthropic : le client modèle se
+remplace par un faux. Ce qui appelle l'API (`extract`, évaluation en
+direct) coûte de l'argent et se lance avec l'accord de Quentin.
 
 ## Structure
 
@@ -338,8 +367,6 @@ elle qu'il faut corriger.
   republie pas les documents.
 - Pas d'adaptateur écrit par anticipation. Le générique d'abord, l'adaptateur
   seulement après un échec constaté.
-- Pas de linters stricts sur ce projet. Du code lisible et typé suffit ; la
-  rigueur d'outillage est réservée à l'application.
 - Pas d'import direct dans la base de SecurScope. La frontière entre les deux
   projets est un fichier JSON versionné, et rien d'autre.
 
@@ -352,6 +379,28 @@ fichier est demandé :
 2. Écrire le fichier complet, typé, avec des docstrings courtes.
 3. Signaler les hypothèses faites et ce qui aurait pu être découpé autrement.
 4. Ne pas créer de fichiers annexes non demandés.
+
+Les étapes d'envergure suivent le cycle commun aux projets de Quentin
+(`vault/claude/workflow.md`) : `/cadrage` → plan dans `docs/chantiers/`,
+un lot par session, `/verifier` après chaque étape, `/fin-de-lot` pour
+clore (relecture, docs, vault, `reprise.md`, proposition de commit).
+
+À la fin de chaque étape, proposer un **menu numéroté** des suites
+possibles, auquel Quentin répond d'un chiffre.
+
+### Ce que tu ne fais pas sans me demander
+
+- `git commit` et `git push` ;
+- ajouter ou changer une dépendance, l'outillage (`pyproject.toml`,
+  `uv.lock`, `Dockerfile`, `docker-compose.yml`) ou la config des
+  linters ;
+- allonger `tests/architecture_debt.txt` ;
+- modifier un document archivé ou le manifeste dans `data/sources/` ;
+- modifier le jeu de référence annoté (`eval/reference/`) ;
+- lancer ce qui appelle l'API Anthropic (`extract`, évaluation en direct).
+
+Interdit sans exception : modifier `schema/` (la référence vit hors de ce
+dépôt), lire ou écrire un `.env`, `--no-verify`.
 
 ## Contexte détaillé
 

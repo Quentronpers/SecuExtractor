@@ -7,3 +7,9 @@ __pycache__/
 data/sources/
 data/catalog.db
 data/catalog.json
+
+# Claude Code : réglages personnels et note de passage entre sessions
+.claude/settings.local.json
+reprise.md
+.mypy_cache/
+.ruff_cache/

@@ -10,6 +10,7 @@ avant toute campagne réelle.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import random
 import time
@@ -34,6 +35,8 @@ _robots_cache: dict[str, urllib.robotparser.RobotFileParser] = {}
 
 @dataclass
 class ResultatFetch:
+    """Contenu récupéré et outil qui a servi, noté au manifeste."""
+
     contenu: str
     outil: str  # "requests" ou "playwright"
 
@@ -54,12 +57,10 @@ def _robots_autorise(url: str) -> bool:
     if parseur is None:
         parseur = urllib.robotparser.RobotFileParser()
         parseur.set_url(f"{urlparse(url).scheme}://{domaine}/robots.txt")
-        try:
+        # robots.txt injoignable : accès considéré autorisé par défaut,
+        # la requête elle-même portera l'échec réel s'il y en a un.
+        with contextlib.suppress(OSError):
             parseur.read()
-        except OSError:
-            # robots.txt injoignable : accès considéré autorisé par défaut,
-            # la requête elle-même portera l'échec réel s'il y en a un.
-            pass
         _robots_cache[domaine] = parseur
     return parseur.can_fetch(USER_AGENT, url)
 
@@ -70,7 +71,9 @@ def _requete_avec_reprise(url: str) -> requests.Response | None:
     for tentative in range(1, TENTATIVES_MAX + 1):
         _attendre_cadence(domaine)
         try:
-            reponse = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT_S)
+            reponse = requests.get(
+                url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT_S
+            )
             reponse.raise_for_status()
             return reponse
         except requests.RequestException:
@@ -81,7 +84,7 @@ def _requete_avec_reprise(url: str) -> requests.Response | None:
 
 
 def fetch_texte(url: str) -> ResultatFetch | None:
-    """Récupère le texte d'une page, avec repli playwright si le rendu semble incomplet."""
+    """Récupère le texte d'une page, avec repli playwright si le rendu est vide."""
     if not _robots_autorise(url):
         return None
     reponse = _requete_avec_reprise(url)

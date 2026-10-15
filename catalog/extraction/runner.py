@@ -1,5 +1,7 @@
-"""Orchestration d'un lot d'extraction : découpage, appel modèle, plausibilité,
-stockage — un appel par bloc de champs, jamais par type d'équipement complet.
+"""Orchestration d'un lot d'extraction.
+
+Découpage, appel modèle, plausibilité, stockage — un appel par bloc de
+champs, jamais par type d'équipement complet.
 """
 
 from __future__ import annotations
