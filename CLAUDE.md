@@ -219,7 +219,7 @@ securscope-catalog/
 │   └── pipeline.md              # le déroulé détaillé, à lire une fois
 │
 ├── schema/
-│   └── specifications-equipements.json   # LA référence, ne pas modifier ici
+│   └── specifications-equipements.json   # ancien schéma, plus la référence (voir plus bas)
 │
 ├── catalog/
 │   ├── cli.py                   # point d'entrée en ligne de commande
@@ -267,20 +267,24 @@ document supprimé rend invérifiables toutes les citations qui en dépendent.
 
 ## Le schéma d'extraction
 
-`schema/specifications-equipements.json` définit 54 types d'équipements et
-1 470 champs, répartis en 5 familles. **C'est la source de vérité.** Les
-modèles Pydantic sont générés depuis lui, jamais écrits à la main en parallèle.
+**C'est SecurScope qui fixe, par ses besoins, les champs à extraire**
+(décision du 2026-10-15). Le modèle de données de SecurScope
+(`/volume1/SecurScope/backend/domains/security/model/`, privé) dit quels
+attributs et quels ports chaque équipement porte, avec leurs clés anglaises
+(`power_w_peak`, port `poe_pd` et son `class`…). Ce projet en reprend, par
+famille et par bloc, une description courte dans
+`catalog/extraction/cibles/<famille>_<bloc>.json` : clé SecurScope, unité,
+définition, et le commit SecurScope d'où elle vient. Ces fichiers de cibles
+sont la référence de l'extraction.
 
-Chaque champ y déclare :
-- `type` — string, number, integer, boolean, enum, array, object
-- `unite` — l'unité attendue après conversion
-- `obligatoire` — si son absence doit être signalée
-- `usage` — identification, calcul, selection, nomenclature
-- `alimente` — les calculateurs qui consomment ce champ
+`schema/specifications-equipements.json` (54 types, 1 470 champs, en
+français) **n'est plus la référence**. `catalog/models.py` en est encore
+généré : à revoir quand un chantier y touchera. On ne le modifie pas, on ne
+s'en sert pas pour un nouveau bloc.
 
-Les champs marqués `usage: calcul` sont ceux dont l'exactitude compte le plus :
-ils alimentent les calculs d'autonomie, de budget PoE et de capacité. Un doute
-sur eux passe en `douteux` sans hésitation.
+Les champs qui alimentent un calcul de SecurScope (budget PoE, autonomie,
+capacité, compatibilité d'alimentation) sont ceux dont l'exactitude compte le
+plus. Un doute sur eux passe en `douteux` sans hésitation.
 
 ## Règles d'extraction — non négociables
 
@@ -397,9 +401,9 @@ possibles, auquel Quentin répond d'un chiffre.
 - allonger `tests/architecture_debt.txt` ;
 - modifier un document archivé ou le manifeste dans `data/sources/` ;
 - modifier le jeu de référence annoté (`eval/reference/`) ;
-- lancer ce qui appelle l'API Anthropic (`extract`, évaluation en direct).
+- lancer une extraction réelle (`extract`) : elle occupe le GPU du PC ou le quota Groq.
 
-Interdit sans exception : modifier `schema/` (la référence vit hors de ce
+Interdit sans exception : modifier `schema/` (ancien schéma, gelé en attendant d'être revu ; la référence vit hors de ce
 dépôt), lire ou écrire un `.env`, `--no-verify`.
 
 ## Contexte détaillé

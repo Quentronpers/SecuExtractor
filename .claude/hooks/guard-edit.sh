@@ -19,7 +19,7 @@ case "$rel" in
     echo "Les fichiers .env contiennent des secrets : ne pas les modifier." >&2
     exit 2 ;;
   schema/*)
-    echo "schema/ est LA référence, maintenue hors de ce dépôt : ne pas le" \
+    echo "schema/ est l'ancien schéma, gelé (les cibles viennent de SecurScope) : ne pas le" \
       "modifier ici (CLAUDE.md, « Le schéma d'extraction »)." >&2
     exit 2 ;;
 esac
