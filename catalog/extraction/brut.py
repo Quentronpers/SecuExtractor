@@ -37,6 +37,7 @@ MotifEchec = Literal[
     "decalage_contexte",
     "json_malforme",
     "schema_invalide",
+    "echec_appel",  # appel sans réponse (réseau, quota) : jamais archivé
 ]
 
 

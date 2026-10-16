@@ -60,6 +60,21 @@ class Cible(BaseModel):
         return {champ.cle: champ for champ in self.champs}
 
 
+def verifier_type(champ: ChampCible, valeur: Valeur) -> str | None:
+    """Retourne le motif de refus si la valeur n'a pas le type du champ."""
+    if valeur is None:
+        return None
+    if champ.type == "booleen" and not isinstance(valeur, bool):
+        return "booléen attendu"
+    if champ.type == "nombre" and (
+        isinstance(valeur, bool) or not isinstance(valeur, float)
+    ):
+        return f"nombre attendu (en {champ.unite})"
+    if champ.type == "enum" and valeur not in champ.valeurs:
+        return f"valeur hors énumération {list(champ.valeurs)}"
+    return None
+
+
 def charger_cible(famille: str, bloc: str, dossier: Path = CIBLES_DIR) -> Cible:
     """Lit et valide le fichier de cibles d'une famille et d'un bloc."""
     chemin = dossier / f"{famille}_{bloc}.json"

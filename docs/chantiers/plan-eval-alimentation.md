@@ -3,7 +3,8 @@
 > Statut : **validé par Quentin le 2026-10-15** (relu par `expert-metier`
 > et `architecte-llm` le même jour). L1, L1 bis et L2 terminés et commités le
 > 2026-10-16 (L2 : `8a5e964`) ; L3a (`19a6c76`) et L3b (`fb034a2`)
-> terminés et commités ; prochain lot : L3c. Périmètre de L4 à L6 resserré
+> terminés et commités ; L3c fait le 2026-10-16, non commité (premier
+> passage réel reporté à L4) ; prochain lot : L4. Périmètre de L4 à L6 resserré
 > le 2026-10-16 après l'avis de l'agent `recruteur-ia` (ligne de base sans
 > LLM, un seul modèle local, README anglais anticipé).
 > Sert l'étude de cas de la phase 2 de la recherche d'emploi
@@ -496,22 +497,108 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
 - Laissé au runner (L3c) : l'état final (`sur` / `douteux` / `absent`) à
   partir du doute, du motif de citation et des motifs de plausibilité.
 
-### L3c — Runner, CLI et exécution sur le PC
-- `prompts` (règles 1 à 5 de CLAUDE.md, `VERSION_PROMPT`, référence
-  visée), `runner`, sous-commande `extract`. Mise à jour de CLAUDE.md
-  (Stack, Commandes) et procédure d'exécution sur le PC (clone, copie de
-  `data/sources/`, `OLLAMA_CONTEXT_LENGTH`, retour des réponses brutes).
-- Premier passage réel sur 2 ou 3 notices de mise au point.
-- Reporté de L3a : lire `/api/ps` pour remplir `contexte_jetons` et
-  `empreinte_modele` (obligatoires avec Ollama ; `None` désactive les
-  contrôles de contexte, admis seulement pour Groq) ; envoyer
-  `reasoning_effort` toujours ; relever `max_jetons` si la réflexion est
-  active ; construire le schéma strict à partir des 11 cibles ; mettre à jour
-  CLAUDE.md, « Stack » et « Structure » (qui disent encore « API
-  Anthropic ») ; `champ_max_jetons="max_completion_tokens"` pour Groq,
-  `reasoning_format` au L5.
-- Tests avec un faux client : réponse correcte → `sur` ; extrait
-  introuvable → `douteux` ; champ non rendu → `absent`.
+### L3c — Prompt, runner et sous-commande `extract` (fait le 2026-10-16, non commité)
+- `catalog/extraction/prompts.py` : gabarit système en anglais (les notices
+  sont en anglais), `VERSION_PROMPT = "camera-alimentation-v1"` (pas encore
+  mesurée). Neuf règles : citation, jamais d'inférence (« faux » est une
+  valeur citée), maximum, plages et tolérances, aucune arithmétique hors
+  tolérance et A → mA, nombres, multi-références avec suffixe, attributs
+  nuls si le port est faux, sorties auxiliaires et calibres non comptés. Une
+  consigne par champ, tirée de `eval/GUIDE.md` : c'est la spécification, pas
+  un ajustement au corrigé (aucune mesure faite). Message utilisateur :
+  « Target reference » puis « === Page N - titre === ». Schéma JSON strict
+  bâti sur les 11 cibles (par champ : extrait, page, valeur, doute ; extrait
+  avant valeur ; enum nullable en `anyOf`). `ReponseBloc` refuse une clé
+  manquante : `schema_invalide`, donc échec (champ non rendu = échec, pas
+  `absent`).
+- `catalog/extraction/etats.py` : état final, sans modèle. `absent` si la
+  valeur est nulle (même avec doute) ; `douteux` si au moins un motif
+  (`type_invalide`, motif de citation, motifs de plausibilité,
+  `doute_modele`), cumulés par « ; » dans `regle_echouee` ; `sur` sinon.
+  `evaluate` le rejouera en L4 (`etats_champs`).
+- `catalog/extraction/runner.py` : `ConfigModele`, `Moteur`, `Document`,
+  `ResultatBloc`, `construire_requete`, `extraire_document` (sélection des
+  pages, rejeu ou appel, interprétation ; troncature, JSON invalide ou appel
+  en échec : résultat sans champs avec un motif), `executer_lot` (document lu
+  une fois, `sortie/<id>_e<n>.json`).
+- `catalog/extraction/ollama.py` : `/api/ps` pour le contexte réel, le
+  digest et la part sur GPU ; charge le modèle par `/api/generate` s'il est
+  absent ; refuse sans contexte ni digest ; nom sans étiquette → `:latest` ;
+  `/api/version`.
+- `catalog/evaluation/execution.py` : sous-commande `extract --jeu
+  miseaupoint|test [--ids] [--executions] [--fournisseur ollama|groq]
+  [--reflexion none|low|medium] [--max-jetons]`, configurée par `LLM_BASE_URL`,
+  `LLM_MODEL`, `LLM_API_KEY`. Résultats dans
+  `data/extractions/resultats/<date>_<modele>_<prompt>_<reflexion>/` avec
+  `execution.json` (écrit au départ, complété à la fin : réglages, empreinte
+  du prompt, empreinte de `notices.csv`, commit lu dans `.git` faute de git
+  dans le conteneur, version d'Ollama, part sur GPU, contrôle de fin
+  `/api/ps` avec `fin_ecart`). Placé côté `catalog.evaluation` parce qu'il lit
+  `eval/notices.csv` : l'évaluation dépend de l'extraction, pas l'inverse.
+  L'ancien `extract --fabricant` (stub) est retiré de `cli.py` ; l'extraction
+  par fabricant reste à écrire (CLAUDE.md, `docs/pipeline.md` §8).
+- `catalog/evaluation/notices.py` : `chemin_source(notice, manifeste)`
+  retrouve le fichier archivé par empreinte (entrées « remplace » exclues) ;
+  les 50 notices le retrouvent. `cible.py` : `verifier_type` remonté depuis
+  `evaluation/reference.py`. `brut.py` : motif `echec_appel`, jamais archivé.
+- `citations.py` corrigé : une tolérance, symétrique ou asymétrique, n'est
+  acceptée que collée à la tension (éventuellement entre parenthèses). Avant,
+  « 36 VDC, 2.23 A ± 25% » validait 27/45 et un 27/45 inventé passait en
+  `sur`. Le corrigé des 50 notices reste accepté. `eval/GUIDE.md` : règle datée 2026-10-16, une
+  sortie d'alimentation pour accessoires (12VDC output Hanwha) n'est pas une
+  entrée.
+- CLAUDE.md mis à jour (Stack, Commandes, procédure « Extraction sur le
+  PC », Structure, exception de la règle 2 pour les tolérances).
+  `docs/pipeline.md` aligné.
+- Tests : `test_prompts.py`, `test_runner.py` (faux modèle : correcte →
+  `sur`, extrait introuvable → `douteux`, valeur nulle → `absent`, clé
+  manquante → échec, doute, type invalide, plausibilité, motifs cumulés,
+  troncature, JSON malformé, `echec_appel` non archivé, rejeu sans appel,
+  lot), `test_ollama.py`, `test_execution.py`, compléments de
+  `test_citations.py` et `test_notices.py`. 299 tests verts, ruff et mypy
+  propres.
+- Contrôles hors tests : pire cas de la mise au point, 16 600 caractères
+  envoyés, tient dans un contexte de 16 384 jetons même avec réflexion
+  (8 192 jetons de sortie) ; chaîne complète éprouvée contre un faux serveur
+  Ollama local (vrai transport HTTP), sorties effacées.
+- Relectures : `architecte-llm`, 3 bloquants corrigés (ports faux sans
+  citation mis à tort en `douteux` ; tolérance après le courant acceptée à
+  tort ; `reasoning_effort="none"` refusé par Groq pour gpt-oss, d'où le
+  choix `low`) et recommandations appliquées (enum `anyOf`, clé manquante =
+  échec, `execution.json` complet, contrôle de fin `/api/ps`, nom sans
+  étiquette, tolérance entre parenthèses, `fin_ecart`). `expert-metier` sur
+  le prompt, 2 bloquants corrigés (tolérance alignée sur le guide ;
+  attributs de port nuls si port faux) et recommandations appliquées
+  (sorties auxiliaires, calibres et capacités de norme non comptés, V × I très
+  au-dessus de la puissance → doute, suffixe de référence, typiques
+  Basic/24 h, plage sans libellé, « approx. »). `relecteur-conformite`, aucun
+  bloquant.
+- **Premier passage réel non fait** : Quentin n'était pas sur le PC. Il
+  devient la première étape de L4 : 2 ou 3 notices de mise au point (par
+  exemple axis-03, hik-01, dahua-02), sans réflexion, avec l'accord de
+  Quentin, et un essai de fumée par fournisseur avant tout lot (les clés à
+  points et les `anyOf` ne sont pas éprouvés sur un vrai serveur).
+- Écart au plan §2 : `docker-compose.yml` ne déclare pas
+  `host.docker.internal`, non modifié faute d'accord ; la procédure passe par
+  `172.17.0.1` (passerelle du bridge) avec `OLLAMA_HOST=0.0.0.0`.
+- **Tranché par Quentin le 2026-10-16** : le guide se contredisait (tolérance
+  asymétrique après le courant retenue pour dahua-04, symétrique ignorée pour
+  dahua-03). Désormais toute tolérance écrite après un courant est ignorée :
+  dahua-04 passe de 10,8 / 15 à 12 / 12 dans le corrigé, avec une note. Raison :
+  des bornes trop larges font accepter une alimentation inadaptée, des bornes
+  trop étroites ne font que refuser une alimentation qui aurait convenu. Guide,
+  prompt et contrôle de citation alignés.
+- Reporté : R2 (L5), à température 0 Ollama échantillonne en glouton, la
+  graine n'a pas d'effet, 3 exécutions ne mesurent que le non-déterminisme du
+  GPU, et le nouvel essai à graine + 1 de `client.py` rend la même sortie (le
+  faire à température 0,3 enregistrée, ou le supprimer) ; `--executions`
+  vaut 1 par défaut. R4, 8 192 jetons avec réflexion peuvent être courts pour
+  qwen3 (troncature comptée échec) : à mesurer. L4 : compter à part les
+  sorties incohérentes (extrait non nul avec valeur nulle, doute avec valeur
+  nulle), mesurer le tri `douteux` avec et sans `doute_modele`, lire la
+  quantification dans `/api/show`. `ReponseBloc` vérifie les clés de
+  `CONSIGNES` (un seul bloc) : à généraliser avec un second bloc.
+- README anglais (prévu dès la fin de L3c) : pas encore écrit.
 
 ### L4 — Évaluation
 - `metriques` (dont bootstrap), `rapport`, sous-commande `evaluate`

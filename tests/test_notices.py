@@ -11,6 +11,7 @@ from pydantic import ValidationError
 from catalog.evaluation.notices import (
     Notice,
     charger_notices,
+    chemin_source,
     completer_empreintes,
     ecrire_notices,
     tirer,
@@ -105,3 +106,31 @@ def test_le_jeu_versionne_est_complet_et_tire() -> None:
     assert len({n.fabricant for n in notices}) >= 8
     assert Counter(n.jeu for n in notices) == {"miseaupoint": 15, "test": 35}
     assert all(n.sha256 for n in notices)
+
+
+def test_chemin_source_par_empreinte_hors_remplacees() -> None:
+    notice = Notice(
+        id="axis-01",
+        fabricant="Axis",
+        reference="P3265",
+        type="camera_dome",
+        format="pdf",
+        url="https://exemple.com/a.pdf",
+        sha256="a" * 64,
+    )
+    manifeste = [
+        {
+            "fichier": "axis/ancien.pdf",
+            "empreinte_sha256": "a" * 64,
+            "statut": "remplace",
+        },
+        {
+            "fichier": "axis/autre.pdf",
+            "empreinte_sha256": "b" * 64,
+            "statut": "archive",
+        },
+        {"fichier": "axis/a.pdf", "empreinte_sha256": "a" * 64, "statut": "archive"},
+    ]
+    chemin = chemin_source(notice, manifeste)
+    assert chemin is not None and chemin.parts[-2:] == ("axis", "a.pdf")
+    assert chemin_source(notice.model_copy(update={"sha256": ""}), manifeste) is None

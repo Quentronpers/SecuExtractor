@@ -55,18 +55,18 @@
       "note": null
     },
     "ports.dc.voltage_min_v": {
-      "valeur": 10.8,
+      "valeur": 12.0,
       "etat_attendu": "sur",
       "section": "Power",
       "extrait": "12 VDC, 4 A (–10% to +25%)",
-      "note": null
+      "note": "tension nominale ; la tolérance suit le courant, ignorée (Quentin, 2026-10-16)"
     },
     "ports.dc.voltage_max_v": {
-      "valeur": 15.0,
+      "valeur": 12.0,
       "etat_attendu": "sur",
       "section": "Power",
       "extrait": "12 VDC, 4 A (–10% to +25%)",
-      "note": null
+      "note": "tension nominale ; la tolérance suit le courant, ignorée (Quentin, 2026-10-16)"
     },
     "ports.dc.current_standby_ma": {
       "valeur": null,

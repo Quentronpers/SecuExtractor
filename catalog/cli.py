@@ -12,6 +12,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from catalog.acquisition import discovery
+from catalog.evaluation.execution import ajouter_extract
 
 
 def cmd_discover(args: argparse.Namespace) -> None:
@@ -24,11 +25,6 @@ def cmd_discover(args: argparse.Namespace) -> None:
 def cmd_acquire(args: argparse.Namespace) -> None:
     """Téléchargement et archivage des documents découverts, pour un fabricant."""
     discovery.decouvrir_fabricant(args.fabricant)
-
-
-def cmd_extract(args: argparse.Namespace) -> None:
-    """Extraction des champs sur les documents archivés."""
-    raise NotImplementedError
 
 
 def cmd_export(args: argparse.Namespace) -> None:
@@ -53,7 +49,6 @@ SOUS_COMMANDES: dict[
         [("--fabricants", "chemin vers data/fabricants.txt")],
     ),
     "acquire": (cmd_acquire, "téléchargement et archivage", [_FABRICANT]),
-    "extract": (cmd_extract, "extraction sur ce qui est archivé", [_FABRICANT]),
     "export": (
         cmd_export,
         "export du catalogue",
@@ -72,6 +67,7 @@ def build_parser() -> argparse.ArgumentParser:
         for option, aide_option in options:
             sous.add_argument(option, required=True, help=aide_option)
         sous.set_defaults(func=fonction)
+    ajouter_extract(subparsers)
     return parser
 
 

@@ -140,14 +140,19 @@ def _nombres(texte: str, motif: str) -> list[float]:
 
 
 def _tolerances(texte: str) -> list[float]:
-    """Bornes d'une tension nominale suivie d'une tolérance (« 12 VDC ± 25 % »)."""
+    """Bornes d'une tension nominale suivie d'une tolérance (« 12 VDC ± 25 % »).
+
+    La tolérance doit être collée à la tension (éventuellement entre
+    parenthèses) : écrite après le courant, « 36 VDC, 2.23 A ± 25% », on ne
+    sait pas si elle porte sur la tension, et eval/GUIDE.md l'ignore.
+    """
     bornes: list[float] = []
     for nominale in re.finditer(_PAS_AC + _NOMBRE + _UNITES["V"], texte):
-        suite = texte[nominale.end() :]
+        suite = texte[nominale.end() :].lstrip(" (")
         ecarts: list[tuple[float, float]] = []
-        if symetrique := _TOLERANCE.search(suite):
+        if symetrique := _TOLERANCE.match(suite):
             ecarts.append((-_lire(symetrique[1])[0], _lire(symetrique[1])[0]))
-        if asymetrique := _ASYMETRIQUE.search(suite):
+        if asymetrique := _ASYMETRIQUE.match(suite):
             ecarts.append((-_lire(asymetrique[1])[0], _lire(asymetrique[2])[0]))
         v = _lire(nominale[1])[0]
         bornes += [v * (1 + e / 100) for ecart in ecarts for e in ecart]

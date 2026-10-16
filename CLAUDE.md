@@ -76,7 +76,9 @@ le faux positif fait dimensionner un switch trop petit sur un chantier réel.
   quand la page dépend du JavaScript
 - **Lecture** : `pdfplumber` pour les PDF, conversion en texte structuré pour
   les fiches HTML
-- **Modèle** : API Anthropic, traitement par lots (moitié prix)
+- **Modèle** : serveur compatible OpenAI (`/v1/chat/completions`), sortie
+  JSON au format strict : Ollama en local (`qwen3:14b`, sur le PC de
+  Quentin), Groq en comparaison
 - **Validation de forme** : `pydantic` v2
 - **Stockage** : SQLite (un seul fichier, aucun serveur)
 - **Relecture** : Streamlit, application locale
@@ -177,8 +179,11 @@ python -m catalog.cli discover --fabricants data/fabricants.txt
 # Téléchargement et archivage de ce qui a été découvert
 python -m catalog.cli acquire --fabricant dahua
 
-# Extraction sur ce qui est archivé
-python -m catalog.cli extract --fabricant dahua
+# Extraction : seul le jeu d'évaluation existe pour l'instant (pas encore
+# d'extraction par fabricant). Bloc alimentation, sur le PC (avec l'accord
+# de Quentin) ; serveur réglé par LLM_BASE_URL, LLM_MODEL, LLM_API_KEY
+python -m catalog.cli extract --jeu miseaupoint [--ids axis-03,hik-01] \
+    [--executions 3] [--fournisseur ollama|groq] [--reflexion none|low|medium]
 
 # File de relecture, par priorité
 streamlit run catalog/review/app.py
@@ -208,9 +213,26 @@ rien de l'aval), fichier ≤ 300 lignes, fonction ≤ 30 lignes hors
 docstring, ≤ 5 paramètres. Les écarts gelés vont dans
 `tests/architecture_debt.txt`, qui ne peut que rétrécir.
 
-Aucun test n'appelle le réseau ni l'API Anthropic : le client modèle se
-remplace par un faux. Ce qui appelle l'API (`extract`, évaluation en
-direct) coûte de l'argent et se lance avec l'accord de Quentin.
+Aucun test n'appelle le réseau ni le modèle : le client et le modèle se
+remplacent par des faux. `extract` occupe le GPU du PC ou le quota Groq
+et se lance avec l'accord de Quentin.
+
+### Extraction sur le PC
+
+Le NAS n'a pas de GPU : les extractions tournent sur le PC Linux de
+Quentin, qui a un clone du dépôt et une copie de `data/sources/`.
+
+1. Ollama sur l'hôte, joignable depuis le conteneur et avec un contexte
+   fixé : `OLLAMA_HOST=0.0.0.0 OLLAMA_CONTEXT_LENGTH=16384 ollama serve`,
+   puis `ollama pull qwen3:14b`.
+2. `docker compose up -d dev`, puis
+   `docker exec -e LLM_BASE_URL=http://172.17.0.1:11434/v1 -e LLM_MODEL=qwen3:14b dev_catalog sh -c "cd /app && python -m catalog.cli extract --jeu miseaupoint --ids axis-03"`
+   (`172.17.0.1` : passerelle du bridge Docker par défaut).
+   La commande lit le contexte réel et le digest dans `/api/ps` et
+   prévient si le modèle déborde de la VRAM.
+3. Rapporter au NAS `data/extractions/` (`brut/` et `resultats/`) :
+   `evaluate` y rejoue tout sans modèle. Ce dossier n'est pas versionné,
+   il contient le texte des notices.
 
 ## Structure
 
@@ -239,8 +261,14 @@ securscope-catalog/
 │   │   ├── html_reader.py       # texte structuré depuis une fiche web
 │   │   └── chunker.py           # découpage en sections exploitables
 │   ├── extraction/
-│   │   ├── client.py            # appel du modèle, abstraction du fournisseur
-│   │   ├── prompts.py           # gabarits par famille d'équipement
+│   │   ├── cibles/              # champs visés par famille et bloc (repris de SecurScope)
+│   │   ├── cible.py             # chargement des cibles, type d'une valeur
+│   │   ├── client.py            # client compatible OpenAI (Ollama, Groq), reprises
+│   │   ├── ollama.py            # contexte réel et digest du modèle (/api/ps)
+│   │   ├── brut.py              # réponses brutes archivées et rejouées
+│   │   ├── prompts.py           # gabarit, message et schéma strict par bloc
+│   │   ├── citations.py         # contrôle de citation, sans modèle
+│   │   ├── etats.py             # état final sur / douteux / absent d'un champ
 │   │   └── runner.py            # orchestration d'un lot
 │   ├── plausibility/
 │   │   ├── rules.py             # règles de vraisemblance par champ
@@ -250,8 +278,14 @@ securscope-catalog/
 │   │   └── repository.py        # lecture et écriture des extractions
 │   ├── review/
 │   │   └── app.py               # interface Streamlit de relecture
-│   └── export/
-│       └── writer.py            # export du catalogue vérifié
+│   ├── export/
+│   │   └── writer.py            # export du catalogue vérifié
+│   └── evaluation/
+│       ├── notices.py           # jeu de notices, tirage, fichier archivé
+│       ├── reference.py         # format du corrigé (eval/reference/)
+│       └── execution.py         # sous-commande extract sur le jeu
+│
+├── eval/                        # jeu d'évaluation publié : notices.csv, GUIDE.md, reference/
 │
 └── data/
     ├── sources/
@@ -299,7 +333,9 @@ plus. Un doute sur eux passe en `douteux` sans hésitation.
    est `douteux` quelle que soit la confiance du modèle.
 2. **Jamais d'inférence.** Un champ absent de la notice reste `absent`. Le
    modèle ne calcule pas, ne déduit pas, ne complète pas par analogie avec un
-   produit voisin.
+   produit voisin. Seule exception : les bornes d'une tension à tolérance
+   (« 12 V DC ± 25 % » → 9 et 15, `eval/GUIDE.md`), que le contrôle de
+   citation recalcule.
 3. **La valeur maximale prime.** Quand une notice donne une valeur de base et
    une valeur maximale — typiquement la consommation PoE — retenir la maximale.
    Sous-estimer une consommation fait sous-dimensionner un switch.

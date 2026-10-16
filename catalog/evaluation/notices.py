@@ -124,6 +124,22 @@ def completer_empreintes(
     ]
 
 
+def chemin_source(notice: Notice, manifeste: list[dict[str, str]]) -> Path | None:
+    """Le fichier archivé de la notice, retrouvé par son empreinte, ou ``None``.
+
+    Une entrée remplacée (statut « remplace ») n'est pas retenue : son
+    fichier n'est plus celui du jeu.
+    """
+    for entree in manifeste:
+        if (
+            notice.sha256
+            and entree.get("empreinte_sha256") == notice.sha256
+            and entree.get("statut") != "remplace"
+        ):
+            return MANIFESTE_PATH.parent / entree["fichier"]
+    return None
+
+
 def main() -> int:
     """Complète les empreintes et fait le tirage s'il manque ; réécrit le CSV."""
     notices = charger_notices()

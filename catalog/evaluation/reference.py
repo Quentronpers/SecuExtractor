@@ -20,7 +20,7 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
-from catalog.extraction.cible import ChampCible, Cible, Valeur, charger_cible
+from catalog.extraction.cible import Cible, Valeur, charger_cible, verifier_type
 
 REFERENCE_DIR = Path(__file__).resolve().parents[2] / "eval" / "reference"
 
@@ -73,21 +73,6 @@ class Corrige(BaseModel):
     champs: dict[str, ValeurAnnotee]
 
 
-def _verifier_type(champ: ChampCible, valeur: Valeur) -> str | None:
-    """Retourne le motif de refus si la valeur n'a pas le type du champ."""
-    if valeur is None:
-        return None
-    if champ.type == "booleen" and not isinstance(valeur, bool):
-        return "booléen attendu"
-    if champ.type == "nombre" and (
-        isinstance(valeur, bool) or not isinstance(valeur, float)
-    ):
-        return f"nombre attendu (en {champ.unite})"
-    if champ.type == "enum" and valeur not in champ.valeurs:
-        return f"valeur hors énumération {list(champ.valeurs)}"
-    return None
-
-
 def verifier_contre_cible(corrige: Corrige, cible: Cible) -> list[str]:
     """Liste les écarts entre un corrigé et la cible : clés et types de valeur."""
     attendus = cible.par_cle()
@@ -99,7 +84,7 @@ def verifier_contre_cible(corrige: Corrige, cible: Cible) -> list[str]:
     ]
     for cle, annotee in corrige.champs.items():
         if cle in attendus:
-            motif = _verifier_type(attendus[cle], annotee.valeur)
+            motif = verifier_type(attendus[cle], annotee.valeur)
             if motif:
                 erreurs.append(f"{cle} : {motif}")
     return erreurs

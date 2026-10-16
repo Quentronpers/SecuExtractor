@@ -180,15 +180,22 @@ page est celle du fichier : la puissance d'axis-01 est page 5.)
 
 ### Tensions
 - « 12 V DC ± 25 % » → `voltage_min_v` 9, `voltage_max_v` 15.
-- Tolérance asymétrique : Dahua « 12 VDC, 4 A (–10% to +25%) » → 10,8 / 15.
-- Tolérance placée après le courant : Dahua « 36 VDC, 2.23 A ± 25% » →
-  tension nominale, 36 / 36 (décidé le 2026-10-16 : on ne sait pas si
-  elle porte sur la tension, on l'ignore).
+- Tolérance asymétrique collée à la tension : « 12 VDC (–10% to +25%) »
+  → 10,8 / 15.
+- **Tolérance placée après le courant, symétrique ou asymétrique** →
+  tension nominale : Dahua « 36 VDC, 2.23 A ± 25% » → 36 / 36 ; Dahua
+  « 12 VDC, 4 A (–10% to +25%) » → 12 / 12 (décidé le 2026-10-16 : on ne
+  sait pas si elle porte sur la tension ; des bornes trop larges feraient
+  accepter une alimentation inadaptée, des bornes trop étroites ne font que
+  refuser une alimentation qui aurait convenu).
 - Un courant qui est le calibre de l'alimentation et non une consommation
   (Dahua 4G « 12 VDC, 4 A » pour 27 W max) → `absent`.
 - « 12 V DC » seul → min = max = 12.
 - « 10–28 V DC » → 10 et 28.
 - **Jamais** 44 à 57 V venant du PoE dans les tensions du port `dc`.
+- **Sortie d'alimentation pour accessoires** (2026-10-16) : « 12VDC output »
+  (borne d'alarme Hanwha) n'est pas une entrée ; ni `ports.dc`, ni tension,
+  ni courant n'en viennent.
 
 ### Courants
 - A → mA permis (0,4 A → 400). **W → mA jamais.**

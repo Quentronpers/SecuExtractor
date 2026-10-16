@@ -394,7 +394,9 @@ vient une valeur quand un utilisateur la conteste — et il la contestera.
    qu'il faut fournir.
 4. Compléter les fichiers manuels correspondants — site, catalogue ou URL de
    produit selon l'étape en échec.
-5. Lancer `acquire`, puis `extract`.
+5. Lancer `acquire`, puis `extract`. (Au 2026-10-16, `extract` ne
+   traite que le jeu d'évaluation, `--jeu` ; l'extraction par fabricant
+   reste à écrire.)
 6. **Exporter immédiatement.** Les données partent en niveau `extrait`, elles
    sont utilisables tout de suite.
 7. La relecture suit son cours, indépendamment : gammes prioritaires d'abord,

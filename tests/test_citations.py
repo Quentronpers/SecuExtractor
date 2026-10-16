@@ -153,7 +153,9 @@ def test_plage_de_tension() -> None:
     [
         ("12 VDC ± 25%", 9, 15),
         ("12 VDC ± 20%, 1.19 A, max. 14.28 W", 9.6, 14.4),
-        ("12 VDC, 4 A (–10% to +25%)", 10.8, 15),
+        ("12 VDC (–10% to +25%)", 10.8, 15),
+        ("Power Source | 12VDC ± 25%", 9, 15),
+        ("12 VDC (±25%)", 9, 15),
         ("12 V DC +/- 10 %", 10.8, 13.2),
     ],
 )
@@ -249,7 +251,7 @@ def test_type_de_valeur_inattendu() -> None:
     assert not _valide("power_w_peak", True, "max. 1 W")
 
 
-# --- Tension alternative et valeur non maximale ------------------------------
+# --- Tension alternative, tolérance mal placée, valeur non maximale ---------
 
 
 @pytest.mark.parametrize(
@@ -259,6 +261,9 @@ def test_type_de_valeur_inattendu() -> None:
         ("AC 24V±25%", [], [18, 24, 30]),
         ("AC 24V±25% (Default), DC 24V±25%", [18, 24, 30], []),
         ("24 VAC/36 VDC", [36], [24]),
+        # Tolérance après le courant : ignorée (eval/GUIDE.md).
+        ("36 VDC, 2.23 A ± 25%", [36], [27, 45]),
+        ("12 VDC, 4 A (–10% to +25%)", [12], [10.8, 15]),
     ],
 )
 def test_tension_alternative_jamais_citee_en_continu(
