@@ -2,8 +2,10 @@
 
 > Statut : **validé par Quentin le 2026-10-15** (relu par `expert-metier`
 > et `architecte-llm` le même jour). L1, L1 bis et L2 terminés et commités le
-> 2026-10-16 (L2 : `8a5e964`) ; L3a terminé et commité (`19a6c76`) ; L3b
-> terminé le 2026-10-16 (non commité à la rédaction) ; prochain lot : L3c.
+> 2026-10-16 (L2 : `8a5e964`) ; L3a (`19a6c76`) et L3b (`fb034a2`)
+> terminés et commités ; prochain lot : L3c. Périmètre de L4 à L6 resserré
+> le 2026-10-16 après l'avis de l'agent `recruteur-ia` (ligne de base sans
+> LLM, un seul modèle local, README anglais anticipé).
 > Sert l'étude de cas de la phase 2 de la recherche d'emploi
 > (vault : `projets/AI-Solutions-Engineer`), du 2026-10-15 au 2026-11-15.
 
@@ -202,8 +204,10 @@ faux positif et comme faux négatif.
   quantification, version d'Ollama, contexte, réglage de réflexion,
   empreinte du prompt, commit, empreintes du corrigé et du jeu de test.
 
-**Le chantier a réussi** quand ce tableau existe sur le jeu de test pour au
-moins deux modèles locaux et un modèle Groq, rejouable par une commande,
+**Le chantier a réussi** quand ce tableau existe sur le jeu de test pour un
+modèle local et un modèle Groq, comparés à une ligne de base sans LLM (un
+deuxième modèle local seulement s'il reste du temps avant le 2026-11-15),
+rejouable par une commande,
 avec une analyse d'erreurs (catégories, exemples cités). Objectifs
 indicatifs pour le meilleur modèle local, à confirmer après la première
 mesure : précision ≥ 90 % sur `power_w_peak`, invention ≤ 2 %, tri
@@ -435,7 +439,7 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   troncature → échec ; JSON malformé → nouvel essai puis échec ; 429 → attente
   puis réussite ; même clé → réponse rejouée sans appel.
 
-### L3b — Citations et plausibilité (fait le 2026-10-16, non commité à la rédaction)
+### L3b — Citations et plausibilité (fait le 2026-10-16, commit `fb034a2`)
 - `catalog/extraction/citations.py` : `verifier_citation(champ, valeur, page,
   extrait, pages)` rend un motif ou `None`. Motifs : `citation_absente` (ni
   page ni extrait, règle 1), `citation_introuvable`, `citation_autre_page`
@@ -515,14 +519,20 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   (la page de chaque valeur du corrigé est-elle sélectionnée ?) : il borne
   tout le reste.
 - Première mesure `qwen3:14b` sur la mise au point, puis sur le test.
+- **Ligne de base sans LLM** : extraction par expressions régulières sur le
+  texte découpé (libellés « max » / « typical », unités W, V, A, classe et
+  norme PoE), mesurée avec les mêmes métriques sur les mêmes notices. C'est
+  le point de comparaison qui justifie le LLM ; quelques heures, en
+  réutilisant l'analyse des nombres de `citations.py`.
 - Tests : un cas construit à la main (3 notices, résultats connus) donne
   exactement les métriques attendues ; absent des deux côtés compté juste
   et hors précision ; sous-estimation comptée à part ; bootstrap
   reproductible à graine fixe.
 
 ### L5 — Comparaison et itération
-- Deux ou trois modèles locaux qui tiennent dans 16 Go, un gros modèle
-  ouvert sur Groq (au format strict si disponible).
+- Un modèle local (`qwen3:14b`) contre un gros modèle ouvert sur Groq
+  (format strict si disponible). Un deuxième modèle local seulement s'il
+  reste du temps. Une ou deux versions du prompt au plus.
 - Itérations du prompt sur la mise au point seulement, guidées par
   l'analyse d'erreurs ; le test est mesuré une fois par version retenue.
 - Analyse d'erreurs : catégories (unité, base au lieu de maximale, DC pris
@@ -530,10 +540,18 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   exemples cités.
 
 ### L6 — Restitution
-- README public : le problème, la méthode, le tableau des résultats avec
-  intervalles, les erreurs typiques, les limites (50 notices, un
-  annotateur et son accord avec lui-même, intervalles larges), comment
-  rejouer. Chiffres recopiés des fichiers de résultats.
+- **README en anglais**, écrit dès la fin de L3c, sans chiffres : le
+  problème, la méthode, les limites (50 notices, corrigé annoté par un LLM
+  et relu sur échantillon, intervalles larges), comment rejouer. Le tableau
+  des résultats avec intervalles et les erreurs typiques viennent en L4 et
+  L5, recopiés des fichiers de résultats.
+- Il dit que seul le chantier d'évaluation est livré, le reste du pipeline
+  étant prévu, et assume l'usage de Claude en une ligne de méthode (code
+  écrit avec Claude Code ; corrigé annoté par Claude, relu par Quentin ;
+  Claude n'est pas un des modèles évalués).
+- Avant de passer le dépôt en public : licence, CLAUDE.md corrigé (Stack et
+  Structure), décision sur les fichiers `.claude/` versionnés. Passage en
+  public avec l'accord de Quentin.
 - Vault et portfolio mis à jour (via `/fin-de-lot`).
 
 ## 6. Questions ouvertes
@@ -553,3 +571,7 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
 5. ~~24 V AC~~ **Note hors modèle** pour les PTZ concernées (accord du
    2026-10-15).
 6. ~~Note `format-import-demo.md`~~ **Corrigée** le 2026-10-15.
+7. Identifiants du code en anglais : non avant le 2026-11-15
+   (recommandation de `recruteur-ia`, 2026-10-16 : sans effet sur la
+   décision d'un recruteur avant l'échéance, environ 4 200 lignes) ; à
+   reconsidérer en phase 3.
