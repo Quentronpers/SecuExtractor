@@ -4,16 +4,25 @@ services:
   dev:
     build: .
     container_name: dev_catalog
+    # Sur le NAS Asustor, seul le bridge par défaut sort vers Internet
+    # (vault : connaissances/asustor-docker-reseaux) ; l'acquisition en a besoin.
+    network_mode: bridge
     volumes:
       - .:/app
     working_dir: /app
+    environment:
+      # Contact du User-Agent de l'acquisition (CLAUDE.md, « Cadre à respecter »).
+      SECURSCOPE_CONTACT: securscope.catalogue@gmail.com
     command: ["sleep", "infinity"]
 
   catalog:
     build: .
+    network_mode: bridge
     volumes:
       - .:/app
     working_dir: /app
+    environment:
+      SECURSCOPE_CONTACT: securscope.catalogue@gmail.com
     command: ["python", "-m", "catalog.cli", "--help"]
 
   review:

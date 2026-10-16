@@ -76,10 +76,6 @@ def _trouver_site(fabricant: str, adaptateur: AdaptateurGenerique) -> str | None
 def _trouver_pages_produit(
     fabricant: str, site_url: str, adaptateur: AdaptateurGenerique
 ) -> list[str]:
-    produits_manuels = _charger_json(PRODUITS_MANUELS_PATH, {})
-    if fabricant in produits_manuels:
-        return produits_manuels[fabricant]
-
     catalogues_manuels = _charger_json(CATALOGUES_MANUELS_PATH, {})
     pages_catalogue = catalogues_manuels.get(
         fabricant
@@ -106,40 +102,68 @@ def _trouver_pages_produit(
     return pages_produit
 
 
+def _archiver_pdf(dossier: str, url: str) -> bool:
+    """Télécharge et archive un PDF ; faux si le téléchargement échoue."""
+    contenu = fetcher.fetch_binaire(url)
+    if contenu is None:
+        return False
+    nom = Path(urlparse(url).path).name or _slug(url) + ".pdf"
+    nom_fichier = f"{dossier}/{nom}"
+    (manifest.SOURCES_DIR / nom_fichier).write_bytes(contenu)
+    manifest.enregistrer(nom_fichier, url, "pdf", "requests")
+    return True
+
+
+def _archiver_page(dossier: str, url: str) -> bool:
+    """Archive une page produit HTML, figée par l'horodatage du nom de fichier."""
+    resultat = fetcher.fetch_texte(url)
+    if resultat is None:
+        return False
+    nom_fichier = f"{dossier}/{_slug(url)}_{_horodatage_fichier()}.html"
+    (manifest.SOURCES_DIR / nom_fichier).write_text(resultat.contenu, encoding="utf-8")
+    manifest.enregistrer(nom_fichier, url, "html", resultat.outil)
+    return True
+
+
+def _dossier(fabricant: str) -> str:
+    dossier = _slug(fabricant)
+    (manifest.SOURCES_DIR / dossier).mkdir(parents=True, exist_ok=True)
+    return dossier
+
+
+def _echec_produit(fabricant: str, url: str) -> None:
+    journaliser_echec(
+        fabricant,
+        "0c_produit_inexploitable",
+        f"Ni PDF ni page exploitable pour {url}",
+        f"Saisie manuelle de la référence dans {PRODUITS_MANUELS_PATH.name}",
+    )
+
+
 def _archiver_produit(
     fabricant: str, page_produit_url: str, adaptateur: AdaptateurGenerique
 ) -> None:
     """Applique [0c] à une page produit : PDF, sinon page elle-même, sinon échec."""
-    dossier = _slug(fabricant)
-    (manifest.SOURCES_DIR / dossier).mkdir(parents=True, exist_ok=True)
-
+    dossier = _dossier(fabricant)
     notice_url = adaptateur.trouver_notice(page_produit_url)
-    if notice_url is not None:
-        contenu = fetcher.fetch_binaire(notice_url)
-        if contenu is not None:
-            nom = Path(urlparse(notice_url).path).name or _slug(notice_url) + ".pdf"
-            nom_fichier = f"{dossier}/{nom}"
-            (manifest.SOURCES_DIR / nom_fichier).write_bytes(contenu)
-            manifest.enregistrer(nom_fichier, notice_url, "pdf", "requests")
-            return
-
-    resultat = fetcher.fetch_texte(page_produit_url)
-    if resultat is not None:
-        nom_fichier = (
-            f"{dossier}/{_slug(page_produit_url)}_{_horodatage_fichier()}.html"
-        )
-        (manifest.SOURCES_DIR / nom_fichier).write_text(
-            resultat.contenu, encoding="utf-8"
-        )
-        manifest.enregistrer(nom_fichier, page_produit_url, "html", resultat.outil)
+    if notice_url is not None and _archiver_pdf(dossier, notice_url):
         return
+    if not _archiver_page(dossier, page_produit_url):
+        _echec_produit(fabricant, page_produit_url)
 
-    journaliser_echec(
-        fabricant,
-        "0c_produit_inexploitable",
-        f"Ni PDF ni page exploitable pour {page_produit_url}",
-        f"Saisie manuelle de la référence dans {PRODUITS_MANUELS_PATH.name}",
-    )
+
+def _archiver_manuel(fabricant: str, url: str) -> None:
+    """Archive le document exact désigné à la main : le PDF, ou la page elle-même.
+
+    Aucun lien n'est suivi : une URL fournie à la main est le document voulu.
+    Une URL déjà au manifeste n'est pas retéléchargée.
+    """
+    if any(entree["url"] == url for entree in manifest.charger()):
+        return
+    dossier = _dossier(fabricant)
+    archiver = _archiver_pdf if _est_pdf(url) else _archiver_page
+    if not archiver(dossier, url):
+        _echec_produit(fabricant, url)
 
 
 def decouvrir_fabricant(
@@ -149,7 +173,14 @@ def decouvrir_fabricant(
 
     Sert aussi bien à `discover` (première passe) qu'à `acquire` (reprise
     ciblée après complément manuel), les deux appelant cette même fonction.
+    Les URL de ``produits_manuels.json`` court-circuitent la cascade : chacune
+    désigne le document exact à archiver.
     """
+    produits_manuels = _charger_json(PRODUITS_MANUELS_PATH, {})
+    if fabricant in produits_manuels:
+        for url in produits_manuels[fabricant]:
+            _archiver_manuel(fabricant, url)
+        return
     adaptateur = adaptateur or AdaptateurGenerique()
     site = _trouver_site(fabricant, adaptateur)
     if site is None:
@@ -163,6 +194,10 @@ def decouvrir(fabricants: list[str]) -> None:
     """Lance la cascade pour chaque fabricant de la liste (data/fabricants.txt)."""
     for fabricant in fabricants:
         decouvrir_fabricant(fabricant)
+
+
+def _est_pdf(url: str) -> bool:
+    return urlparse(url).path.lower().endswith(".pdf")
 
 
 def _slug(texte: str) -> str:

@@ -1,7 +1,8 @@
 # Chantier eval-alimentation — extraction mesurée du bloc alimentation des caméras IP
 
 > Statut : **validé par Quentin le 2026-10-15** (relu par `expert-metier`
-> et `architecte-llm` le même jour). Prochain lot : L1.
+> et `architecte-llm` le même jour). L1 terminé le 2026-10-16 ; prochain
+> lot : L1 bis (annotation, Quentin), en parallèle L2.
 > Sert l'étude de cas de la phase 2 de la recherche d'emploi
 > (vault : `projets/AI-Solutions-Engineer`), du 2026-10-15 au 2026-11-15.
 
@@ -189,6 +190,30 @@ mesure : précision ≥ 90 % sur `power_w_peak`, invention ≤ 2 %, tri
   seule). Environ 20 dômes, 20 tubes, 10 PTZ, une dizaine en HTML.
 - **Au moins 3 notices pour chaque piège** : courant donné, PoE seul,
   24 V AC seul, classe sans norme, chauffage, multi-références, > 90 W.
+- **Écarts constatés au choix des notices (2026-10-15, validés par
+  Quentin)** :
+  - *classe sans norme* : aucune notice constructeur ne donne une classe
+    sans la norme (dix fabricants du jeu, plus Pelco, Avigilon, Vicon,
+    Arecont et Canon lus) ; piège abandonné, publié dans les limites. La
+    règle « norme absente » reste testée par les PoE propriétaires
+    (Hi-PoE, High PoE, HPoE) ;
+  - *24 V AC seul* : redéfini comme « pas d'entrée continue » (24 V AC
+    seul ou avec PoE) ; 5 notices. Une caméra 24 V AC **ou** DC est un
+    cas « deux tensions » (`eval/GUIDE.md`) ;
+  - 12 PTZ et 18 tubes au lieu de 10 et 20 : les PTZ portent 24 V AC,
+    > 90 W et chauffage ;
+  - Ajax exclu (403 sur les pages produit, ABUS de même) : les 10
+    notices HTML viennent de fabricants qui publient aussi des PDF ;
+  - hik-02 et hik-03 passent en PDF (pages hikvision.com derrière un défi
+    anti-robot, non contourné) et hik-02 vise la DS-2CD2387G2-LUK (PDF de
+    la -LU en 403) ; ipro-01 retrouvée à sa nouvelle URL ;
+  - `robots.txt` lu selon la RFC 9309 (choix de Quentin) : un 4xx, dont
+    les 401/403 des stockages S3 et Azure sans `robots.txt` (Hikvision,
+    Bosch, Hanwha), autorise ; injoignable ou 5xx interdit tout le domaine
+    pour la session.
+- `acquire` archive le document exact de chaque URL de
+  `produits_manuels.json` (PDF tel quel, page HTML elle-même, aucun lien
+  suivi) et respecte le `Crawl-delay` de `robots.txt` (100 s chez Dahua).
 - `produits_manuels.json`, puis `acquire` ; `eval/notices.csv` avec
   l'empreinte du manifeste et le tirage mise au point / test. Un site qui
   bloque (souvent Hikvision ; Dahua, Hanwha et Bosch en JavaScript) : la
@@ -211,7 +236,11 @@ mesure : précision ≥ 90 % sur `power_w_peak`, invention ≤ 2 %, tri
     absent ; Hi-PoE et autres PoE propriétaires → port PoE présent,
     `min_standard` absent ;
   - A → mA permis, W → mA jamais ; une valeur unique de courant va dans
-    `current_standby_ma`, typique + max dans les deux champs ;
+    `current_peak_ma` (décidé le 2026-10-15 : les fiches la donnent avec
+    la puissance maximale), typique + max dans les deux champs ;
+  - `power_w_peak` garde le 24 V AC (décidé le 2026-10-15) ; le budget PoE
+    de SecurScope lira `ports.poe.power_w` d'abord (piste notée dans la
+    fiche SecurScope du vault) ;
   - fiche multi-références : la ligne de la référence complète, sinon
     absent.
 - Modèle Pydantic du corrigé (`catalog/evaluation/reference.py`) ;
@@ -243,6 +272,12 @@ pas (hook). Un validateur signale les fichiers malformés.
 
 ### L3b — Citations et plausibilité
 - Code pur : `citations.py` (§3) et `rules.py` (§3).
+- Relevé au L1 (`expert-metier`, 2026-10-15) : la comparaison de citation
+  ignore aussi les espaces (pdfplumber colle les mots des PDF Axis :
+  « Typical4.8W,max10.7W ») ; la règle « `poe.power_w` ≤ plafond de la
+  classe » compare au plafond de la **plus haute classe citée** dans la
+  notice, pas à `class` (une caméra at Class 4 ou bt Class 6 à 51 W est
+  juste) — l'extraction doit donc garder les autres classes citées.
 - Tests : « 7.7 » ne valide pas « 17.7 W » ; extrait recollé →
   `citation_recomposee` ; « PoE+ » → 802.3at ; 6,5 W lu 65 W → `douteux` ;
   classe 4 avec 30 W → `douteux` ; 48 V → `douteux` ; chaque borne exacte.

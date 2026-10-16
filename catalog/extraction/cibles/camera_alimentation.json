@@ -1,0 +1,109 @@
+{
+  "famille": "camera",
+  "bloc": "alimentation",
+  "description": "Champs d'alimentation des caméras IP, tels que SecurScope les porte. Référence de l'extraction et du corrigé (eval/reference/). Les clés sont celles de SecurScope : attributs de l'équipement, ou « ports.<id> » pour un port, « ports.<id>.<attribut> » pour un attribut de port.",
+  "source": {
+    "depot": "SecurScope (privé)",
+    "commit": "3e1f26b",
+    "date_commit": "2026-10-12",
+    "fichiers": [
+      "backend/domains/security/model/00-port-types.json",
+      "backend/domains/security/model/03-components-video.json"
+    ],
+    "types_equipement": ["video.camera.fixed", "video.camera.ptz"],
+    "repris_le": "2026-10-15"
+  },
+  "types_catalogue": ["camera_dome", "camera_tube", "camera_ptz"],
+  "champs": [
+    {
+      "cle": "ports.poe",
+      "type": "booleen",
+      "unite": null,
+      "definition": "La caméra a un port d'entrée PoE (type de port poe_pd, id « poe »). Vrai aussi pour un PoE propriétaire (Hi-PoE, ePoE, High PoE).",
+      "usage": "calcul",
+      "alimente": "raccordement à un switch ou injecteur PoE ; règle poe_budget"
+    },
+    {
+      "cle": "ports.dc",
+      "type": "booleen",
+      "unite": null,
+      "definition": "La caméra a une entrée d'alimentation continue (type de port power_dc_in, id « dc »). Faux pour une entrée 24 V AC seule.",
+      "usage": "calcul",
+      "alimente": "raccordement à une alimentation (power_dc_out)"
+    },
+    {
+      "cle": "power_w",
+      "type": "nombre",
+      "unite": "W",
+      "definition": "Consommation typique de la caméra. Absente si la fiche ne donne qu'une seule valeur de consommation.",
+      "usage": "selection",
+      "alimente": "affichage, estimation de consommation"
+    },
+    {
+      "cle": "power_w_peak",
+      "type": "nombre",
+      "unite": "W",
+      "definition": "Consommation maximale, toutes alimentations confondues, IR, chauffage et moteur compris (SecurScope : « IR + chauffage », « Moteurs + chauffage + IR simultanés » pour une PTZ).",
+      "usage": "calcul",
+      "alimente": "règle poe_budget : Σ(camera.power_w_peak) <= switch.poe_budget_w * 0.8"
+    },
+    {
+      "cle": "ports.poe.class",
+      "type": "enum",
+      "unite": null,
+      "valeurs": ["0", "1", "2", "3", "4", "5", "6", "7", "8"],
+      "definition": "Classe PoE annoncée pour le port poe_pd (SecurScope : « 0..8 »). Conservée en chaîne.",
+      "usage": "calcul",
+      "alimente": "compatibilité avec le port poe_pse"
+    },
+    {
+      "cle": "ports.poe.power_w",
+      "type": "nombre",
+      "unite": "W",
+      "definition": "Puissance consommée sur le port PoE, pire cas annoncé en PoE (SecurScope : « pire cas : IR + chauffage + moteur PTZ »).",
+      "usage": "calcul",
+      "alimente": "power_per_port_w du switch"
+    },
+    {
+      "cle": "ports.poe.min_standard",
+      "type": "enum",
+      "unite": null,
+      "valeurs": ["802.3af", "802.3at", "802.3bt"],
+      "definition": "Norme PoE minimale exigée par la caméra. Absente pour une classe seule ou un PoE propriétaire.",
+      "usage": "calcul",
+      "alimente": "compatibilité avec le standard du port poe_pse"
+    },
+    {
+      "cle": "ports.dc.voltage_min_v",
+      "type": "nombre",
+      "unite": "V",
+      "definition": "Tension mini d'exploitation de l'entrée continue.",
+      "usage": "calcul",
+      "alimente": "compatibilité : voltage_min_v <= voltage_v de l'alimentation <= voltage_max_v"
+    },
+    {
+      "cle": "ports.dc.voltage_max_v",
+      "type": "nombre",
+      "unite": "V",
+      "definition": "Tension maxi d'exploitation de l'entrée continue.",
+      "usage": "calcul",
+      "alimente": "compatibilité : voltage_min_v <= voltage_v de l'alimentation <= voltage_max_v"
+    },
+    {
+      "cle": "ports.dc.current_standby_ma",
+      "type": "nombre",
+      "unite": "mA",
+      "definition": "Consommation au repos sur l'entrée continue.",
+      "usage": "calcul",
+      "alimente": "budget de courant de l'alimentation (current_max_ma)"
+    },
+    {
+      "cle": "ports.dc.current_peak_ma",
+      "type": "nombre",
+      "unite": "mA",
+      "definition": "Consommation en alarme / en fonctionnement sur l'entrée continue.",
+      "usage": "calcul",
+      "alimente": "budget de courant de l'alimentation (current_max_ma)"
+    }
+  ]
+}

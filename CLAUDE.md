@@ -144,7 +144,9 @@ signe d'un contenu injecté en JavaScript. Le manifeste note quel outil a servi.
 Les caractéristiques techniques sont des faits, librement réutilisables. Le
 téléchargement automatisé, lui, se discipline :
 
-- respecter `robots.txt`, sans exception ;
+- respecter `robots.txt`, sans exception, lu selon la RFC 9309 : fichier
+  indisponible (erreur 4xx, stockage S3 ou Azure sans `robots.txt`) → accès
+  autorisé ; serveur injoignable ou erreur 5xx → accès interdit ;
 - cadence lente, une requête toutes les deux à trois secondes par domaine ;
 - en-tête `User-Agent` identifiable, avec un moyen de contact ;
 - reprise sur erreur avec attente croissante, abandon après trois tentatives ;
@@ -277,10 +279,13 @@ famille et par bloc, une description courte dans
 définition, et le commit SecurScope d'où elle vient. Ces fichiers de cibles
 sont la référence de l'extraction.
 
-`schema/specifications-equipements.json` (54 types, 1 470 champs, en
-français) **n'est plus la référence**. `catalog/models.py` en est encore
-généré : à revoir quand un chantier y touchera. On ne le modifie pas, on ne
-s'en sert pas pour un nouveau bloc.
+`schema/specifications-equipements.json` (54 types, en français) **n'est
+plus la référence : c'est un schéma de test/démo** (clé `statut` en tête).
+Seuls les blocs alimentation de `camera_dome`, `camera_tube` et
+`camera_ptz` y ont été réalignés sur SecurScope (2026-10-15) : noms plats
+(`port_poe_class`, `power_w_peak`…), clé SecurScope exacte dans
+`cle_securscope`. `catalog/models.py` en est encore généré : à revoir quand
+un chantier y touchera. On ne s'en sert pas pour un nouveau bloc.
 
 Les champs qui alimentent un calcul de SecurScope (budget PoE, autonomie,
 capacité, compatibilité d'alimentation) sont ceux dont l'exactitude compte le
@@ -400,11 +405,12 @@ possibles, auquel Quentin répond d'un chiffre.
   linters ;
 - allonger `tests/architecture_debt.txt` ;
 - modifier un document archivé ou le manifeste dans `data/sources/` ;
+- modifier `schema/` (schéma de test/démo ; la référence est SecurScope,
+  via `catalog/extraction/cibles/`) ;
 - modifier le jeu de référence annoté (`eval/reference/`) ;
 - lancer une extraction réelle (`extract`) : elle occupe le GPU du PC ou le quota Groq.
 
-Interdit sans exception : modifier `schema/` (ancien schéma, gelé en attendant d'être revu ; la référence vit hors de ce
-dépôt), lire ou écrire un `.env`, `--no-verify`.
+Interdit sans exception : lire ou écrire un `.env`, `--no-verify`.
 
 ## Contexte détaillé
 

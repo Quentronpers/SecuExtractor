@@ -18,10 +18,6 @@ case "$rel" in
   *.env | *.env.*)
     echo "Les fichiers .env contiennent des secrets : ne pas les modifier." >&2
     exit 2 ;;
-  schema/*)
-    echo "schema/ est l'ancien schéma, gelé (les cibles viennent de SecurScope) : ne pas le" \
-      "modifier ici (CLAUDE.md, « Le schéma d'extraction »)." >&2
-    exit 2 ;;
 esac
 
 if acquisition_forbidden "$rel" && printf '%s' "$input" \
@@ -35,6 +31,8 @@ case "$rel" in
   data/sources/*_manuels.json) ;;
   data/sources/*)
     ask "Document archivé ou manifeste : le modifier rend des citations invérifiables." ;;
+  schema/*)
+    ask "Schéma de test/démo : la référence est SecurScope (CLAUDE.md, « Le schéma d'extraction »)." ;;
   pyproject.toml | uv.lock | Dockerfile | docker-compose.yml)
     ask "Dépendances, outillage ou conteneur : à faire avec l'accord de Quentin." ;;
   tests/architecture_debt.txt)

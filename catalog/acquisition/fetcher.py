@@ -10,7 +10,6 @@ avant toute campagne réelle.
 
 from __future__ import annotations
 
-import contextlib
 import os
 import random
 import time
@@ -41,9 +40,16 @@ class ResultatFetch:
     outil: str  # "requests" ou "playwright"
 
 
+def _crawl_delay(domaine: str) -> float:
+    """Délai imposé par le ``Crawl-delay`` du robots.txt déjà lu, 0 sinon."""
+    parseur = _robots_cache.get(domaine)
+    delai = parseur.crawl_delay(USER_AGENT) if parseur is not None else None
+    return float(delai) if delai else 0.0
+
+
 def _attendre_cadence(domaine: str) -> None:
     dernier = _dernier_acces.get(domaine)
-    delai = random.uniform(DELAI_MIN_S, DELAI_MAX_S)
+    delai = max(random.uniform(DELAI_MIN_S, DELAI_MAX_S), _crawl_delay(domaine))
     if dernier is not None:
         ecoule = time.monotonic() - dernier
         if ecoule < delai:
@@ -51,17 +57,40 @@ def _attendre_cadence(domaine: str) -> None:
     _dernier_acces[domaine] = time.monotonic()
 
 
+def _lire_robots(url_robots: str) -> urllib.robotparser.RobotFileParser:
+    """Lit un robots.txt avec délai d'expiration, selon la RFC 9309 (§2.3.1).
+
+    ``RobotFileParser.read`` n'a pas de délai (un site muet bloquait chaque
+    URL de longues minutes) et suit une règle antérieure à la norme. Ici :
+    succès → règles du fichier ; erreur 4xx, 401 et 403 compris (fichier
+    indisponible, cas des stockages S3 ou Azure sans robots.txt) → tout est
+    autorisé ; serveur injoignable ou erreur 5xx → tout est interdit, faute
+    de savoir ce que le site autorise.
+    """
+    parseur = urllib.robotparser.RobotFileParser(url_robots)
+    tout_interdit = ["User-agent: *", "Disallow: /"]
+    try:
+        reponse = requests.get(
+            url_robots, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT_S
+        )
+    except requests.RequestException:
+        parseur.parse(tout_interdit)
+        return parseur
+    if reponse.status_code >= 500:
+        parseur.parse(tout_interdit)
+    elif reponse.status_code >= 400:
+        parseur.parse([])  # vide : tout est autorisé
+    else:
+        parseur.parse(reponse.text.splitlines())
+    return parseur
+
+
 def _robots_autorise(url: str) -> bool:
-    domaine = urlparse(url).netloc
-    parseur = _robots_cache.get(domaine)
+    morceaux = urlparse(url)
+    parseur = _robots_cache.get(morceaux.netloc)
     if parseur is None:
-        parseur = urllib.robotparser.RobotFileParser()
-        parseur.set_url(f"{urlparse(url).scheme}://{domaine}/robots.txt")
-        # robots.txt injoignable : accès considéré autorisé par défaut,
-        # la requête elle-même portera l'échec réel s'il y en a un.
-        with contextlib.suppress(OSError):
-            parseur.read()
-        _robots_cache[domaine] = parseur
+        parseur = _lire_robots(f"{morceaux.scheme}://{morceaux.netloc}/robots.txt")
+        _robots_cache[morceaux.netloc] = parseur
     return parseur.can_fetch(USER_AGENT, url)
 
 

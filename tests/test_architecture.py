@@ -39,6 +39,7 @@ DOWNSTREAM = (
     "catalog.storage",
     "catalog.review",
     "catalog.export",
+    "catalog.evaluation",
 )
 
 

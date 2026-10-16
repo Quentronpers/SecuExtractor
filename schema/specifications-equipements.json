@@ -1,6 +1,7 @@
 {
   "version": "1.0",
   "date": "2026-08",
+  "statut": "Schéma de test/démo, pas la référence. Les champs à extraire sont fixés par SecurScope et décrits dans catalog/extraction/cibles/ ; seuls les blocs alimentation de camera_dome, camera_tube et camera_ptz y sont réalignés (SecurScope 3e1f26b, catalog/extraction/cibles/camera_alimentation.json, clé exacte dans cle_securscope).",
   "objet": "Spécification des données à extraire des fiches techniques constructeur. Un schéma distinct par type d'équipement.",
   "regles_extraction": {
     "tracabilite": "Le champ 'source' est obligatoire partout : fichier, page et extrait cité. Aucun champ non justifié n'entre dans un calcul.",
@@ -2459,117 +2460,102 @@
               "usage": "selection",
               "obligatoire": false
             },
-            "tension_alimentation_v": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": true,
-              "unite": "V DC",
-              "alimente": [
-                "bilan_alimentation"
-              ]
-            },
-            "tension_min_v": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": false,
-              "unite": "V DC",
-              "alimente": [
-                "bilan_alimentation"
-              ]
-            },
-            "tension_max_v": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": false,
-              "unite": "V DC",
-              "alimente": [
-                "bilan_alimentation"
-              ]
-            },
-            "courant_repos_ma": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": true,
-              "unite": "mA",
-              "alimente": [
-                "autonomie_batterie",
-                "bilan_consommation"
-              ],
-              "note": "Consommation nominale hors alarme. Cœur du calcul batterie."
-            },
-            "courant_alarme_ma": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": false,
-              "unite": "mA",
-              "alimente": [
-                "autonomie_batterie",
-                "bilan_consommation"
-              ],
-              "note": "Consommation en alarme ou en pointe. À défaut, égale au repos."
-            },
-            "poe_supporte": {
+            "port_poe": {
               "type": "boolean",
               "usage": "calcul",
               "obligatoire": true,
-              "alimente": [
-                "budget_poe"
-              ]
+              "alimente": ["budget_poe"],
+              "note": "Port d'entrée PoE (poe_pd). Vrai aussi pour un PoE propriétaire (Hi-PoE, ePoE, High PoE).",
+              "cle_securscope": "ports.poe"
             },
-            "poe_norme": {
-              "type": "enum",
+            "port_dc": {
+              "type": "boolean",
               "usage": "calcul",
-              "obligatoire": false,
-              "alimente": [
-                "budget_poe",
-                "dimensionnement_switch"
-              ],
-              "valeurs": [
-                "802.3af",
-                "802.3at",
-                "802.3bt_type3",
-                "802.3bt_type4"
-              ]
+              "obligatoire": true,
+              "alimente": ["bilan_alimentation"],
+              "note": "Entrée d'alimentation continue (power_dc_in). Faux pour une entrée 24 V AC seule.",
+              "cle_securscope": "ports.dc"
             },
-            "poe_classe": {
-              "type": "enum",
-              "usage": "calcul",
+            "power_w": {
+              "type": "number",
+              "usage": "selection",
               "obligatoire": false,
-              "alimente": [
-                "budget_poe",
-                "dimensionnement_switch"
-              ],
-              "valeurs": [
-                "0",
-                "1",
-                "2",
-                "3",
-                "4",
-                "5",
-                "6",
-                "7",
-                "8"
-              ]
+              "unite": "W",
+              "alimente": ["bilan_consommation"],
+              "note": "Consommation typique. Absente si la fiche ne donne qu'une valeur.",
+              "cle_securscope": "power_w"
             },
-            "puissance_poe_w": {
+            "power_w_peak": {
               "type": "number",
               "usage": "calcul",
               "obligatoire": true,
               "unite": "W",
-              "alimente": [
-                "budget_poe",
-                "dimensionnement_switch"
-              ],
-              "note": "Consommation maximale en PoE, pas la valeur de base."
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Consommation maximale, toutes alimentations confondues, IR, chauffage et moteur compris. Lue par la règle poe_budget de SecurScope.",
+              "cle_securscope": "power_w_peak"
             },
-            "puissance_dc_w": {
+            "port_poe_class": {
+              "type": "enum",
+              "usage": "calcul",
+              "obligatoire": false,
+              "valeurs": ["0", "1", "2", "3", "4", "5", "6", "7", "8"],
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Classe PoE annoncée, en chaîne.",
+              "cle_securscope": "ports.poe.class"
+            },
+            "port_poe_power_w": {
               "type": "number",
               "usage": "calcul",
               "obligatoire": false,
               "unite": "W",
-              "alimente": [
-                "bilan_consommation"
-              ]
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Pire cas annoncé en PoE (IR + chauffage + moteur PTZ), pas la valeur de base.",
+              "cle_securscope": "ports.poe.power_w"
+            },
+            "port_poe_min_standard": {
+              "type": "enum",
+              "usage": "calcul",
+              "obligatoire": false,
+              "valeurs": ["802.3af", "802.3at", "802.3bt"],
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Norme PoE minimale exigée. Absente pour une classe seule ou un PoE propriétaire.",
+              "cle_securscope": "ports.poe.min_standard"
+            },
+            "port_dc_voltage_min_v": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "V DC",
+              "alimente": ["bilan_alimentation"],
+              "note": "Tension mini d'exploitation de l'entrée continue.",
+              "cle_securscope": "ports.dc.voltage_min_v"
+            },
+            "port_dc_voltage_max_v": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "V DC",
+              "alimente": ["bilan_alimentation"],
+              "note": "Tension maxi d'exploitation de l'entrée continue.",
+              "cle_securscope": "ports.dc.voltage_max_v"
+            },
+            "port_dc_current_standby_ma": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "mA",
+              "alimente": ["bilan_consommation"],
+              "note": "Consommation au repos sur l'entrée continue. Jamais calculée depuis des watts.",
+              "cle_securscope": "ports.dc.current_standby_ma"
+            },
+            "port_dc_current_peak_ma": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "mA",
+              "alimente": ["bilan_consommation"],
+              "note": "Consommation en alarme / en fonctionnement sur l'entrée continue.",
+              "cle_securscope": "ports.dc.current_peak_ma"
             },
             "temperature_min_c": {
               "type": "number",
@@ -2788,117 +2774,102 @@
               "usage": "selection",
               "obligatoire": false
             },
-            "tension_alimentation_v": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": true,
-              "unite": "V DC",
-              "alimente": [
-                "bilan_alimentation"
-              ]
-            },
-            "tension_min_v": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": false,
-              "unite": "V DC",
-              "alimente": [
-                "bilan_alimentation"
-              ]
-            },
-            "tension_max_v": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": false,
-              "unite": "V DC",
-              "alimente": [
-                "bilan_alimentation"
-              ]
-            },
-            "courant_repos_ma": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": true,
-              "unite": "mA",
-              "alimente": [
-                "autonomie_batterie",
-                "bilan_consommation"
-              ],
-              "note": "Consommation nominale hors alarme. Cœur du calcul batterie."
-            },
-            "courant_alarme_ma": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": false,
-              "unite": "mA",
-              "alimente": [
-                "autonomie_batterie",
-                "bilan_consommation"
-              ],
-              "note": "Consommation en alarme ou en pointe. À défaut, égale au repos."
-            },
-            "poe_supporte": {
+            "port_poe": {
               "type": "boolean",
               "usage": "calcul",
               "obligatoire": true,
-              "alimente": [
-                "budget_poe"
-              ]
+              "alimente": ["budget_poe"],
+              "note": "Port d'entrée PoE (poe_pd). Vrai aussi pour un PoE propriétaire (Hi-PoE, ePoE, High PoE).",
+              "cle_securscope": "ports.poe"
             },
-            "poe_norme": {
-              "type": "enum",
+            "port_dc": {
+              "type": "boolean",
               "usage": "calcul",
-              "obligatoire": false,
-              "alimente": [
-                "budget_poe",
-                "dimensionnement_switch"
-              ],
-              "valeurs": [
-                "802.3af",
-                "802.3at",
-                "802.3bt_type3",
-                "802.3bt_type4"
-              ]
+              "obligatoire": true,
+              "alimente": ["bilan_alimentation"],
+              "note": "Entrée d'alimentation continue (power_dc_in). Faux pour une entrée 24 V AC seule.",
+              "cle_securscope": "ports.dc"
             },
-            "poe_classe": {
-              "type": "enum",
-              "usage": "calcul",
+            "power_w": {
+              "type": "number",
+              "usage": "selection",
               "obligatoire": false,
-              "alimente": [
-                "budget_poe",
-                "dimensionnement_switch"
-              ],
-              "valeurs": [
-                "0",
-                "1",
-                "2",
-                "3",
-                "4",
-                "5",
-                "6",
-                "7",
-                "8"
-              ]
+              "unite": "W",
+              "alimente": ["bilan_consommation"],
+              "note": "Consommation typique. Absente si la fiche ne donne qu'une valeur.",
+              "cle_securscope": "power_w"
             },
-            "puissance_poe_w": {
+            "power_w_peak": {
               "type": "number",
               "usage": "calcul",
               "obligatoire": true,
               "unite": "W",
-              "alimente": [
-                "budget_poe",
-                "dimensionnement_switch"
-              ],
-              "note": "Consommation maximale en PoE, pas la valeur de base."
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Consommation maximale, toutes alimentations confondues, IR, chauffage et moteur compris. Lue par la règle poe_budget de SecurScope.",
+              "cle_securscope": "power_w_peak"
             },
-            "puissance_dc_w": {
+            "port_poe_class": {
+              "type": "enum",
+              "usage": "calcul",
+              "obligatoire": false,
+              "valeurs": ["0", "1", "2", "3", "4", "5", "6", "7", "8"],
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Classe PoE annoncée, en chaîne.",
+              "cle_securscope": "ports.poe.class"
+            },
+            "port_poe_power_w": {
               "type": "number",
               "usage": "calcul",
               "obligatoire": false,
               "unite": "W",
-              "alimente": [
-                "bilan_consommation"
-              ]
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Pire cas annoncé en PoE (IR + chauffage + moteur PTZ), pas la valeur de base.",
+              "cle_securscope": "ports.poe.power_w"
+            },
+            "port_poe_min_standard": {
+              "type": "enum",
+              "usage": "calcul",
+              "obligatoire": false,
+              "valeurs": ["802.3af", "802.3at", "802.3bt"],
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Norme PoE minimale exigée. Absente pour une classe seule ou un PoE propriétaire.",
+              "cle_securscope": "ports.poe.min_standard"
+            },
+            "port_dc_voltage_min_v": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "V DC",
+              "alimente": ["bilan_alimentation"],
+              "note": "Tension mini d'exploitation de l'entrée continue.",
+              "cle_securscope": "ports.dc.voltage_min_v"
+            },
+            "port_dc_voltage_max_v": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "V DC",
+              "alimente": ["bilan_alimentation"],
+              "note": "Tension maxi d'exploitation de l'entrée continue.",
+              "cle_securscope": "ports.dc.voltage_max_v"
+            },
+            "port_dc_current_standby_ma": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "mA",
+              "alimente": ["bilan_consommation"],
+              "note": "Consommation au repos sur l'entrée continue. Jamais calculée depuis des watts.",
+              "cle_securscope": "ports.dc.current_standby_ma"
+            },
+            "port_dc_current_peak_ma": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "mA",
+              "alimente": ["bilan_consommation"],
+              "note": "Consommation en alarme / en fonctionnement sur l'entrée continue.",
+              "cle_securscope": "ports.dc.current_peak_ma"
             },
             "temperature_min_c": {
               "type": "number",
@@ -3117,117 +3088,102 @@
               "usage": "selection",
               "obligatoire": false
             },
-            "tension_alimentation_v": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": true,
-              "unite": "V DC",
-              "alimente": [
-                "bilan_alimentation"
-              ]
-            },
-            "tension_min_v": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": false,
-              "unite": "V DC",
-              "alimente": [
-                "bilan_alimentation"
-              ]
-            },
-            "tension_max_v": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": false,
-              "unite": "V DC",
-              "alimente": [
-                "bilan_alimentation"
-              ]
-            },
-            "courant_repos_ma": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": true,
-              "unite": "mA",
-              "alimente": [
-                "autonomie_batterie",
-                "bilan_consommation"
-              ],
-              "note": "Consommation nominale hors alarme. Cœur du calcul batterie."
-            },
-            "courant_alarme_ma": {
-              "type": "number",
-              "usage": "calcul",
-              "obligatoire": false,
-              "unite": "mA",
-              "alimente": [
-                "autonomie_batterie",
-                "bilan_consommation"
-              ],
-              "note": "Consommation en alarme ou en pointe. À défaut, égale au repos."
-            },
-            "poe_supporte": {
+            "port_poe": {
               "type": "boolean",
               "usage": "calcul",
               "obligatoire": true,
-              "alimente": [
-                "budget_poe"
-              ]
+              "alimente": ["budget_poe"],
+              "note": "Port d'entrée PoE (poe_pd). Vrai aussi pour un PoE propriétaire (Hi-PoE, ePoE, High PoE).",
+              "cle_securscope": "ports.poe"
             },
-            "poe_norme": {
-              "type": "enum",
+            "port_dc": {
+              "type": "boolean",
               "usage": "calcul",
-              "obligatoire": false,
-              "alimente": [
-                "budget_poe",
-                "dimensionnement_switch"
-              ],
-              "valeurs": [
-                "802.3af",
-                "802.3at",
-                "802.3bt_type3",
-                "802.3bt_type4"
-              ]
+              "obligatoire": true,
+              "alimente": ["bilan_alimentation"],
+              "note": "Entrée d'alimentation continue (power_dc_in). Faux pour une entrée 24 V AC seule.",
+              "cle_securscope": "ports.dc"
             },
-            "poe_classe": {
-              "type": "enum",
-              "usage": "calcul",
+            "power_w": {
+              "type": "number",
+              "usage": "selection",
               "obligatoire": false,
-              "alimente": [
-                "budget_poe",
-                "dimensionnement_switch"
-              ],
-              "valeurs": [
-                "0",
-                "1",
-                "2",
-                "3",
-                "4",
-                "5",
-                "6",
-                "7",
-                "8"
-              ]
+              "unite": "W",
+              "alimente": ["bilan_consommation"],
+              "note": "Consommation typique. Absente si la fiche ne donne qu'une valeur.",
+              "cle_securscope": "power_w"
             },
-            "puissance_poe_w": {
+            "power_w_peak": {
               "type": "number",
               "usage": "calcul",
               "obligatoire": true,
               "unite": "W",
-              "alimente": [
-                "budget_poe",
-                "dimensionnement_switch"
-              ],
-              "note": "Consommation maximale en PoE, pas la valeur de base."
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Consommation maximale, toutes alimentations confondues, IR, chauffage et moteur compris. Lue par la règle poe_budget de SecurScope.",
+              "cle_securscope": "power_w_peak"
             },
-            "puissance_dc_w": {
+            "port_poe_class": {
+              "type": "enum",
+              "usage": "calcul",
+              "obligatoire": false,
+              "valeurs": ["0", "1", "2", "3", "4", "5", "6", "7", "8"],
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Classe PoE annoncée, en chaîne.",
+              "cle_securscope": "ports.poe.class"
+            },
+            "port_poe_power_w": {
               "type": "number",
               "usage": "calcul",
               "obligatoire": false,
               "unite": "W",
-              "alimente": [
-                "bilan_consommation"
-              ]
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Pire cas annoncé en PoE (IR + chauffage + moteur PTZ), pas la valeur de base.",
+              "cle_securscope": "ports.poe.power_w"
+            },
+            "port_poe_min_standard": {
+              "type": "enum",
+              "usage": "calcul",
+              "obligatoire": false,
+              "valeurs": ["802.3af", "802.3at", "802.3bt"],
+              "alimente": ["budget_poe", "dimensionnement_switch"],
+              "note": "Norme PoE minimale exigée. Absente pour une classe seule ou un PoE propriétaire.",
+              "cle_securscope": "ports.poe.min_standard"
+            },
+            "port_dc_voltage_min_v": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "V DC",
+              "alimente": ["bilan_alimentation"],
+              "note": "Tension mini d'exploitation de l'entrée continue.",
+              "cle_securscope": "ports.dc.voltage_min_v"
+            },
+            "port_dc_voltage_max_v": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "V DC",
+              "alimente": ["bilan_alimentation"],
+              "note": "Tension maxi d'exploitation de l'entrée continue.",
+              "cle_securscope": "ports.dc.voltage_max_v"
+            },
+            "port_dc_current_standby_ma": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "mA",
+              "alimente": ["bilan_consommation"],
+              "note": "Consommation au repos sur l'entrée continue. Jamais calculée depuis des watts.",
+              "cle_securscope": "ports.dc.current_standby_ma"
+            },
+            "port_dc_current_peak_ma": {
+              "type": "number",
+              "usage": "calcul",
+              "obligatoire": false,
+              "unite": "mA",
+              "alimente": ["bilan_consommation"],
+              "note": "Consommation en alarme / en fonctionnement sur l'entrée continue.",
+              "cle_securscope": "ports.dc.current_peak_ma"
             },
             "temperature_min_c": {
               "type": "number",
@@ -3308,7 +3264,7 @@
               "note": "Gammes ou centrales avec lesquelles l'équipement fonctionne."
             }
           },
-          "note": "Les PTZ dépassent souvent le PoE standard et exigent du 802.3bt ou une alimentation locale : champ poe_norme critique."
+          "note": "Les PTZ dépassent souvent le PoE standard et exigent du 802.3bt ou une alimentation locale : champ port_poe_min_standard critique."
         },
         "camera_thermique": {
           "libelle": "Caméra thermique",
