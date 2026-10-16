@@ -7,7 +7,12 @@ from typing import Any
 import pytest
 
 from catalog.extraction.client import EchecAppel, ReponseHTTP
-from catalog.extraction.ollama import decrire_modele, racine_ollama, version_ollama
+from catalog.extraction.ollama import (
+    ModeleAbsent,
+    decrire_modele,
+    racine_ollama,
+    version_ollama,
+)
 
 CHARGE = {
     "name": "qwen3:14b",
@@ -76,6 +81,18 @@ def test_contexte_absent_refuse() -> None:
         decrire_modele(
             "http://h:11434/v1", "qwen3:14b", serveur.lire, serveur.transport
         )
+
+
+def test_modele_inconnu_du_serveur() -> None:
+    serveur = FauxOllama([])
+
+    def introuvable(
+        url: str, entetes: dict[str, str], corps: dict[str, Any], delai_s: float
+    ) -> ReponseHTTP:
+        return ReponseHTTP(statut=404, corps={"error": "model not found"})
+
+    with pytest.raises(ModeleAbsent, match="qwen3:14b absent"):
+        decrire_modele("http://h:11434/v1", "qwen3:14b", serveur.lire, introuvable)
 
 
 def test_modele_sans_etiquette_trouve_en_latest() -> None:

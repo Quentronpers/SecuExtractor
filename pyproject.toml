@@ -13,6 +13,9 @@ dependencies = [
     "streamlit>=1.38",
 ]
 
+[project.scripts]
+catalog = "catalog.cli:main"
+
 [dependency-groups]
 dev = [
     "ruff>=0.6",

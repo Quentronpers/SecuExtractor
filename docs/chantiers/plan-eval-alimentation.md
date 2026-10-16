@@ -722,6 +722,255 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   inférieur à la plus grande puissance citée, le champ passe en `douteux`.
   Mesure avec `--reflexion low` (R4 : troncature à 8 192 jetons), ligne de
   base sur le test, jeu ajouté au nom du dossier de résultats.
+- **Prise en main de l'outil** (demandé par Quentin le 2026-10-16, principe
+  global : toute commande doit se lancer sans connaître les variables
+  internes) :
+  - valeurs par défaut pour Ollama local (`http://127.0.0.1:11434/v1`,
+    `qwen3:14b`) quand `LLM_BASE_URL` et `LLM_MODEL` sont absents ; Groq
+    par `--fournisseur groq` et `LLM_API_KEY` ;
+  - commande `catalog` déclarée dans `pyproject.toml` (`[project.scripts]`,
+    accord de Quentin requis) : `catalog extract --jeu test` ;
+  - messages d'erreur qui disent quoi faire (Ollama injoignable, modèle
+    absent → `ollama pull`, notices manquantes → `catalog recuperer`) ;
+  - **section « Try it » du README**, pour un recruteur ou un tiers :
+    installation en venv, chemin sans GPU (`recuperer`, ligne de base,
+    `evaluate`) et chemin avec Ollama, chacun en trois ou quatre commandes,
+    durée et matériel indiqués, limite des 7 pages HTML non reproductibles
+    à l'identique.
+
+#### Journal de L5 (2026-10-16, première session, sans GPU)
+
+- **Décisions de Quentin** : règle de plausibilité sur les alimentations
+  multiples adoptée ; commande `catalog` dans `pyproject.toml`
+  (`[project.scripts]`) acceptée ; ordre : tout ce qui se fait sans GPU,
+  puis mesure du prompt v2 lancée par Quentin.
+- **Règle `inferieure_consommation_citee`** (`plausibility/checker.py`,
+  `rules.py`) : si le texte envoyé cite au moins deux alimentations (PoE,
+  DC, AC) et que `power_w_peak` est inférieure à la plus forte
+  consommation citée, le champ passe en `douteux`. Une consommation citée
+  est un nombre en W dont le texte qui le précède sur la ligne (depuis la
+  valeur précédente) porte un indice de consommation (consum, max, typ,
+  approx) et aucun indice de calibre (midspan, inject, supply, psu, adapt,
+  class, 802.3, ethernet, switch, output, budget, PoH, Hi-PoE, High PoE) ;
+  la borne haute d'une plage hérite de la décision de la borne basse.
+  Prudente par construction : une consommation écartée à tort fait taire
+  la règle, jamais déclencher (ex. « PoE+ (IEEE802.3at): … 25 W » écarté).
+- **Mesure par rejeu des exécutions de L4** (code courant, sans modèle,
+  rapports gardés hors `eval/resultats/` pour ne pas écraser ceux de L4) :
+
+  | | Mise au point | Test |
+  |---|---|---|
+  | tri des erreurs en `douteux` | 60,0 → 70,0 % | 54,5 → 63,6 % |
+  | précision des `sur` | 95,8 → 96,8 % | 95,6 → 96,4 % |
+  | précision, rappel, invention | inchangés | inchangés |
+
+  Déclenchements : hanwha-07, axis-04, bosch-02 (erreurs attrapées) ;
+  hik-05 (fausse alerte, notice multi-références dont les variantes
+  voisines consomment plus : coût d'une relecture). **Biais à dire** :
+  l'exclusion « ethernet » vient d'une notice du test (axis-09, « High
+  Power over Ethernet, max 90 W ») ; le chiffre du test est un peu
+  optimiste, celui de la mise au point est propre. L'exclusion PoH vient
+  du garde-fou du corrigé (vivotek-06, note « PoH/PoE 95 W ») : sur le
+  texte réel de la notice, la règle ne se déclenchait pas.
+- **Ligne de base sur le test** (`2026-10-16_ligne-de-base-v1_test.*`) :
+  précision 82,7 % [74,3 ; 90,7], précision des `sur` 86,8 %, rappel
+  77,1 %, invention 11,8 %, rappel du découpage 100 %. Le test est plus
+  facile pour les expressions régulières que la mise au point (69,0 %) :
+  l'écart à justifier par le LLM est d'environ 9 points, pas 20.
+- **Prompt v2** (`camera-alimentation-v2`), écrit, **non mesuré** : règle 3
+  (comparer la consommation de chaque alimentation avant de remplir
+  `power_w_peak`, exemple hanwha-07 de la mise au point), règle 10 (24 V
+  AC ni DC ni PoE), consignes `power_w` (nul sans valeur étiquetée
+  typique, jamais une copie du maximum), `ports.poe.power_w` (tous modes
+  PoE comparés, injecteur compris, jamais une valeur AC ou DC),
+  `current_peak_ma` (ni 24 V AC, ni calibre de fusible). Limite : l'analyse
+  d'erreurs de L4 portait sur les deux jeux ; la rédaction reste générale
+  et aucun exemple ne vient du test, mais le test n'est plus tout à fait
+  aveugle pour v2.
+- **Dette corrigée** : le dossier de résultats porte le jeu
+  (`<date>_<modèle>_<prompt>_<réflexion>_<jeu>`), comme les suffixes posés
+  à la main en L4.
+- **Prise en main** : Ollama local et `qwen3:14b` par défaut ; Groq exige
+  `LLM_API_KEY` et `LLM_MODEL` ; messages qui disent quoi faire (Ollama
+  injoignable → `ollama serve`, modèle absent → `ollama pull`, nouvelle
+  exception `ModeleAbsent` sur un 404 d'`/api/generate` ; notices absentes
+  → `catalog recuperer --archiver`). Commande `catalog` installée par
+  `pip install -e .`.
+- **Constat pour « Try it »** : `recuperer --archiver` n'archive pas une
+  page modifiée ; un tiers n'a donc pas les 7 pages HTML, et `extract` ou
+  `evaluate --ligne-de-base` sur un jeu complet s'arrêtent à la première.
+  Option proposée à Quentin, non décidée : ignorer les notices absentes
+  en les signalant et en les inscrivant au rapport.
+- **Section « Try it » du README** écrite (choix de Quentin : décrire la
+  limite telle quelle, sans l'option ci-dessus) : installation en venv,
+  chemin sans GPU (`recuperer --archiver`, puis ligne de base sur les 27
+  notices PDF du test, filtrées par `awk` sur `eval/notices.csv`) et chemin
+  Ollama sur le même filtre. Repère publié pour un tiers : ligne de base
+  sur ces 27 PDF, précision 81,1 % [70,5 ; 90,5], rappel 79,5 %, 14 s sur
+  le PC. Durée de `recuperer` sur une machine neuve non mesurée
+  (« quelques minutes »). Le rapport ne compte que les notices traitées :
+  le filtre ne fausse pas le rappel.
+- **Mesure du prompt v2 sur la mise au point** (lancée par Quentin,
+  2026-10-16 18:23, 15 notices, mêmes réglages qu'en L4, 100 % GPU, ni
+  contexte ni digest changés ; rapport
+  `eval/resultats/2026-10-16_qwen3-14b_camera-alimentation-v2_none_miseaupoint.*`).
+  Comparaison avec v1 rejoué par le même code (règle comprise) :
+
+  | | v1 | v2 |
+  |---|---|---|
+  | précision | 90,4 % | 95,0 % [89,9 ; 99,0] |
+  | précision des `sur` | 96,8 % | 100,0 % |
+  | rappel | 85,5 % | 86,4 % |
+  | invention | 1,8 % | 0,0 % |
+  | sous-estimation | 3,4 % | 3,4 % |
+  | citations suspectes | 1,9 % | 8,0 % |
+  | tri des erreurs en `douteux` | 70,0 % | 100,0 % |
+  | champs `douteux` (dont justes) | 10 (3) | 17 (12) |
+  | sorties incohérentes | 8 | 3 |
+  | durée moyenne | 10,7 s | 9,1 s |
+
+  Corrigés par v2 : hanwha-07 (92 W trouvés), ms-01 (deux `sur` faux),
+  dahua-01 (`power_w` `sur` faux), bosch-01. Nouvelles erreurs, toutes en
+  `douteux` : ipro-03 (`power_w_peak` 8,5 au lieu de 9,1 W, DC retenu
+  contre PoE ; la règle se tait, les deux lignes portent un indice de
+  calibre, `poe_superieure_max` attrape), ms-03 (17,5 au lieu de 17,2 W,
+  colonne voisine d'une notice multi-références). **Régression silencieuse**
+  : unv-03, « AC 24V±25% (Default), DC 24V±25% » — la règle 10 de v2 fait
+  rejeter toute la ligne, `ports.dc` et ses tensions passent `absent` sans
+  doute (perte de rappel sur un champ de compatibilité d'alimentation).
+  Coût de v2 : plus de relecture (12 fausses alertes sur 165 cellules) :
+  hik-01 (4 champs, le modèle ajoute le libellé « Power: » devant la ligne
+  citée, contrôle strict), multi-références où la règle de consommation
+  citée se déclenche sur une variante voisine (bosch-01, ms-01), hanwha-07
+  (92 W juste, extrait de la ligne PoE), et les champs appariés des règles
+  à deux champs (ipro-03, vivotek-06).
+- **Prompt v3** (`camera-alimentation-v3`, choix de Quentin : deuxième et
+  dernière itération) : v2 plus deux corrections ciblées. Règle 1 : ne
+  jamais ajouter de libellé, de titre ou de nom de colonne absent de la
+  portion copiée (hik-01). Règle 10 : une ligne qui cite plusieurs entrées
+  (« AC 24 V, DC 12 V ») déclare quand même l'entrée DC et ses tensions ;
+  seule la partie AC est écartée (unv-03). À mesurer sur la mise au point,
+  puis la version retenue (v2 ou v3) une seule fois sur le test.
+- **Mesure de v3 sur la mise au point** (lancée par Quentin, 18:40, mêmes
+  réglages, 100 % GPU, aucun écart en fin de lot ; rapport
+  `..._v3_none_miseaupoint.*`) :
+
+  | | v2 | v3 |
+  |---|---|---|
+  | précision | 95,0 % | 97,1 % [93,9 ; 100,0] |
+  | précision des `sur` | 100,0 % | 100,0 % |
+  | rappel | 86,4 % | 92,7 % [88,0 ; 96,6] |
+  | exactitude | 90,9 % | 95,2 % |
+  | sous-estimation | 3,4 % | 3,4 % |
+  | citations suspectes | 8,0 % | 8,6 % |
+  | tri des erreurs en `douteux` | 100,0 % | 100,0 % |
+  | fausses alertes (`douteux` justes) | 12 | 14 |
+  | sorties incohérentes | 3 | 8 |
+
+  Corrigés par v3 : unv-03 (entrée DC et tensions retrouvées), ms-03,
+  ipro-03, mobotix-03, vivotek-06 (tension max). Nouvelle erreur, en
+  `douteux` : hik-01 `power_w_peak` 5 W (DC) au lieu de 6,5 W (PoE),
+  attrapée par `poe_superieure_max`. La correction du libellé est sans
+  effet sur hik-01 : le modèle cite encore « Power: 12 VDC… », où
+  « Power » est la cellule voisine du tableau (« General | Power | 12 VDC…
+  »), donc les champs justes restent en `douteux` (`citation_introuvable`).
+  Les 5 incohérences de plus viennent de dahua-01 (extrait sans valeur
+  sur la classe et le port DC) : même issue qu'en v2, des `absent`.
+  **v3 retenue** pour la mesure unique sur le test.
+- **Mesure unique de v3 sur le test** (lancée par Quentin, 18:45–18:50,
+  35 notices, 100 % GPU, aucun écart en fin de lot ; rapport
+  `..._v3_none_test.*`). Comparaison avec v1 rejoué par le même code :
+
+  | | v1 | v3 |
+  |---|---|---|
+  | précision | 91,5 % | 91,8 % [87,0 ; 95,6] |
+  | précision des `sur` | 96,4 % | 94,7 % [90,4 ; 98,3] |
+  | rappel | 89,1 % | 88,0 % |
+  | invention | 6,7 % | 2,5 % |
+  | sous-estimation | 4,6 % | 3,2 % |
+  | citations suspectes | 6,9 % | 3,9 % |
+  | tri des erreurs en `douteux` | 63,6 % | 42,9 % [21,1 ; 71,4] |
+  | erreurs (dont `sur` / `douteux` / `absent`) | 37 (8 / 14 / 15) | 35 (12 / 9 / 14) |
+  | sorties incohérentes | 10 | 0 |
+
+  **Les gains de la mise au point ne se transfèrent pas.** Précision
+  inchangée, moins d'inventions, mais plus d'erreurs dangereuses (`sur`
+  faux : 8 → 12) et un tri en `douteux` qui recule. Erreurs `sur` propres à
+  v3, plusieurs induites par le texte ajouté : axis-09 `power_w_peak` et
+  `ports.poe.power_w` à 90 W (capacité « High PoE », prise pour une
+  consommation après la consigne « tous modes PoE comparés, High PoE
+  compris ») ; ipro-04 `ports.poe.power_w` 55 W (valeur AC, malgré la règle
+  10) ; axis-05 et dahua-03 `ports.dc` à `false` alors qu'une entrée DC
+  existe ; ms-02 (trois champs d'une colonne voisine, citations désormais
+  conformes donc `sur`) ; axis-01 courant de 25 mA. Corrigés par v3 :
+  bosch-03 (24 V AC rangé en DC), hik-02 et hik-03 (`power_w` copié du
+  maximum), hik-06, axis-04, axis-06 norme.
+- **Leçon de méthode** : trois versions jugées sur 15 notices, c'est du
+  sur-ajustement ; chaque consigne ajoutée corrige le cas qui l'a inspirée
+  et en déplace d'autres. Les intervalles se recouvrent largement : sur 35
+  notices, v1 et v3 ne se départagent pas en précision. Conformément au
+  protocole, aucune itération sur le test.
+- **Relecture de fin de lot** (relecteur-conformite, expert-metier,
+  architecte-llm) : aucun écart bloquant de conformité ; deux constats
+  bloquants sur le fond, vérifiés :
+  1. *Le test a servi à écrire v2* : 9 notices du test (axis-01, axis-04,
+     bosch-02, bosch-03, dahua-04, hik-02, hik-03, hik-06, ipro-04) étaient
+     dans l'analyse d'erreurs de L4. Découpage du test (erreurs, dont `sur`) :
+     sur ces 9, v1 23 (8), v3 12 (5) ; sur les 26 autres, v1 14 (0), v3
+     23 (6). v3 corrige ce qui l'a inspirée et régresse sur les notices
+     vierges ; « précision inchangée » le masquait. La phrase « ses erreurs
+     propres sont des surestimations ou passent par la relecture » était
+     fausse (axis-05, dahua-03, ms-02, axis-01 en `sur`).
+  2. *Angle mort de la règle* : seule la première valeur d'une ligne était
+     lue (« Max.: 7W (DC 12V), 8.5W(PoE) » rendait 7), précisément le cas
+     visé.
+- **Décision de Quentin (2026-10-16, après ce découpage) : v1 reste le
+  prompt.** Le choix de v3 avait été pris sur une présentation incomplète.
+  `prompts.py` revient à v1 (gabarit identique octet pour octet au texte
+  envoyé) ; les textes exacts de v1, v2 et v3, tirés des requêtes brutes,
+  sont archivés dans `eval/prompts/`. Toute nouvelle version du prompt
+  devra être jugée sur des notices neuves : le test n'est plus aveugle.
+- **Correctifs de fin de lot** (choisis par Quentin) :
+  - règle : la valeur suivante d'une ligne hérite de la décision tant
+    qu'aucun indice ne tranche (un indice de calibre écarte, un indice de
+    consommation retient), ce qui couvre aussi les plages ; `typ(?!e)`
+    (« Type 3 (60 W) » n'est plus une consommation) ; « watt » lu ;
+    calibres ajoutés : transformer, rated, recommend, hpoe, upoe. Mesure
+    propre (mise au point, v1 rejoué) : tri 60,0 → 80,0 % (8/10),
+    précision des `sur` 95,8 → 97,8 % ; attrape hanwha-07 et ms-01, une
+    fausse alerte (ms-03, multi-références). Au test : 63,6 % (14/22),
+    biaisé (règle retouchée sur des cas du test) ;
+  - noms de rapports : un sous-ensemble (`--ids`) porte un suffixe
+    `_ids<n>-<empreinte>` (extract et ligne de base) ; `_dossier` devient
+    `dossier_resultats`, public et testé ; rapport de la ligne de base sur
+    les 27 PDF publié (`..._ligne-de-base-v1_test_ids27-5d06c6.*`) ;
+  - Groq avec `--reflexion none` refusé avec un message (gpt-oss rejette
+    `none` en 400) ;
+  - test du manifeste absent ;
+  - README : découpage 9/26, test utilisé pour écrire v2, choix fait après
+    la mesure du test, attributions corrigées, définition du tri (erreurs
+    produites seulement), « cannot separate » remplacé par « comparaison
+    appariée non calculée », limite « held out » corrigée.
+  - Rapports régénérés avec le code final : v1 rejoué
+    (`..._v1_none_{miseaupoint,test}_rejeu-l5.*`), v2, v3, ligne de base
+    test. Le rapport de ligne de base de la mise au point reste celui de L4.
+- **Reporté (relecture)**, à décider ou à faire dans la suite de L5 :
+  - expert-metier : règles sans modèle (port déclaré `false` alors que son
+    extrait contient son propre marqueur ; extrait `ports.poe.*` qui parle
+    d'AC sans PoE ; `current_peak_ma` sous 100 mA) ; mettre la valeur et la
+    ligne déclenchantes dans le motif ; la condition « au moins deux
+    alimentations » ne filtre presque rien (relais 24 VDC/VAC, DC-iris,
+    802.11ac) ; incohérence du GUIDE : classe du mode bas, puissance du
+    mode haut (ipro-04, Q1806-LE), une paire classe/puissance par mode à
+    arbitrer ;
+  - architecte-llm : bootstrap apparié v1/v3 (protocole §4) ; provenance
+    (v2 et v3 ont tourné sur un arbre modifié au commit `a57f668`, le
+    commit du code d'évaluation n'est pas noté dans les rejeux) ; `--ids`
+    ignoré avec `--run` ; quota Groq de base (8K jetons/min, 200K/jour, le
+    test v3 en a pris 127K) : deux jours, reprise par le cache des réponses
+    brutes ; contrôle de citation tolérant une cellule voisine déconseillé
+    tel quel (ms-02 est une colonne voisine) : seulement un libellé à
+    gauche sur la même ligne, critère fixé avant de mesurer.
 
 ### L6 — Restitution
 - **README en anglais**, écrit dès la fin de L3c, sans chiffres : le

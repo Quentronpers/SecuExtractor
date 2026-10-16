@@ -13,13 +13,17 @@ import pytest
 
 from catalog.evaluation import execution, notices
 from catalog.evaluation.execution import (
+    choisir_serveur,
     commit_courant,
     configurer,
     controler_fin,
     documents,
+    dossier_resultats,
+    suffixe_ids,
 )
 from catalog.extraction.client import EchecAppel
-from catalog.extraction.ollama import ModeleCharge
+from catalog.extraction.ollama import ModeleAbsent, ModeleCharge
+from catalog.extraction.prompts import VERSION_PROMPT
 from catalog.extraction.runner import ConfigModele
 
 SHA = "a" * 64
@@ -81,6 +85,11 @@ def test_groq_sans_contexte_ni_digest() -> None:
     assert config.max_jetons == 8192 and serveur == {}
 
 
+def test_groq_sans_reflexion_refuse() -> None:
+    with pytest.raises(SystemExit, match="--reflexion low"):
+        configurer(_args(fournisseur="groq"), "u", "m")
+
+
 def test_ollama_lit_contexte_digest_et_previent_du_debordement(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -99,7 +108,16 @@ def test_ollama_injoignable_arrete_proprement(monkeypatch: pytest.MonkeyPatch) -
         raise EchecAppel("refusé")
 
     monkeypatch.setattr(execution, "decrire_modele", en_panne)
-    with pytest.raises(SystemExit, match="Ollama injoignable"):
+    with pytest.raises(SystemExit, match="Ollama injoignable.*ollama serve"):
+        configurer(_args(), "http://h/v1", "qwen3:14b")
+
+
+def test_modele_absent_dit_de_le_telecharger(monkeypatch: pytest.MonkeyPatch) -> None:
+    def absent(url: str, modele: str) -> ModeleCharge:
+        raise ModeleAbsent(f"{modele} absent du serveur")
+
+    monkeypatch.setattr(execution, "decrire_modele", absent)
+    with pytest.raises(SystemExit, match="ollama pull qwen3:14b"):
         configurer(_args(), "http://h/v1", "qwen3:14b")
 
 
@@ -130,8 +148,48 @@ def test_commit_inconnu_hors_depot(tmp_path: Path) -> None:
     assert commit_courant(tmp_path) == ""
 
 
-def test_variables_d_environnement_exigees(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("LLM_BASE_URL", raising=False)
-    monkeypatch.delenv("LLM_MODEL", raising=False)
-    with pytest.raises(SystemExit, match="LLM_BASE_URL"):
-        execution.cmd_extract(_args())
+def _sans_reglage(monkeypatch: pytest.MonkeyPatch) -> None:
+    for variable in ("LLM_BASE_URL", "LLM_MODEL", "LLM_API_KEY"):
+        monkeypatch.delenv(variable, raising=False)
+
+
+def test_ollama_local_par_defaut(monkeypatch: pytest.MonkeyPatch) -> None:
+    _sans_reglage(monkeypatch)
+    assert choisir_serveur("ollama") == (
+        "http://127.0.0.1:11434/v1",
+        "qwen3:14b",
+        None,
+    )
+    monkeypatch.setenv("LLM_MODEL", "qwen3:8b")
+    assert choisir_serveur("ollama")[1] == "qwen3:8b"
+
+
+def test_groq_exige_cle_et_modele(monkeypatch: pytest.MonkeyPatch) -> None:
+    _sans_reglage(monkeypatch)
+    with pytest.raises(SystemExit, match="LLM_API_KEY"):
+        choisir_serveur("groq")
+    monkeypatch.setenv("LLM_API_KEY", "k")
+    monkeypatch.setenv("LLM_MODEL", "openai/gpt-oss-120b")
+    assert choisir_serveur("groq") == (
+        "https://api.groq.com/openai/v1",
+        "openai/gpt-oss-120b",
+        "k",
+    )
+
+
+def test_dossier_porte_le_jeu_et_le_sous_ensemble() -> None:
+    config = ConfigModele("qwen3:14b", 16384, "d1", "none", 2048)
+    complet = dossier_resultats(config, "test").name
+    assert complet.endswith(f"_qwen3-14b_{VERSION_PROMPT}_none_test")
+    partiel = dossier_resultats(config, "test", "hik-02, axis-01").name
+    assert partiel.startswith(complet + "_ids2-")
+    assert partiel == dossier_resultats(config, "test", "axis-01,hik-02").name
+    assert suffixe_ids("") == ""
+
+
+def test_manifeste_absent_dit_de_recuperer(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(execution, "MANIFESTE_PATH", tmp_path / "absent.json")
+    with pytest.raises(SystemExit, match="catalog recuperer --archiver"):
+        documents(_args())

@@ -29,6 +29,10 @@ MAINTIEN = "30m"
 LireJSON = Callable[[str], dict[str, Any]]
 
 
+class ModeleAbsent(EchecAppel):
+    """Ollama ne connaît pas le modèle demandé : il faut le télécharger."""
+
+
 @dataclass(frozen=True)
 class ModeleCharge:
     """Le modèle tel qu'Ollama l'a chargé."""
@@ -86,6 +90,8 @@ def decrire_modele(
     if charge is None:
         corps = {"model": modele, "keep_alive": MAINTIEN}
         reponse = transport(f"{racine}/api/generate", {}, corps, DELAI_S)
+        if reponse.statut == 404:
+            raise ModeleAbsent(f"{modele} absent du serveur")
         if reponse.statut != 200:
             raise EchecAppel(f"chargement de {modele} : HTTP {reponse.statut}")
         charge = _trouver(lire(f"{racine}/api/ps"), modele)

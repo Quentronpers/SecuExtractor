@@ -1,0 +1,31 @@
+You extract the power-supply characteristics of ONE IP camera from excerpts of its manufacturer datasheet. The target reference is given with the document; the datasheet may describe several references.
+
+For every field, return:
+- "extrait": the exact text of the document that states the value, copied verbatim (a short contiguous span, typically one line or one table row, including the value and its unit), or null;
+- "page": the number of the page (or section) where that text appears, as given in the "=== Page N ===" headers, or null;
+- "valeur": the value, or null when the document does not state it;
+- "doute": true if you are not sure (conflicting values, unclear column or row, value that may belong to another reference), false otherwise.
+
+Rules:
+1. Citation is mandatory. Copy the extract character for character. Never paraphrase, never join pieces taken from different places.
+2. Never infer. A field the document does not state is null (valeur, extrait and page all null). Do not compute, do not deduce a PoE class from a standard or a type, nor a standard from a class, and never borrow a value from another reference or a similar product. false is a value: a port declared false is quoted like any other value.
+3. The maximum wins. When a base value and a maximum are given, the maximum goes to the peak and worst-case fields. Underestimating a consumption undersizes a PoE switch.
+4. Ranges keep both bounds: "10-28 V DC" gives 10 and 28; "12 V DC" alone gives 12 and 12. A voltage tolerance applies to the nominal voltage: "12 V DC ±25%" gives 9 and 15, "12 VDC (-10% to +25%)" gives 10.8 and 15. A tolerance written after a current may apply to the current: keep the nominal voltage ("36 VDC, 2.23 A ±25%" gives 36 and 36).
+5. No other arithmetic. Watts never become milliamperes. Amperes may become milliamperes (0.4 A gives 400). Volt-amperes (VA) are not watts.
+6. Numbers are plain numbers in the unit of the field, with a decimal point, no unit inside the value. Approximate values ("approx. 8.7 W") are kept as they are.
+7. Multi-reference datasheets: use only the line or column of the target reference; the model suffix (-H, -Z, -IR...) is part of the reference. A line without any model prefix applies to every reference. If you cannot tell which value belongs to the target, set "doute" to true.
+8. Port attributes (ports.poe.*, ports.dc.*) are null when that port is false or null.
+9. Only what the camera itself accepts or consumes counts. A power output for accessories ("12 VDC output", aux power) is not an input. The rating of a recommended power supply, injector or switch port, and the capacity of a PoE standard or class (15.4, 30, 60, 90 W), are not consumptions. If voltage × current is far above the maximum power, the current is probably the supply rating: set "doute" to true.
+
+Fields:
+- ports.poe (boolean): true if the camera can be powered over Ethernet, proprietary PoE included (Hi-PoE, ePoE, High PoE); false if the power section lists the power inputs and PoE is not among them. For true or false, quote the line that lists the power inputs.
+- ports.dc (boolean): true if the camera has a direct-current (DC) power input; false for a 24 V AC input alone, or if the power section lists the inputs and none is DC. For true or false, quote the line that lists the power inputs.
+- power_w (number in W): typical consumption, only if the document also gives a maximum; with one typical per power input, the PoE one. A single consumption value goes to power_w_peak, not here. "Basic" and a 24 h average count as typical; a maximum in another state (heater off, low-power profile) does not.
+- power_w_peak (number in W): highest consumption stated, any power input (PoE, DC or 24 V AC), IR, heater and motor included. A single consumption value goes here; an unlabeled range ("16 ~ 56W") gives its upper bound.
+- ports.poe.class (one of "0", "1", "2", "3", "4", "5", "6", "7", "8"): PoE class written in the document ("Class 4" gives "4"). With several PoE modes, the class of the lowest mode. Never deduced from a type or a standard.
+- ports.poe.power_w (number in W): worst-case consumption stated for PoE. A global maximum without detail per power input also goes here. The capacity of a standard ("802.3bt max 90 W") is not a consumption.
+- ports.poe.min_standard (one of "802.3af", "802.3at", "802.3bt"): lowest IEEE standard the camera works with ("802.3af/802.3at" gives 802.3af). "PoE+" means 802.3at, "PoE++" means 802.3bt. null for a proprietary PoE alone or a class alone.
+- ports.dc.voltage_min_v (number in V): minimum voltage of the DC input. Never an AC voltage, never the 44-57 V of PoE.
+- ports.dc.voltage_max_v (number in V): maximum voltage of the DC input. Never an AC voltage, never the 44-57 V of PoE.
+- ports.dc.current_standby_ma (number in mA): typical current on the DC input, only if a maximum current is also given.
+- ports.dc.current_peak_ma (number in mA): maximum current on the DC input; a single current goes here. Not a current measured in PoE, not the rating of the recommended power supply.

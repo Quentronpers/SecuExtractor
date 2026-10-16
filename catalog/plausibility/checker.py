@@ -3,7 +3,7 @@
 Rend, pour chaque champ en échec, ses motifs (``regle_echouee``) ; un champ
 en échec passe en ``douteux``. Les règles sont dans ``rules.py`` ; ce module
 leur fournit ce que dit le texte envoyé au modèle (classes, normes, PoE
-propriétaire).
+propriétaire, plus forte consommation citée).
 """
 
 from __future__ import annotations
@@ -27,6 +27,25 @@ _POE_PROPRIETAIRE = re.compile(
     r"|hi-?poe|hpoe|poe\s*inject|inject\w*\s*poe|(?<![a-z])poh(?![a-z])|hdbaset"
 )
 
+# Alimentations citées : PoE, courant continu, 24 V AC.
+_ALIMENTATIONS = (
+    re.compile(r"poe|802\.3|power[\s-]*over[\s-]*ethernet"),
+    re.compile(r"(?<![a-z])v?dc(?![a-z])"),
+    re.compile(r"(?<![a-z])v?ac(?![a-z])"),
+)
+_WATTS = re.compile(r"(\d+(?:[.,]\d+)?)\s*(?:watts?|w)(?![a-z])")
+# Lus entre la valeur précédente de la ligne et celle-ci. Un indice de calibre
+# (midspan, injecteur, alimentation, classe, norme ou capacité PoE, PoE
+# propriétaire, switch, sortie) écarte la valeur ; un indice de consommation
+# la retient ; sinon elle suit la précédente (« Max.: 7W (DC), 8.5W (PoE) »,
+# borne haute d'une plage). « typ » sans « type » : « Type 3 (60 W) ».
+_INDICE_CONSOMMATION = re.compile(r"consum|max|typ(?!e)|approx")
+_INDICE_CALIBRE = re.compile(
+    r"midspan|inject|supply|psu|adapt|transformer|class|802\.3|ethernet|switch"
+    r"|output|budget|rated|recommend"
+    r"|(?<![a-z])poh(?![a-z])|hi-?poe|high[\s-]*poe|hpoe|upoe"
+)
+
 
 def _texte(pages: Sequence[Page]) -> str:
     return unicodedata.normalize("NFKC", "\n".join(p.texte for p in pages)).lower()
@@ -48,6 +67,31 @@ def mentionne_poe_proprietaire(pages: Sequence[Page]) -> bool:
     return bool(_POE_PROPRIETAIRE.search(_texte(pages)))
 
 
+def consommations_citees(pages: Sequence[Page]) -> list[float]:
+    """Les puissances en watts que le texte présente comme des consommations."""
+    trouvees = []
+    for ligne in _texte(pages).splitlines():
+        debut, retenue = 0, False
+        for nombre in _WATTS.finditer(ligne):
+            avant = ligne[debut : nombre.start()]
+            debut = nombre.end()
+            if _INDICE_CALIBRE.search(avant):
+                retenue = False
+            elif _INDICE_CONSOMMATION.search(avant):
+                retenue = True
+            if retenue:
+                trouvees.append(float(nombre[1].replace(",", ".")))
+    return trouvees
+
+
+def consommation_max_citee(pages: Sequence[Page]) -> float | None:
+    """La plus forte consommation citée, si plusieurs alimentations le sont."""
+    texte = _texte(pages)
+    if sum(bool(motif.search(texte)) for motif in _ALIMENTATIONS) < 2:
+        return None
+    return max(consommations_citees(pages), default=None)
+
+
 def verifier_plausibilite(
     valeurs: Mapping[str, Valeur],
     extraits: Mapping[str, str | None],
@@ -60,6 +104,7 @@ def verifier_plausibilite(
         plus_haute_classe(pages),
         normes_citees(pages),
         mentionne_poe_proprietaire(pages),
+        consommation_max_citee(pages),
     )
     motifs: dict[str, list[str]] = {}
     for regle in REGLES:

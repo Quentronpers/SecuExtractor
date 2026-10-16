@@ -9,7 +9,8 @@ Motifs : ``hors_bornes``, ``tension_hors_gamme``, ``tension_poe``,
 ``min_superieur_max``, ``plage_trop_large``, ``classe_norme_incoherentes``,
 ``depasse_plafond_classe``, ``norme_insuffisante``,
 ``typique_superieure_max``, ``poe_superieure_max``, ``port_absent``,
-``repos_superieur_max``, ``courant_incoherent``.
+``repos_superieur_max``, ``courant_incoherent``,
+``inferieure_consommation_citee``.
 """
 
 from __future__ import annotations
@@ -69,7 +70,8 @@ class Contexte:
     """Les valeurs extraites d'une notice, leurs extraits, et le texte envoyé.
 
     Du texte envoyé au modèle : la plus haute classe PoE citée, les normes
-    citées, et s'il mentionne un PoE propriétaire (High PoE, injecteur, PoH).
+    citées, s'il mentionne un PoE propriétaire (High PoE, injecteur, PoH), et
+    la plus forte consommation citée quand plusieurs alimentations le sont.
     """
 
     valeurs: Mapping[str, Valeur]
@@ -77,6 +79,7 @@ class Contexte:
     classe_max_citee: int | None = None
     normes_citees: frozenset[str] = field(default_factory=frozenset)
     poe_proprietaire: bool = False
+    consommation_max_citee: float | None = None
 
     def nombre(self, cle: str) -> float | None:
         """La valeur numérique d'un champ, None si absente ou d'un autre type."""
@@ -188,6 +191,20 @@ def regle_puissances(ctx: Contexte) -> Motifs:
     return motifs
 
 
+def regle_consommation_citee(ctx: Contexte) -> Motifs:
+    """Maximale au moins égale à la plus forte consommation citée.
+
+    Cause principale des erreurs de L4 : le maximum d'une seule alimentation
+    (PoE) retenu quand une autre (24 V AC, DC) consomme plus. Sur une notice
+    multi-références, la consommation d'une voisine peut déclencher la règle
+    à tort : le champ passe en ``douteux``, une relecture tranche.
+    """
+    maxi, citee = ctx.nombre("power_w_peak"), ctx.consommation_max_citee
+    if maxi is not None and citee is not None and maxi < citee:
+        return [("power_w_peak", "inferieure_consommation_citee")]
+    return []
+
+
 def regle_ports(ctx: Contexte) -> Motifs:
     """Un attribut de port renseigné alors que le port n'est pas déclaré présent."""
     motifs: Motifs = []
@@ -231,6 +248,7 @@ REGLES: tuple[Callable[[Contexte], Motifs], ...] = (
     regle_classe,
     regle_plafond,
     regle_puissances,
+    regle_consommation_citee,
     regle_ports,
     regle_courants,
 )

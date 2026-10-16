@@ -1,12 +1,13 @@
 """Sous-commande ``extract`` : extraction du bloc alimentation sur le jeu d'évaluation.
 
 Lit ``eval/notices.csv``, retrouve chaque notice archivée par son empreinte,
-et lance le runner. Le serveur se règle par l'environnement (``LLM_BASE_URL``,
-``LLM_MODEL``, ``LLM_API_KEY`` pour Groq) ; avec Ollama, le contexte réel et
-le digest du modèle sont lus dans ``/api/ps`` avant tout appel.
+et lance le runner. Sans réglage, le serveur est Ollama en local
+(``qwen3:14b``) ; l'environnement le change (``LLM_BASE_URL``, ``LLM_MODEL``,
+et ``LLM_API_KEY`` pour Groq). Avec Ollama, le contexte réel et le digest du
+modèle sont lus dans ``/api/ps`` avant tout appel.
 
 Les réponses brutes vont dans ``data/extractions/brut/`` et les résultats
-dans ``data/extractions/resultats/<date>_<modele>_<prompt>_<reflexion>/``,
+dans ``data/extractions/resultats/<date>_<modele>_<prompt>_<reflexion>_<jeu>/``,
 avec un ``execution.json`` qui garde les réglages. Rien de cela n'est
 versionné : les réponses contiennent le texte des notices.
 """
@@ -32,7 +33,7 @@ from catalog.evaluation.notices import (
 from catalog.extraction.brut import ArchiveBrute, maintenant
 from catalog.extraction.cible import Cible, charger_cible
 from catalog.extraction.client import ClientCompatibleOpenAI, EchecAppel
-from catalog.extraction.ollama import decrire_modele, version_ollama
+from catalog.extraction.ollama import ModeleAbsent, decrire_modele, version_ollama
 from catalog.extraction.prompts import (
     VERSION_PROMPT,
     ReponseBloc,
@@ -53,6 +54,13 @@ RESULTATS_DIR = RACINE / "data" / "extractions" / "resultats"
 # gpt-oss, qui veut ``low``, ``medium`` ou ``high``. Avec réflexion, 8192
 # jetons peuvent être courts : une troncature est comptée comme échec.
 MAX_JETONS = {"none": 2048, "low": 8192, "medium": 8192}
+# Serveur par défaut de chaque fournisseur ; Groq n'a pas de modèle par défaut.
+URLS = {"ollama": "http://127.0.0.1:11434/v1", "groq": "https://api.groq.com/openai/v1"}
+MODELE_OLLAMA = "qwen3:14b"
+SANS_NOTICES = (
+    "notices absentes de data/sources/ : lancer `catalog recuperer --archiver`, "
+    "ou copier data/sources/ d'une machine qui les a"
+)
 
 
 def ajouter_extract(subparsers: argparse._SubParsersAction) -> None:
@@ -70,6 +78,8 @@ def ajouter_extract(subparsers: argparse._SubParsersAction) -> None:
 
 def documents(args: argparse.Namespace) -> list[Document]:
     """Les notices du jeu demandé (ou des ids donnés), avec leur fichier archivé."""
+    if not MANIFESTE_PATH.exists():
+        raise SystemExit(SANS_NOTICES)
     manifeste = json.loads(MANIFESTE_PATH.read_text(encoding="utf-8"))
     ids = {i.strip() for i in args.ids.split(",") if i.strip()}
     retenues = [
@@ -84,7 +94,9 @@ def documents(args: argparse.Namespace) -> list[Document]:
     for notice in retenues:
         chemin = chemin_source(notice, manifeste)
         if chemin is None or not chemin.exists():
-            raise SystemExit(f"{notice.id} : fichier archivé introuvable")
+            raise SystemExit(
+                f"{notice.id} : fichier archivé introuvable ; {SANS_NOTICES}"
+            )
         trouves.append(
             Document(
                 id=notice.id,
@@ -102,12 +114,22 @@ def configurer(
     """Réglages du modèle et ce que dit le serveur (Ollama : ``/api/ps``)."""
     max_jetons = args.max_jetons or MAX_JETONS[args.reflexion]
     if args.fournisseur == "groq":
+        if args.reflexion == "none":
+            raise SystemExit(
+                "Groq (gpt-oss) refuse --reflexion none (erreur 400 à chaque "
+                "notice) : lancer avec --reflexion low."
+            )
         return ConfigModele(modele, None, None, args.reflexion, max_jetons), {}
     try:
         charge = decrire_modele(url, modele)
         version = version_ollama(url)
+    except ModeleAbsent as erreur:
+        raise SystemExit(f"{erreur} : lancer `ollama pull {modele}`") from erreur
     except EchecAppel as erreur:
-        raise SystemExit(f"Ollama injoignable ou incomplet : {erreur}") from erreur
+        raise SystemExit(
+            f"Ollama injoignable ou incomplet ({erreur}) : lancer `ollama serve` "
+            "(ou `sudo systemctl start ollama`), ou régler LLM_BASE_URL"
+        ) from erreur
     if charge.part_gpu < 1.0:
         print(f"Attention : {charge.part_gpu:.0%} du modèle seulement en VRAM.")
     config = ConfigModele(
@@ -179,12 +201,40 @@ def controler_fin(url: str, config: ConfigModele) -> dict[str, object]:
     }
 
 
-def _dossier(config: ConfigModele) -> Path:
-    """Dossier des résultats : date, modèle, version du prompt, réflexion."""
+def suffixe_ids(ids: str) -> str:
+    """Suffixe d'un sous-ensemble (``--ids``) : nombre et empreinte des ids.
+
+    Un sous-ensemble n'écrase ainsi ni le rapport du jeu complet, ni celui
+    d'un autre sous-ensemble.
+    """
+    retenus = sorted({i.strip() for i in ids.split(",") if i.strip()})
+    if not retenus:
+        return ""
+    return f"_ids{len(retenus)}-{_empreinte(','.join(retenus))[:6]}"
+
+
+def dossier_resultats(config: ConfigModele, jeu: str, ids: str = "") -> Path:
+    """Dossier des résultats : date, modèle, prompt, réflexion, jeu, ids."""
     nom = re.sub(r"[^A-Za-z0-9.-]+", "-", config.modele)
     return RESULTATS_DIR / (
-        f"{date.today().isoformat()}_{nom}_{VERSION_PROMPT}_{config.reasoning_effort}"
+        f"{date.today().isoformat()}_{nom}_{VERSION_PROMPT}"
+        f"_{config.reasoning_effort}_{jeu}{suffixe_ids(ids)}"
     )
+
+
+def choisir_serveur(fournisseur: str) -> tuple[str, str, str | None]:
+    """URL, modèle et clé : l'environnement, sinon les valeurs par défaut."""
+    url = os.environ.get("LLM_BASE_URL") or URLS[fournisseur]
+    cle = os.environ.get("LLM_API_KEY")
+    modele = os.environ.get("LLM_MODEL", "")
+    if fournisseur == "ollama":
+        return url, modele or MODELE_OLLAMA, cle
+    if not cle or not modele:
+        raise SystemExit(
+            "Groq : définir LLM_API_KEY (console.groq.com) et LLM_MODEL "
+            "(par exemple openai/gpt-oss-120b)."
+        )
+    return url, modele, cle
 
 
 def _resume(resultat: ResultatBloc) -> str:
@@ -210,17 +260,14 @@ def _ecrire_reglages(sortie: Path, infos: dict[str, object]) -> None:
 
 def cmd_extract(args: argparse.Namespace) -> None:
     """Extrait le bloc alimentation des notices demandées et écrit les résultats."""
-    url = os.environ.get("LLM_BASE_URL", "")
-    modele = os.environ.get("LLM_MODEL", "")
-    if not url or not modele:
-        raise SystemExit("LLM_BASE_URL et LLM_MODEL doivent être définis.")
+    url, modele, cle = choisir_serveur(args.fournisseur)
     a_traiter = documents(args)
     config, serveur = configurer(args, url, modele)
     champ = "max_completion_tokens" if args.fournisseur == "groq" else "max_tokens"
-    client = ClientCompatibleOpenAI(url, os.environ.get("LLM_API_KEY"), champ)
+    client = ClientCompatibleOpenAI(url, cle, champ)
     moteur = Moteur(config, ArchiveBrute(), lambda r: client.executer(r, ReponseBloc))
     cible = charger_cible("camera", "alimentation")
-    sortie = _dossier(config)
+    sortie = dossier_resultats(config, args.jeu, args.ids)
     sortie.mkdir(parents=True, exist_ok=True)
     infos = reglages(args, config, cible) | serveur
     _ecrire_reglages(sortie, infos)

@@ -181,7 +181,9 @@ python -m catalog.cli acquire --fabricant dahua
 
 # Extraction : seul le jeu d'évaluation existe pour l'instant (pas encore
 # d'extraction par fabricant). Bloc alimentation, sur le PC (avec l'accord
-# de Quentin) ; serveur réglé par LLM_BASE_URL, LLM_MODEL, LLM_API_KEY
+# de Quentin). Par défaut Ollama local et qwen3:14b ; LLM_BASE_URL et
+# LLM_MODEL les changent, Groq exige LLM_API_KEY et LLM_MODEL. Installé
+# (pip install -e .), `catalog` remplace `python -m catalog.cli`.
 python -m catalog.cli extract --jeu miseaupoint [--ids axis-03,hik-01] \
     [--executions 3] [--fournisseur ollama|groq] [--reflexion none|low|medium]
 
@@ -254,8 +256,9 @@ Quentin, qui a un clone du dépôt et une copie de `data/sources/`.
    `OLLAMA_HOST=0.0.0.0`. Contexte fixé par `sudo systemctl edit ollama`
    (`Environment="OLLAMA_CONTEXT_LENGTH=16384"`), puis
    `sudo systemctl restart ollama`.
-3. `LLM_BASE_URL=http://127.0.0.1:11434/v1 LLM_MODEL=qwen3:14b .venv/bin/python -m catalog.cli extract --jeu miseaupoint --reflexion none`,
-   puis `evaluate --run data/extractions/resultats/<dossier>`.
+3. `.venv/bin/catalog extract --jeu miseaupoint` (Ollama local et
+   `qwen3:14b` par défaut), puis
+   `.venv/bin/catalog evaluate --run data/extractions/resultats/<dossier>`.
 4. `data/sources/` se copie depuis le NAS (`rsync -a <hôte-nas>:/volume1/SecuExtractor/data/sources/ data/sources/`)
    plutôt que de se retélécharger : l'empreinte d'une page HTML change d'un
    téléchargement à l'autre, et `evaluate` retrouve un fichier par son
@@ -395,6 +398,7 @@ autres familles s'écriront avec leurs cibles, quand un chantier les ouvrira.
 | `ports.dc.current_standby_ma` | entre 20 et 2 000 mA ; ≤ `current_peak_ma` (les deux) |
 | `ports.dc.current_peak_ma` | entre 20 et 5 000 mA ; tension × courant entre 0,5 et 2 fois `power_w_peak` |
 | `power_w`, `ports.poe.power_w` | ≤ `power_w_peak` (les deux) |
+| `power_w_peak` | ≥ la plus forte consommation citée quand le texte cite plusieurs alimentations (PoE, DC, AC) ; consommation = valeur en W précédée sur sa ligne d'un indice (max, typical, approx, consumption), ou qui suit une telle valeur ; calibres exclus (midspan, injecteur, alimentation, transformateur, classe, norme, PoE propriétaire, switch, sortie) |
 | attributs d'un port | absents si le port n'est pas déclaré présent |
 
 Ces bornes sont larges à dessein : elles attrapent les erreurs d'unité et de

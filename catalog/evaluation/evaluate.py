@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from catalog.evaluation import decoupage, ligne_de_base, rapport
-from catalog.evaluation.execution import commit_courant, documents
+from catalog.evaluation.execution import commit_courant, documents, suffixe_ids
 from catalog.evaluation.notices import NOTICES_PATH
 from catalog.evaluation.reference import REFERENCE_DIR, Corrige, charger_corriges
 from catalog.evaluation.rejeu import charger_resultats, rejouer
@@ -87,7 +87,10 @@ def _rapport_ligne_de_base(
 ) -> tuple[dict[str, Any], str]:
     """Rapport de la ligne de base, avec le rappel du découpage."""
     resultats, places = evaluer_ligne_de_base(documents(args), cible, corriges)
-    nom = f"{date.today().isoformat()}_{VERSION_LIGNE_DE_BASE}_{args.jeu}"
+    nom = (
+        f"{date.today().isoformat()}_{VERSION_LIGNE_DE_BASE}_{args.jeu}"
+        f"{suffixe_ids(args.ids)}"
+    )
     meta = {
         "nom": nom,
         "source": VERSION_LIGNE_DE_BASE,
