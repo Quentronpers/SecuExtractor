@@ -601,6 +601,13 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
 - README anglais (prévu dès la fin de L3c) : pas encore écrit.
 
 ### L4 — Évaluation
+- **Récupération des notices par un tiers** (décidé le 2026-10-16) :
+  sous-commande de `cli.py` (seul module qui importe l'acquisition) qui lit
+  `eval/notices.csv`, télécharge chaque notice avec le fetcher existant
+  (`robots.txt`, cadence), vérifie l'empreinte SHA-256, signale les
+  notices modifiées depuis par le fabricant et écrit le manifeste. Sert
+  aussi la copie de `data/sources/` sur le PC. Écrire dans `data/sources/`
+  reste soumis à l'accord de Quentin.
 - `metriques` (dont bootstrap), `rapport`, sous-commande `evaluate`
   rejouée depuis les réponses brutes. Mesure du **rappel du découpage**
   (la page de chaque valeur du corrigé est-elle sélectionnée ?) : il borne
@@ -636,6 +643,11 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   étant prévu, et assume l'usage de Claude en une ligne de méthode (code
   écrit avec Claude Code ; corrigé annoté par Claude, relu par Quentin ;
   Claude n'est pas un des modèles évalués).
+- **Licence MIT** (décidée par Quentin le 2026-10-16 : la valeur est dans
+  SecurScope et le catalogue, absents du dépôt) : fichier `LICENSE` ajouté
+  au passage en public. **Badge CI** en tête du README au même moment
+  (`github.com/Quentronpers/SecuExtractor`, il s'affiche cassé tant que le
+  dépôt est privé).
 - Avant de passer le dépôt en public : licence, CLAUDE.md corrigé (Stack et
   Structure), décision sur les fichiers `.claude/` versionnés. Passage en
   public avec l'accord de Quentin.
