@@ -111,3 +111,16 @@ def etats_champs(
         )
         for champ in cible.champs
     }
+
+
+def incoherences(reponse: ReponseBloc) -> list[str]:
+    """Clés rendues sans valeur mais avec un extrait ou un doute.
+
+    Ces champs deviennent ``absent`` ; ils sont comptés à part à
+    l'évaluation, signe d'un modèle qui hésite entre deux réponses.
+    """
+    return [
+        cle
+        for cle, rendu in reponse.root.items()
+        if rendu.valeur is None and (rendu.extrait or rendu.doute)
+    ]

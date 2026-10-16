@@ -31,7 +31,7 @@ from catalog.extraction.brut import (
 )
 from catalog.extraction.cible import Cible
 from catalog.extraction.client import EchecAppel
-from catalog.extraction.etats import ChampExtrait, etats_champs
+from catalog.extraction.etats import ChampExtrait, etats_champs, incoherences
 from catalog.extraction.prompts import (
     VERSION_PROMPT,
     ReponseBloc,
@@ -96,6 +96,7 @@ class ResultatBloc(BaseModel):
     motif_echec: str | None = None
     detail_echec: str | None = None
     champs: dict[str, ChampExtrait] = {}
+    incoherents: list[str] = []
     essai: int | None = None
     duree_s: float | None = None
     usage: dict[str, Any] = {}  # JSON du serveur, non typé
@@ -182,6 +183,7 @@ def extraire_document(
     return resultat.model_copy(
         update={
             "champs": etats_champs(reponse.valeur, cible, retenues),
+            "incoherents": incoherences(reponse.valeur),
             "essai": reponse.essai,
             "duree_s": reponse.duree_s,
             "usage": reponse.usage,

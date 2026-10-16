@@ -185,6 +185,16 @@ python -m catalog.cli acquire --fabricant dahua
 python -m catalog.cli extract --jeu miseaupoint [--ids axis-03,hik-01] \
     [--executions 3] [--fournisseur ollama|groq] [--reflexion none|low|medium]
 
+# Évaluation contre le corrigé, sans modèle (rapport dans eval/resultats/) :
+# une exécution rejouée depuis les réponses brutes, ou la ligne de base
+# par expressions régulières avec le rappel du découpage
+python -m catalog.cli evaluate --run data/extractions/resultats/<dossier>
+python -m catalog.cli evaluate --ligne-de-base --jeu miseaupoint
+
+# Notices du jeu : retéléchargement et contrôle d'empreinte (vérification
+# seule ; --archiver écrit dans data/sources/, avec l'accord de Quentin)
+python -m catalog.cli recuperer [--ids axis-03]
+
 # File de relecture, par priorité
 streamlit run catalog/review/app.py
 
