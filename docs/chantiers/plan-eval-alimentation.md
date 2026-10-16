@@ -1,9 +1,9 @@
 # Chantier eval-alimentation — extraction mesurée du bloc alimentation des caméras IP
 
 > Statut : **validé par Quentin le 2026-10-15** (relu par `expert-metier`
-> et `architecte-llm` le même jour). L1, L1 bis et L2 terminés le 2026-10-16
-> (L2 non commité à la rédaction) ; prochain lot : L3a (client et réponses
-> brutes).
+> et `architecte-llm` le même jour). L1, L1 bis et L2 terminés et commités le
+> 2026-10-16 (L2 : `8a5e964`) ; L3a terminé le 2026-10-16 (non commité à la
+> rédaction) ; prochain lot : L3b (citations et plausibilité).
 > Sert l'étude de cas de la phase 2 de la recherche d'emploi
 > (vault : `projets/AI-Solutions-Engineer`), du 2026-10-15 au 2026-11-15.
 
@@ -94,6 +94,36 @@ catalog/
   au L5) ; quota gratuit de l'ordre de quelques milliers de jetons par
   minute et 200k par jour, donc 50 notices × 3 exécutions s'étalent sur
   plusieurs jours. `max_completion_tokens` relevé.
+
+Complément vérifié par `architecte-llm` le 2026-10-16 dans le source
+d'Ollama (branche `main`) et la documentation de Groq :
+
+- **Ollama `/v1`** : `truncate=true` et `shift=true` par défaut, non
+  réglables par requête. `usage.prompt_tokens` vaut `PromptEvalCount` (prompt
+  après coupe, cache compris) : un prompt coupé remonte environ le contexte.
+  Une génération qui atteint le contexte décale la fenêtre et efface le
+  début de la notice, avec `finish_reason=stop`. Repli si les heuristiques de
+  `brut.py` ne suffisent pas : `/api/chat` natif avec `num_ctx`,
+  `truncate: false`, `shift: false` (Ollama renvoie alors une erreur), au
+  prix de la règle « un seul client ».
+- **`/api/ps`** d'Ollama expose le `digest` et le `context_length` réel du
+  modèle chargé.
+- **`reasoning_effort` sur Ollama** : `"none"` donne `think=false` ; qwen3
+  ne connaît que vrai/faux, donc `low`, `medium` et `high` donnent tous
+  `think=true` : deux conditions d'expérience seulement. Toujours l'envoyer
+  explicitement. La réflexion revient dans `message.reasoning`. `num_predict`
+  compte les jetons de réflexion : 4096 est court avec réflexion.
+- **`json_schema` sur Ollama** : vraie contrainte de grammaire (appliquée
+  après la balise de fin de réflexion), `strict` ignoré ; la validation
+  Pydantic reste nécessaire.
+- **Nom du champ de limite de sortie** : Ollama `/v1` ne lit que
+  `max_tokens` (devenu `num_predict`) et ignore `max_completion_tokens` ;
+  Groq préfère `max_completion_tokens`.
+- **Groq** : `strict` seulement sur gpt-oss-20b et 120b, qwen/qwen3.8-27b et
+  muse-spark-open. `reasoning_format=parsed` met la réflexion dans
+  `message.reasoning` (`raw` avec du JSON donne un 400) ; pour gpt-oss c'est
+  `include_reasoning`, exclusif de `reasoning_format`. En non strict, un
+  JSON hors schéma donne un HTTP 400 de code `json_validate_failed`.
 
 ### Le contrôle de citation, déterministe
 
@@ -359,13 +389,51 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   courants de la même page (environ 1,5 A sous 56 V) laissent attendre
   plus.
 
-### L3a — Client et réponses brutes
-- `client` compatible OpenAI : schéma strict, `finish_reason` contrôlé,
-  reprise sur 429 avec attente croissante, délai d'expiration. `brut` :
-  enregistrement et relecture par clé d'empreinte.
-- Tests avec un faux transport : JSON valide → objet validé ; troncature →
-  échec ; JSON malformé → nouvel essai puis échec ; 429 → attente puis
-  réussite ; même clé → réponse rejouée sans appel.
+### L3a — Client et réponses brutes (fait le 2026-10-16, non commité à la rédaction)
+- `catalog/extraction/brut.py` : `RequeteModele` (modèle, version de prompt,
+  messages, schéma, température, `max_jetons`, `reasoning_effort`, graine,
+  numéro d'exécution, `contexte_jetons`, `empreinte_modele`) dont la clé est
+  un SHA-256 sur JSON canonique. `ArchiveBrute` écrit
+  `data/extractions/brut/<clé>.json` (écriture atomique, contrôle clé/requête
+  à la lecture). `obtenir()` rejoue sans appel si la clé existe ;
+  `interpreter()` et `interpreter_essai()` valident hors réseau (pour
+  `evaluate` sur le NAS). Motifs d'échec : `aucune_reponse`, `troncature`
+  (`finish_reason=length`), `troncature_entree` (`prompt_tokens` ≥ contexte
+  − 64), `decalage_contexte` (prompt + completion ≥ contexte),
+  `json_malforme`, `schema_invalide`.
+- `catalog/extraction/client.py` (réécrit ; c'était un stub Anthropic) :
+  `ClientCompatibleOpenAI(url_base, cle_api, champ_max_jetons, transport,
+  dormir)`. Format `json_schema` strict. Refus avant envoi si le contexte ne
+  tient pas la requête (`ContexteInsuffisant` ; estimation 3 caractères par
+  jeton + `max_jetons` + marge). Reprises sur 429, 5xx, erreur réseau et 200
+  sans corps : 5 tentatives, `Retry-After` d'abord, sinon 2^n s plafonné à
+  120 s. `Retry-After` > 120 s : arrêt net « quota épuisé ». Autre 4xx : arrêt
+  sans reprise. Le 400 Groq `json_validate_failed` est archivé comme une
+  réponse (`schema_invalide`). Réponse illisible redemandée une fois avec la
+  graine + 1 (sinon Ollama rend la même) ; troncature non redemandée ; si le
+  nouvel essai tombe en panne de transport, le premier est gardé. Les erreurs
+  de transport ne sont jamais archivées : le passage suivant réessaie.
+- `tests/test_client.py` et `tests/test_brut.py`, faux transport, aucun
+  réseau. 138 tests verts, ruff et mypy propres. `transport_requests`
+  (le vrai transport) n'est pas testé : il faudrait simuler `requests`.
+- `.gitignore` : `data/extractions/` ignoré, car les réponses brutes
+  contiennent le texte des notices (rien n'est redistribué). Les résultats
+  publics iront dans `eval/resultats/`.
+- Décisions et raisons :
+  - l'URL du serveur n'entre pas dans la clé : extraction sur le PC,
+    relecture sur le NAS, même fichier ;
+  - le contexte réel et le digest du modèle **entrent** dans la clé :
+    sinon une réponse tronquée serait rejouée à jamais après un relèvement
+    d'`OLLAMA_CONTEXT_LENGTH` ou un nouveau `ollama pull` sous le même nom
+    (bloquant relevé par `architecte-llm`) ;
+  - le nom du champ de limite de sortie dépend du fournisseur (voir §3).
+- Relectures : `relecteur-conformite`, aucun bloquant ; `architecte-llm`,
+  trois bloquants corrigés (clé sans contexte ni digest, détection de
+  troncature, 400 Groq perdu) et recommandations appliquées (`int(None)` dans
+  `usage`, quota, graine changée).
+- Tests prévus au départ, tous couverts : JSON valide → objet validé ;
+  troncature → échec ; JSON malformé → nouvel essai puis échec ; 429 → attente
+  puis réussite ; même clé → réponse rejouée sans appel.
 
 ### L3b — Citations et plausibilité
 - Code pur : `citations.py` (§3) et `rules.py` (§3).
@@ -385,6 +453,14 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   (Stack, Commandes) et procédure d'exécution sur le PC (clone, copie de
   `data/sources/`, `OLLAMA_CONTEXT_LENGTH`, retour des réponses brutes).
 - Premier passage réel sur 2 ou 3 notices de mise au point.
+- Reporté de L3a : lire `/api/ps` pour remplir `contexte_jetons` et
+  `empreinte_modele` (obligatoires avec Ollama ; `None` désactive les
+  contrôles de contexte, admis seulement pour Groq) ; envoyer
+  `reasoning_effort` toujours ; relever `max_jetons` si la réflexion est
+  active ; construire le schéma strict à partir des 11 cibles ; mettre à jour
+  CLAUDE.md, « Stack » et « Structure » (qui disent encore « API
+  Anthropic ») ; `champ_max_jetons="max_completion_tokens"` pour Groq,
+  `reasoning_format` au L5.
 - Tests avec un faux client : réponse correcte → `sur` ; extrait
   introuvable → `douteux` ; champ non rendu → `absent`.
 
