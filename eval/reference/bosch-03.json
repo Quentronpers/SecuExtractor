@@ -1,6 +1,6 @@
 {
   "id": "bosch-03",
-  "reference": "MIC-7502-Z30BR",
+  "reference": "MIC-7522-Z30BR",
   "sha256": "713abf4458e1dbf5be51707a02b2dd4383028f478c8bcaa3f6f6abe7350eada1",
   "annotateur": "Claude",
   "date_annotation": "2026-10-16",
@@ -23,14 +23,14 @@
       "valeur": 40.0,
       "etat_attendu": "sur",
       "page": 8,
-      "extrait": "Power Consumption (typ- 40 W ical), without illuminator",
+      "extrait": "Power Consumption (typ- ical), without illuminator 40 W",
       "note": "typique sans illuminateur (validé par Quentin)"
     },
     "power_w_peak": {
       "valeur": 70.0,
       "etat_attendu": "sur",
       "page": 8,
-      "extrait": "Power Consumption (typ- 70 W ical), with illuminator",
+      "extrait": "Power Consumption (typ- ical), with illuminator 70 W",
       "note": "typique avec illuminateur accessoire, aucune maximale annoncée (validé par Quentin)"
     },
     "ports.poe.class": {

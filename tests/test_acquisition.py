@@ -142,3 +142,25 @@ def test_robots_txt_lu_avec_delai(
     assert parseur.can_fetch(fetcher.USER_AGENT, "https://site.test/prive/a.pdf") is (
         autorise
     )
+
+
+def _reponse_http(contenu: bytes, content_type: str) -> requests.Response:
+    reponse = requests.Response()
+    reponse._content = contenu
+    reponse.headers["Content-Type"] = content_type
+    reponse.encoding = requests.utils.get_encoding_from_headers(reponse.headers)
+    return reponse
+
+
+def test_page_utf8_sans_charset_http_bien_decodee() -> None:
+    # requests suppose Latin-1 sans charset : « ± » deviendrait « Â± ».
+    page = '<html><head><meta charset="utf-8"></head><p>12 V ± 25 %</p></html>'
+    reponse = _reponse_http(page.encode("utf-8"), "text/html")
+    assert "12 V ± 25 %" in fetcher.decoder(reponse)
+
+
+def test_charset_http_prioritaire() -> None:
+    reponse = _reponse_http(
+        "<p>± 10 %</p>".encode("latin-1"), "text/html; charset=ISO-8859-1"
+    )
+    assert "± 10 %" in fetcher.decoder(reponse)

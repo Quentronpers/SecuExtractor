@@ -10,7 +10,7 @@
       "etat_attendu": "sur",
       "page": 2,
       "extrait": "10/100/1000Mbps PoE connection",
-      "note": "95 W PoH/PoE (ligne Power Input illisible au texte extrait)"
+      "note": "95 W PoH/PoE (« Power Input 95W PoH/PoE DC 48V », lisible depuis le lecteur L2)"
     },
     "ports.dc": {
       "valeur": true,
@@ -30,7 +30,7 @@
       "valeur": 81.8,
       "etat_attendu": "sur",
       "page": 2,
-      "extrait": "SD9364-EH: Max. 81.8 W (Heater on)",
+      "extrait": "Power Consumption Max. 81.8 W (Heater on)",
       "note": "chauffage en marche ; 28,5 W à l'arrêt"
     },
     "ports.poe.class": {
@@ -44,7 +44,7 @@
       "valeur": 81.8,
       "etat_attendu": "sur",
       "page": 2,
-      "extrait": "SD9364-EH: Max. 81.8 W (Heater on)",
+      "extrait": "Power Consumption Max. 81.8 W (Heater on)",
       "note": "maximum global sans détail par alimentation, reporté en PoE ; PoH/PoE 95 W non normé (validé par Quentin)"
     },
     "ports.poe.min_standard": {

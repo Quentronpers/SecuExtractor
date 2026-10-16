@@ -1,8 +1,9 @@
 # Chantier eval-alimentation — extraction mesurée du bloc alimentation des caméras IP
 
 > Statut : **validé par Quentin le 2026-10-15** (relu par `expert-metier`
-> et `architecte-llm` le même jour). L1 terminé le 2026-10-16 ; prochain
-> lot : L1 bis (annotation, Quentin), en parallèle L2.
+> et `architecte-llm` le même jour). L1, L1 bis et L2 terminés le 2026-10-16
+> (L2 non commité à la rédaction) ; prochain lot : L3a (client et réponses
+> brutes).
 > Sert l'étude de cas de la phase 2 de la recherche d'emploi
 > (vault : `projets/AI-Solutions-Engineer`), du 2026-10-15 au 2026-11-15.
 
@@ -261,13 +262,102 @@ mobotix-03, unv-02, vivotek-03), soit 55 cellules : aucun écart. À
 publier avec cette taille d'échantillon (5 notices sur 50 ne prouvent pas
 un corrigé sans faute). Un validateur signale les fichiers malformés.
 
-### L2 — Lecture des documents
+### L2 — Lecture des documents (fait le 2026-10-16)
 - `pdf_reader` : texte et tableaux par page. `html_reader` : sections
   titrées, tableaux de spécifications compris. `chunker` : pages ou
   sections du bloc alimentation (Power, PoE, Consumption, Alimentation…),
   repli sur le document entier s'il est court.
 - Tests : petits fichiers construits à la main dans `tests/fixtures/`,
   jamais de notice constructeur.
+
+**Réalisé.**
+- `catalog/reading/page.py` : modèle `Page(numero, texte, titre)` commun
+  aux deux lecteurs ; `nettoyer()` remplace les caractères de contrôle
+  (`\x01` chez Hanwha, mais toute la plage) par des espaces et réduit les
+  espaces ordinaires ; les insécables sont gardées.
+- `pdf_reader.lire(chemin) -> list[Page]` : tolérance horizontale de
+  1,5 pt (3 collait les mots Axis, « Typical4.8W ») ; deux colonnes
+  détectées par une gouttière vide centrée (milieu entre 0,42 et 0,58 de
+  la largeur ; une gouttière décentrée est l'écart libellé/valeur d'un
+  tableau, on ne coupe pas) ; si au moins 5 caractères différents se
+  superposent, lecture dans l'ordre du flux PDF (Vivotek SD9364) ;
+  tableaux pdfplumber d'au moins 3 cellules remplies ajoutés sous le
+  texte en lignes « a | b | c », l'en-tête des modèles étant repris d'une
+  page précédente pour un tableau de même largeur (Milesight).
+- `html_reader` : sections par titre h1-h6 et par ligne de groupe de
+  tableau (« Power » chez Dahua) ; rangées « libellé | valeur » ; cellule
+  `rowspan` répétée sur chaque rangée (Hanwha) ; sections vides et
+  doublons exacts retirés ; encodage déclaré respecté.
+- `chunker.selectionner(pages, bloc)` : score = nombre de motifs du bloc
+  présents (alimentation seulement, tout autre bloc lève `ValueError`),
+  seuil 2, au plus 4 pages, document de 6 000 caractères ou moins envoyé
+  entier.
+- `fetcher.decoder()` : charset HTTP s'il existe, sinon encodage déclaré
+  ou détecté (`UnicodeDammit`). Avant, `requests` supposait Latin-1 et
+  l'archive unv-02 contenait « Â± ». unv-02 réarchivée avec l'accord de
+  Quentin : l'ancienne entrée du manifeste passe en statut « remplace »
+  avec un motif (le fichier reste sur disque), nouvelle empreinte
+  `856b0f94…` dans `eval/notices.csv` et `eval/reference/unv-02.json`.
+- Corrigé (accord de Quentin), valeurs inchangées : 4 extraits refaits
+  (bosch-03 `power_w` et `power_w_peak`, vivotek-06 `power_w_peak` et
+  `ports.poe.power_w`), les anciens venant de colonnes mêlées par la
+  lecture par défaut ; bosch-03 : référence MIC-7502 corrigée en
+  MIC-7522-Z30BR (faute de frappe) ; note `ports.poe` de vivotek-06
+  mise à jour ; règle datée ajoutée à `eval/GUIDE.md` (« Fiche
+  multi-références illisible ») : une ligne sans préfixe de modèle vaut
+  pour chaque référence de la fiche (Vivotek SD9364 : 81,8 W vaut pour
+  l'EH).
+- Tests : 109 verts, ruff et mypy propres. `tests/fabrique_pdf.py` (petits
+  PDF sans dépendance, Helvetica standard), `test_pdf_reader.py`,
+  `test_html_reader.py` + `fixtures/fiche_produit.html`,
+  `test_chunker.py`, 2 tests de `decoder()`. Aucune notice constructeur.
+
+**Mesures** (scripts de banc hors dépôt, aucun fichier de résultats
+versionné).
+- Extraits du corrigé retrouvés dans la page lue (espaces ignorés) : PDF
+  294/294 (286/294 avec pdfplumber par défaut, avant correction des 4
+  extraits), HTML 82/82 (77/82 avant le réarchivage d'unv-02).
+- Rappel du découpage : 376/376 valeurs du corrigé ont leur page ou
+  section sélectionnée ; 4 400 caractères envoyés en moyenne par notice,
+  16 000 au maximum (bosch-03).
+- **Biais à publier dans les limites** : ces réglages ont été vérifiés sur
+  les 50 notices, jeu de test compris. Seul le rappel est mesuré et rien
+  n'a été réajusté après coup, mais les seuils ont été choisis en
+  regardant ces notices.
+
+**Contrôle hors jeu** (demandé par Quentin : des règles par marque, est-ce
+de la triche ?). Aucune règle n'est propre à une marque (les noms ne sont
+que dans les commentaires) : chacune se déclenche sur une condition
+observable (caractère de contrôle, géométrie, `rowspan`). Mais les seuils
+ont été réglés sur ces notices ; lecteur et découpage ont donc été passés,
+sans rien retoucher, sur 10 documents jamais vus de 7 fabricants absents
+du jeu (Pelco, Avigilon, Vicon x3 dont un en espagnol, Canon en français,
+Grandstream en PDF et en HTML, TP-Link en HTML x2), archivés par
+l'acquisition normale (`data/sources/<fabricant>/`, non versionnés).
+Sélection 10/10 (la page d'alimentation est toujours retenue, y compris en
+espagnol et en français) ; lisibilité 9/10. Défaut : Pelco, tableau sans
+traits dont les libellés tiennent sur deux lignes, la valeur s'intercale
+(« Environmental / PoE 13 W max / Dome »), même famille que Bosch « typ- /
+ical » : limite connue, non corrigée (il faudrait un autre jeu frais pour
+la mesurer). Avigilon : deux colonnes de valeurs mêlées sur les lignes de
+comportement IR, pas sur la puissance. TP-Link : la page se contredit
+(classe 0 / classe 4), problème de source. Ce contrôle ne vérifie que la
+lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
+
+**À retenir pour la suite.**
+- L4 : les noms de section HTML du corrigé sont parfois un libellé de
+  rangée (i-PRO « Power Source and Power Consumption », Hanwha « Input
+  Voltage ») alors que le lecteur titre la section par l'en-tête
+  (« General », « Environmental & Electrical ») : mesurer le rappel du
+  découpage en cherchant l'extrait du corrigé dans les sections
+  sélectionnées, pas par le titre.
+- `find_tables` de pdfplumber a besoin de traits : les tableaux sans
+  traits restent lus en texte.
+- Le lecteur ne transforme jamais une valeur.
+- Remarque d'`expert-metier` non retenue (Quentin garde `sur`) : bosch-03
+  `power_w_peak` 70 W est une valeur typique avec illuminateur, et les
+  courants de la même page (environ 1,5 A sous 56 V) laissent attendre
+  plus.
 
 ### L3a — Client et réponses brutes
 - `client` compatible OpenAI : schéma strict, `finish_reason` contrôlé,

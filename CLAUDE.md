@@ -234,6 +234,7 @@ securscope-catalog/
 │   │       ├── generic.py       # cas courant, à essayer en premier
 │   │       └── <fabricant>.py   # uniquement si le générique échoue
 │   ├── reading/
+│   │   ├── page.py              # modèle Page commun aux lecteurs, nettoyage du texte
 │   │   ├── pdf_reader.py        # texte et tableaux depuis un PDF
 │   │   ├── html_reader.py       # texte structuré depuis une fiche web
 │   │   └── chunker.py           # découpage en sections exploitables

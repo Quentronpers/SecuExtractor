@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from urllib.parse import urlparse
 
 import requests
+from bs4 import UnicodeDammit
 
 CONTACT = os.environ.get("SECURSCOPE_CONTACT", "contact@example.com")
 USER_AGENT = f"SecurScopeCatalogBot/0.1 (+mailto:{CONTACT})"
@@ -119,13 +120,27 @@ def fetch_texte(url: str) -> ResultatFetch | None:
     reponse = _requete_avec_reprise(url)
     if reponse is None:
         return None
-    texte = reponse.text
+    texte = decoder(reponse)
     if len(texte.strip()) >= SEUIL_CONTENU_SUFFISANT:
         return ResultatFetch(contenu=texte, outil="requests")
     texte_playwright = _fetch_playwright(url)
     if texte_playwright is not None:
         return ResultatFetch(contenu=texte_playwright, outil="playwright")
     return ResultatFetch(contenu=texte, outil="requests")
+
+
+def decoder(reponse: requests.Response) -> str:
+    """Décode une page selon l'encodage qu'elle annonce.
+
+    Sans charset dans l'en-tête HTTP, ``requests`` suppose Latin-1 et abîme
+    une page UTF-8 (« Â± » pour « ± », Uniview le 2026-10-15). On prend
+    alors l'encodage déclaré dans la page (``<meta charset>``), sinon celui
+    que détecte BeautifulSoup.
+    """
+    if "charset" in reponse.headers.get("Content-Type", "").lower():
+        return reponse.text
+    detection = UnicodeDammit(reponse.content, is_html=True)
+    return detection.unicode_markup or reponse.text
 
 
 def fetch_binaire(url: str) -> bytes | None:

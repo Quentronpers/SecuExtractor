@@ -203,7 +203,12 @@ page est celle du fichier : la puissance d'axis-01 est page 5.)
   port `dc` : note seulement.
 
 ### Fiche multi-références illisible
-- Vivotek SD9364 : la ligne EH (81,8 W chauffage en marche) est lisible,
-  celle de l'EHL non. On vise l'EH ; une valeur dont la ligne n'est pas
-  lisible sur la notice est `absent` avec une note, ou `douteux` si on la
-  lit mais sans certitude sur la colonne.
+- Une valeur dont la ligne n'est pas lisible sur la notice est `absent`
+  avec une note, ou `douteux` si on la lit mais sans certitude sur la
+  colonne.
+- Une ligne **sans préfixe de modèle** vaut pour chaque référence de la
+  fiche (2026-10-16). Vivotek SD9364 : EH et EHL sont distinguées partout
+  où elles diffèrent, mais « Power Consumption Max. 81.8 W (Heater on) »
+  n'a qu'une ligne commune ; 81,8 W vaut donc pour l'EH, en `sur`.
+  (L'ancienne lecture « ligne EH lisible, EHL non » venait de colonnes
+  mêlées par l'extraction de texte, corrigée au lot L2.)
