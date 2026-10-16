@@ -244,6 +244,23 @@ Quentin, qui a un clone du dépôt et une copie de `data/sources/`.
    `evaluate` y rejoue tout sans modèle. Ce dossier n'est pas versionné,
    il contient le texte des notices.
 
+**Variante sans Docker** (le PC n'en a pas ; décision de Quentin le
+2026-10-16, sans `uv.lock`) :
+
+1. Environnement : `python3.12 -m venv .venv && .venv/bin/pip install -e . ruff mypy pytest`
+   (`.venv/` est ignoré par git). Tests, ruff et mypy se lancent avec
+   `.venv/bin/`.
+2. Ollama est un service systemd, joignable en local sans
+   `OLLAMA_HOST=0.0.0.0`. Contexte fixé par `sudo systemctl edit ollama`
+   (`Environment="OLLAMA_CONTEXT_LENGTH=16384"`), puis
+   `sudo systemctl restart ollama`.
+3. `LLM_BASE_URL=http://127.0.0.1:11434/v1 LLM_MODEL=qwen3:14b .venv/bin/python -m catalog.cli extract --jeu miseaupoint --reflexion none`,
+   puis `evaluate --run data/extractions/resultats/<dossier>`.
+4. `data/sources/` se copie depuis le NAS (`rsync -a <hôte-nas>:/volume1/SecuExtractor/data/sources/ data/sources/`)
+   plutôt que de se retélécharger : l'empreinte d'une page HTML change d'un
+   téléchargement à l'autre, et `evaluate` retrouve un fichier par son
+   empreinte. Contrôle : `recuperer` doit rendre 50/50 « present ».
+
 ## Structure
 
 ```

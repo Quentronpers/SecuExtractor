@@ -4,7 +4,9 @@
 > et `architecte-llm` le même jour). L1, L1 bis et L2 terminés et commités le
 > 2026-10-16 (L2 : `8a5e964`) ; L3a (`19a6c76`) et L3b (`fb034a2`)
 > terminés et commités ; L3c fait le 2026-10-16, non commité (premier
-> passage réel reporté à L4) ; prochain lot : L4. Périmètre de L4 à L6 resserré
+> passage réel reporté à L4) ; L4 terminé le 2026-10-16 (partie sans GPU :
+> `c90750e` ; premier passage réel et résultats : non commités) ; prochain
+> lot : L5. Périmètre de L4 à L6 resserré
 > le 2026-10-16 après l'avis de l'agent `recruteur-ia` (ligne de base sans
 > LLM, un seul modèle local, README anglais anticipé).
 > Sert l'étude de cas de la phase 2 de la recherche d'emploi
@@ -600,7 +602,7 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   `CONSIGNES` (un seul bloc) : à généraliser avec un second bloc.
 - README anglais (prévu dès la fin de L3c) : pas encore écrit.
 
-### L4 — Évaluation
+### L4 — Évaluation (fait le 2026-10-16)
 - **Récupération des notices par un tiers** (décidé le 2026-10-16) :
   sous-commande de `cli.py` (seul module qui importe l'acquisition) qui lit
   `eval/notices.csv`, télécharge chaque notice avec le fetcher existant
@@ -623,6 +625,87 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   et hors précision ; sous-estimation comptée à part ; bootstrap
   reproductible à graine fixe.
 
+#### Journal de L4 (2026-10-16)
+
+- **Partie sans GPU** : commit `c90750e` (métriques, rejeu `evaluate`,
+  rapport, ligne de base par expressions régulières, récupération des
+  notices).
+- **Premier passage réel**, sur le PC Linux (RTX 5070 Ti 16 Go, Ollama
+  0.31.2, `qwen3:14b`, digest `bdbd181c…`, contexte 16 384 jetons, 100 % GPU,
+  température 0, réflexion `none`, 2 048 jetons de sortie maximum). Aucune
+  modification de code ; seuls ajouts, six fichiers dans `eval/resultats/`
+  (non commités) : essai de fumée (3 notices : axis-03, hik-01, dahua-02,
+  100 % juste, il éprouve le format strict avec clés à points et `anyOf`
+  sur un vrai serveur : correct), mise au point (15 notices) et test
+  (35 notices).
+- **Écart, dette à corriger** : le nom du dossier de résultats
+  (`execution.py`, `_dossier`) ne contient ni le jeu ni les identifiants ;
+  deux exécutions le même jour écrivent dans le même dossier. Les fichiers
+  portent donc un suffixe ajouté à la main (`_fumee`, `_miseaupoint`,
+  `_test`). À corriger en ajoutant le jeu au nom.
+- **Environnement du PC** : pas de Docker. Décision de Quentin : venv local
+  (`python3.12 -m venv .venv && .venv/bin/pip install -e . ruff mypy pytest`,
+  sans `uv.lock`) ; tests, ruff et mypy y passent. Ollama est un service
+  systemd : le contexte se fixe par `sudo systemctl edit ollama`
+  (`Environment="OLLAMA_CONTEXT_LENGTH=16384"`) puis redémarrage. Procédure
+  ajoutée à `CLAUDE.md`.
+- **Notices sur le PC** : `recuperer --archiver` a retéléchargé 43 notices
+  sur 50 conformes ; 7 pages HTML (dahua-01 à 04, hanwha-01, 02, 06) ont une
+  empreinte différente (bruit de page : jetons, scripts), alors que toutes
+  les citations du corrigé y figurent encore. L'évaluation retrouve un
+  fichier par son empreinte : décision de Quentin, copier `data/sources/`
+  depuis le NAS par `rsync` sur SSH. Ensuite `recuperer` donne 50/50
+  « present ». Conséquence publiée : un tiers sans accès au NAS ne retrouve
+  pas ces 7 pages à l'identique (les pages web bougent, pas les PDF).
+- **Résultats** (recopiés de `eval/resultats/*.md`, intervalles de
+  confiance à 95 %) :
+
+  | | Mise au point (15 notices, 165 cellules) | Test (35 notices, 385 cellules) |
+  |---|---|---|
+  | précision | 90,4 % [82,9 ; 97,1] | 91,5 % [85,9 ; 96,2] |
+  | précision des valeurs `sur` | 95,8 % [90,7 ; 100,0] | 95,6 % [92,6 ; 98,2] |
+  | rappel | 85,5 % [77,1 ; 93,2] | 89,1 % [83,2 ; 94,2] |
+  | exactitude | 89,7 % [84,2 ; 95,2] | 90,4 % [85,7 ; 94,5] |
+  | invention | 1,8 % [0,0 ; 5,9] | 6,7 % [1,0 ; 13,9] |
+  | sous-estimation | 3,4 % [0,0 ; 10,3] | 4,6 % [0,0 ; 10,1] |
+  | citations suspectes | 1,9 % [0,0 ; 6,2] | 6,9 % [3,2 ; 11,4] |
+  | tri des erreurs en `douteux` | 60,0 % [33,3 ; 100,0] | 54,5 % [25,0 ; 74,2] |
+  | échecs techniques | 0,0 % | 0,0 % |
+  | sorties incohérentes | 8 | 10 |
+  | durée moyenne par notice | 10,7 s | 8,3 s |
+
+  Le test confirme la mise au point : pas de sur-ajustement apparent. Le
+  tri en `douteux` (54,5 % au test) reste sous l'objectif de 80 %, et
+  l'invention (6,7 %) au-dessus de l'objectif de 2 %. L'objectif de
+  précision sur la puissance maximale (au moins 90 %) est tenu au test :
+  `power_w_peak` 91,2 %.
+- **Ligne de base par expressions régulières**, mise au point seulement
+  (`2026-10-16_ligne-de-base-v1_miseaupoint.md`) : précision 69,0 %,
+  précision des `sur` 77,0 %, rappel 72,7 %, invention 20,0 %. Pas encore de
+  ligne de base sur le test (aucun chiffre avancé).
+- **Analyse d'erreurs**, cellules fausses classées `sur` (les dangereuses) :
+  1. *Maximum pris sur une seule alimentation* au lieu du maximum toutes
+     alimentations, donc sous-estimation d'un champ de calcul : hanwha-07
+     `power_w_peak` 60 au lieu de 92 W (24 VAC) ; ipro-04 `ports.poe.power_w`
+     25 au lieu de 50 W (injecteur PoE 60 W) ; axis-04 `power_w_peak` 23 au
+     lieu de 24 W (DC supérieur au PoE) ; bosch-02 10,59 au lieu de 10,76 W
+     (VAC supérieur au PoE). Cause principale.
+  2. *24 V AC rangé dans un champ DC ou PoE* : hik-06 (« 24 VAC, max. 42 W »
+     dans `ports.poe.power_w`), bosch-03 (24 VAC ~3,15 A dans
+     `current_peak_ma`).
+  3. *Mauvaise lecture* : dahua-04, calibre d'alimentation 4 A pris pour une
+     consommation ; axis-01, sortie auxiliaire 12 V DC des E/S prise pour
+     une entrée DC ; dahua-04 et dahua-01, mauvaise valeur « Basic » (la plus
+     basse, ou celle en DC au lieu de PoE) ; ms-01, colonne d'une référence
+     voisine (notice multi-références).
+  4. *`power_w` (typique) rempli avec le maximum* quand la notice ne donne
+     pas de typique : hik-02, hik-03.
+- Le classifieur du mode auto de Claude Code a refusé de lancer
+  `extract --jeu test` ; Quentin l'a lancé lui-même.
+- **Reste pour L5** : voir ci-dessous (prompt v2 ciblé, règle de
+  plausibilité sur les alimentations multiples, Groq, `--reflexion low`,
+  ligne de base sur le test, nom de dossier des résultats).
+
 ### L5 — Comparaison et itération
 - Un modèle local (`qwen3:14b`) contre un gros modèle ouvert sur Groq
   (format strict si disponible). Un deuxième modèle local seulement s'il
@@ -632,6 +715,13 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
 - Analyse d'erreurs : catégories (unité, base au lieu de maximale, DC pris
   pour PoE, variante voisine, invention, découpage, troncature) avec
   exemples cités.
+- **Pistes issues de L4** (2026-10-16) : prompt v2 ciblé sur les quatre
+  causes de l'analyse d'erreurs, itéré sur la mise au point, mesuré une fois
+  sur le test. Règle de plausibilité sans modèle **proposée à Quentin, non
+  décidée** : si la notice cite plusieurs alimentations et `power_w_peak` est
+  inférieur à la plus grande puissance citée, le champ passe en `douteux`.
+  Mesure avec `--reflexion low` (R4 : troncature à 8 192 jetons), ligne de
+  base sur le test, jeu ajouté au nom du dossier de résultats.
 
 ### L6 — Restitution
 - **README en anglais**, écrit dès la fin de L3c, sans chiffres : le

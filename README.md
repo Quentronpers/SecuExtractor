@@ -132,16 +132,72 @@ Planned before any run, so they cannot be picked after seeing results:
 - **Targets** for the best local model: precision ≥ 90 % on peak power,
   invention ≤ 2 %, triage ≥ 80 % of errors.
 
+## Results
+
+First real run, 2026-10-16: `qwen3:14b` on Ollama (digest `bdbd181c…`),
+prompt `camera-alimentation-v1`, temperature 0, no reasoning, one run,
+16 GB GPU. Figures are copied from `eval/resultats/`; brackets are 95 %
+bootstrap intervals over datasheets.
+
+| | Development (15 datasheets, 165 cells) | Test (35 datasheets, 385 cells) |
+|---|---|---|
+| Precision | 90.4 % [82.9 ; 97.1] | 91.5 % [85.9 ; 96.2] |
+| Precision of confident values | 95.8 % [90.7 ; 100.0] | 95.6 % [92.6 ; 98.2] |
+| Recall | 85.5 % [77.1 ; 93.2] | 89.1 % [83.2 ; 94.2] |
+| Cell accuracy | 89.7 % [84.2 ; 95.2] | 90.4 % [85.7 ; 94.5] |
+| Invention | 1.8 % [0.0 ; 5.9] | 6.7 % [1.0 ; 13.9] |
+| Underestimation (peak / PoE power) | 3.4 % [0.0 ; 10.3] | 4.6 % [0.0 ; 10.1] |
+| Errors caught as doubtful | 60.0 % [33.3 ; 100.0] | 54.5 % [25.0 ; 74.2] |
+| Technical failures | 0.0 % | 0.0 % |
+| Mean time per datasheet | 10.7 s | 8.3 s |
+
+Baseline (regular expressions on the same selected text, development set
+only): precision 69.0 %, precision of confident values 77.0 %, recall
+72.7 %, invention 20.0 %. There is no baseline on the test set yet.
+
+Against the targets fixed beforehand: peak-power precision on the test set
+is 91.2 % (target 90 %, met); invention is 6.7 % (target 2 %, missed);
+errors caught as doubtful are 54.5 % (target 80 %, missed). The test set
+confirms the development set, so there is no sign of overfitting to it.
+The prompt has not been iterated yet.
+
+### Typical errors
+
+The dangerous ones are wrong values marked confident. The main cause is
+**the maximum taken from one power source instead of the maximum over all of
+them**, which underestimates a calculation field:
+
+- hanwha-07, peak power 60 W instead of 92 W (the 24 V AC figure was missed);
+- ipro-04, PoE power 25 W instead of 50 W (60 W PoE injector);
+- axis-04 (23 instead of 24 W, DC above PoE) and bosch-02 (10.59 instead
+  of 10.76 W, AC above PoE).
+
+The others: a 24 V AC figure filed under DC or PoE (hik-06, bosch-03); a
+misread table (an auxiliary 12 V DC output taken for an input, a 4 A supply
+rating taken for a consumption, the wrong "Basic" value, the column of a
+neighbouring reference on a multi-reference sheet); and a typical power
+filled with the maximum when the datasheet gives no typical value (hik-02,
+hik-03).
+
 ## Limitations, stated up front
 
-- **No real extraction has run yet.** The schema has only been tested
-  against fakes; the first run on a real server comes next.
+- **One run, one model, one prompt.** Results come from a single run at
+  temperature 0 with `qwen3:14b` and prompt v1: no Groq comparison, no
+  reasoning mode, no second prompt yet. Repeat runs would only show GPU
+  non-determinism.
+- **Web pages do not reproduce exactly.** The SHA-256 of a re-downloaded
+  HTML page changes between downloads (tokens, scripts): 7 of the 10 pages
+  (dahua-01 to 04, hanwha-01, 02, 06) differ from the files used, though
+  every ground-truth quote is still present. PDFs reproduce (43 of 50
+  files matched on re-download). A third party therefore cannot retrieve
+  those 7 pages identically.
 - **The test set is not fully clean.** The annotation guide, the prompt and
   some rule bounds were written while annotating all 50 datasheets, and two
   test datasheets (dahua-03, dahua-04) are quoted as examples in the prompt.
   The test set is held out from prompt iteration only. Results on those two
   will be reported separately.
-- **Small sample.** 35 test datasheets: intervals around ±10 points.
+- **Small sample.** 15 development and 35 test datasheets: intervals
+  around ±10 points, and wider on rare cases.
   Currents and PoE-less cameras rest on few cases.
 - **The ground truth was annotated by Claude, then reviewed by a human.**
   The 20 fields Claude marked uncertain were decided by the author; 5
@@ -185,7 +241,7 @@ Not built yet; each step starts only once the previous one is measured.
 ## Reproducing
 
 The code, comments and internal docs are in French; this README is the
-English entry point. Everything runs in a container.
+English entry point. Tests and checks run in a container (or in a local virtual environment, see below).
 
 ```bash
 docker compose up -d dev
@@ -198,23 +254,28 @@ No test calls the network or a model. Fixtures are hand-built files; the
 tests also read the ground-truth quotes.
 
 Running an extraction needs a GPU host with Ollama and the datasheets on
-disk. **Today a third party cannot do it from the repository alone**: the
-runner finds each datasheet through `data/sources/manifeste.json`, which is
-not versioned, and a re-downloaded file may no longer match its SHA-256. A
-download-and-verify script is planned. On the author's machine (Linux):
+disk. **Today a third party cannot reproduce the scores from the repository
+alone**: the runner finds each datasheet through `data/sources/manifeste.json`,
+which is not versioned. `python -m catalog.cli recuperer` re-downloads the 50
+datasheets from `eval/notices.csv` and checks each SHA-256, but 7 HTML pages
+no longer match (see Limitations). On the author's machine (Linux, no Docker,
+a local virtual environment):
 
 ```bash
-OLLAMA_CONTEXT_LENGTH=16384 OLLAMA_HOST=0.0.0.0 ollama serve   # exposes Ollama on the LAN
+python3.12 -m venv .venv && .venv/bin/pip install -e . ruff mypy pytest
+sudo systemctl edit ollama      # Environment="OLLAMA_CONTEXT_LENGTH=16384", then restart
 ollama pull qwen3:14b
-docker exec -e LLM_BASE_URL=http://172.17.0.1:11434/v1 -e LLM_MODEL=qwen3:14b \
-  dev_catalog sh -c "cd /app && python -m catalog.cli extract --jeu miseaupoint"
+LLM_BASE_URL=http://127.0.0.1:11434/v1 LLM_MODEL=qwen3:14b \
+  .venv/bin/python -m catalog.cli extract --jeu miseaupoint --reflexion none
+.venv/bin/python -m catalog.cli evaluate --run data/extractions/resultats/<folder>
 ```
 
 `--jeu miseaupoint` is the development split (`test` for the test split);
 `--fournisseur groq` with `LLM_API_KEY` set runs the comparison. Raw
 responses go to `data/extractions/` (not versioned: they contain datasheet
-text). Replaying checks and metrics from them (`evaluate`) comes with the
-metrics.
+text). `evaluate` replays checks and metrics from them without a model, and
+`evaluate --ligne-de-base --jeu miseaupoint` scores the regular-expression
+baseline.
 
 ## Repository layout
 

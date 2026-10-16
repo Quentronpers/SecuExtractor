@@ -1,0 +1,552 @@
+{
+  "meta": {
+    "modele": "qwen3:14b",
+    "contexte_jetons": 16384,
+    "empreinte_modele": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+    "reasoning_effort": "none",
+    "max_jetons": 2048,
+    "temperature": 0.0,
+    "graine": 20261015,
+    "fournisseur": "ollama",
+    "jeu": "miseaupoint",
+    "ids": "axis-03,hik-01,dahua-02",
+    "executions": 1,
+    "version_prompt": "camera-alimentation-v1",
+    "empreinte_prompt": "5dc568401c5610c96a9b2f128da4694e768b392eb76c14685163afd5b67b8196",
+    "empreinte_notices": "0b1099e61c841b702da2668ba584302b117a5cda947b21ce417cf13f4a1f543e",
+    "commit": "c90750e21aabe1d0baf7c1e25526f08469a61d83",
+    "debut": "2026-10-16T15:22:47+00:00",
+    "part_gpu": 1.0,
+    "version_ollama": "0.31.2",
+    "fin_ecart": false,
+    "fin_contexte_jetons": 16384,
+    "fin_empreinte_modele": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+    "fin_part_gpu": 1.0,
+    "fin": "2026-10-16T15:23:41+00:00",
+    "nom": "2026-10-16_qwen3-14b_camera-alimentation-v1_none",
+    "source": "rejeu",
+    "empreinte_corriges": "9340b02c8e0564213fc48344f000bd974ead34ddcb6bc5a6b4137818589933c2"
+  },
+  "notices": [
+    "axis-03",
+    "dahua-02",
+    "hik-01"
+  ],
+  "global": {
+    "precision": 1.0,
+    "precision_sur": 1.0,
+    "rappel": 1.0,
+    "exactitude": 1.0,
+    "invention": 0.0,
+    "sous_estimation": 0.0,
+    "citations_suspectes": 0.0,
+    "tri_douteux": null,
+    "tri_douteux_controles": null,
+    "proches": 0.0,
+    "echecs": 0.0
+  },
+  "intervalles": {
+    "precision": [
+      1.0,
+      1.0
+    ],
+    "precision_sur": [
+      1.0,
+      1.0
+    ],
+    "rappel": [
+      1.0,
+      1.0
+    ],
+    "exactitude": [
+      1.0,
+      1.0
+    ],
+    "invention": [
+      0.0,
+      0.0
+    ],
+    "sous_estimation": [
+      0.0,
+      0.0
+    ],
+    "citations_suspectes": [
+      0.0,
+      0.0
+    ],
+    "tri_douteux": null,
+    "tri_douteux_controles": null,
+    "proches": [
+      0.0,
+      0.0
+    ],
+    "echecs": [
+      0.0,
+      0.0
+    ]
+  },
+  "effectifs": {
+    "cellules": 33,
+    "justes": 33,
+    "echecs": 0,
+    "presents": 24,
+    "absents": 9,
+    "produits": 24,
+    "vp": 24,
+    "produits_sur": 23,
+    "vp_sur": 23,
+    "inventions": 0,
+    "proches": 0,
+    "erreurs": 0,
+    "erreurs_douteux": 0,
+    "erreurs_douteux_controles": 0,
+    "citations_suspectes": 0,
+    "puissances": 6,
+    "sous_estimations": 0
+  },
+  "par_execution": {
+    "precision": {
+      "moyenne": 1.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "precision_sur": {
+      "moyenne": 1.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "rappel": {
+      "moyenne": 1.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "exactitude": {
+      "moyenne": 1.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "invention": {
+      "moyenne": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "sous_estimation": {
+      "moyenne": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "citations_suspectes": {
+      "moyenne": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "tri_douteux": {
+      "moyenne": null,
+      "min": null,
+      "max": null
+    },
+    "tri_douteux_controles": {
+      "moyenne": null,
+      "min": null,
+      "max": null
+    },
+    "proches": {
+      "moyenne": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "echecs": {
+      "moyenne": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "par_champ": {
+    "ports.dc": {
+      "taux": {
+        "precision": 1.0,
+        "precision_sur": 1.0,
+        "rappel": 1.0,
+        "exactitude": 1.0,
+        "invention": null,
+        "sous_estimation": null,
+        "citations_suspectes": 0.0,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": 0.0,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 3,
+        "absents": 0,
+        "produits": 3,
+        "vp": 3,
+        "produits_sur": 2,
+        "vp_sur": 2,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 0,
+        "sous_estimations": 0
+      }
+    },
+    "ports.dc.current_peak_ma": {
+      "taux": {
+        "precision": 1.0,
+        "precision_sur": 1.0,
+        "rappel": 1.0,
+        "exactitude": 1.0,
+        "invention": 0.0,
+        "sous_estimation": null,
+        "citations_suspectes": 0.0,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": 0.0,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 1,
+        "absents": 2,
+        "produits": 1,
+        "vp": 1,
+        "produits_sur": 1,
+        "vp_sur": 1,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 0,
+        "sous_estimations": 0
+      }
+    },
+    "ports.dc.current_standby_ma": {
+      "taux": {
+        "precision": null,
+        "precision_sur": null,
+        "rappel": null,
+        "exactitude": 1.0,
+        "invention": 0.0,
+        "sous_estimation": null,
+        "citations_suspectes": null,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": null,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 0,
+        "absents": 3,
+        "produits": 0,
+        "vp": 0,
+        "produits_sur": 0,
+        "vp_sur": 0,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 0,
+        "sous_estimations": 0
+      }
+    },
+    "ports.dc.voltage_max_v": {
+      "taux": {
+        "precision": 1.0,
+        "precision_sur": 1.0,
+        "rappel": 1.0,
+        "exactitude": 1.0,
+        "invention": 0.0,
+        "sous_estimation": null,
+        "citations_suspectes": 0.0,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": 0.0,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 2,
+        "absents": 1,
+        "produits": 2,
+        "vp": 2,
+        "produits_sur": 2,
+        "vp_sur": 2,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 0,
+        "sous_estimations": 0
+      }
+    },
+    "ports.dc.voltage_min_v": {
+      "taux": {
+        "precision": 1.0,
+        "precision_sur": 1.0,
+        "rappel": 1.0,
+        "exactitude": 1.0,
+        "invention": 0.0,
+        "sous_estimation": null,
+        "citations_suspectes": 0.0,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": 0.0,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 2,
+        "absents": 1,
+        "produits": 2,
+        "vp": 2,
+        "produits_sur": 2,
+        "vp_sur": 2,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 0,
+        "sous_estimations": 0
+      }
+    },
+    "ports.poe": {
+      "taux": {
+        "precision": 1.0,
+        "precision_sur": 1.0,
+        "rappel": 1.0,
+        "exactitude": 1.0,
+        "invention": null,
+        "sous_estimation": null,
+        "citations_suspectes": 0.0,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": 0.0,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 3,
+        "absents": 0,
+        "produits": 3,
+        "vp": 3,
+        "produits_sur": 3,
+        "vp_sur": 3,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 0,
+        "sous_estimations": 0
+      }
+    },
+    "ports.poe.class": {
+      "taux": {
+        "precision": 1.0,
+        "precision_sur": 1.0,
+        "rappel": 1.0,
+        "exactitude": 1.0,
+        "invention": 0.0,
+        "sous_estimation": null,
+        "citations_suspectes": 0.0,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": 0.0,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 2,
+        "absents": 1,
+        "produits": 2,
+        "vp": 2,
+        "produits_sur": 2,
+        "vp_sur": 2,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 0,
+        "sous_estimations": 0
+      }
+    },
+    "ports.poe.min_standard": {
+      "taux": {
+        "precision": 1.0,
+        "precision_sur": 1.0,
+        "rappel": 1.0,
+        "exactitude": 1.0,
+        "invention": null,
+        "sous_estimation": null,
+        "citations_suspectes": 0.0,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": 0.0,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 3,
+        "absents": 0,
+        "produits": 3,
+        "vp": 3,
+        "produits_sur": 3,
+        "vp_sur": 3,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 0,
+        "sous_estimations": 0
+      }
+    },
+    "ports.poe.power_w": {
+      "taux": {
+        "precision": 1.0,
+        "precision_sur": 1.0,
+        "rappel": 1.0,
+        "exactitude": 1.0,
+        "invention": null,
+        "sous_estimation": 0.0,
+        "citations_suspectes": 0.0,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": 0.0,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 3,
+        "absents": 0,
+        "produits": 3,
+        "vp": 3,
+        "produits_sur": 3,
+        "vp_sur": 3,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 3,
+        "sous_estimations": 0
+      }
+    },
+    "power_w": {
+      "taux": {
+        "precision": 1.0,
+        "precision_sur": 1.0,
+        "rappel": 1.0,
+        "exactitude": 1.0,
+        "invention": 0.0,
+        "sous_estimation": null,
+        "citations_suspectes": 0.0,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": 0.0,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 2,
+        "absents": 1,
+        "produits": 2,
+        "vp": 2,
+        "produits_sur": 2,
+        "vp_sur": 2,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 0,
+        "sous_estimations": 0
+      }
+    },
+    "power_w_peak": {
+      "taux": {
+        "precision": 1.0,
+        "precision_sur": 1.0,
+        "rappel": 1.0,
+        "exactitude": 1.0,
+        "invention": null,
+        "sous_estimation": 0.0,
+        "citations_suspectes": 0.0,
+        "tri_douteux": null,
+        "tri_douteux_controles": null,
+        "proches": 0.0,
+        "echecs": 0.0
+      },
+      "effectifs": {
+        "cellules": 3,
+        "justes": 3,
+        "echecs": 0,
+        "presents": 3,
+        "absents": 0,
+        "produits": 3,
+        "vp": 3,
+        "produits_sur": 3,
+        "vp_sur": 3,
+        "inventions": 0,
+        "proches": 0,
+        "erreurs": 0,
+        "erreurs_douteux": 0,
+        "erreurs_douteux_controles": 0,
+        "citations_suspectes": 0,
+        "puissances": 3,
+        "sous_estimations": 0
+      }
+    }
+  },
+  "technique": {
+    "resultats": 3,
+    "echecs": {},
+    "incoherents": 3,
+    "duree_moyenne_s": 18.010933234000124,
+    "jetons": {
+      "prompt_tokens": 8507,
+      "completion_tokens": 2010,
+      "total_tokens": 10517
+    }
+  },
+  "erreurs": []
+}
