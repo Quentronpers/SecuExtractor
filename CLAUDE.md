@@ -319,18 +319,20 @@ plus. Un doute sur eux passe en `douteux` sans hésitation.
 Elles sont ce qui rattrape les erreurs que la citation ne détecte pas. Un
 modèle peut citer correctement un extrait et se tromper sur l'unité.
 
-Exemples à implémenter dans `plausibility/rules.py` :
+Règles du bloc alimentation des caméras, dans `plausibility/rules.py`
+(clés SecurScope ; tout échec met le champ en `douteux`). Les règles des
+autres familles s'écriront avec leurs cibles, quand un chantier les ouvrira.
 
-| Champ | Règle | Si échec |
-|---|---|---|
-| `courant_repos_ma` | entre 1 et 2 000 mA | `douteux` |
-| `courant_alarme_ma` | ≥ `courant_repos_ma` | `douteux` sur les deux |
-| `puissance_poe_w` | entre 1 et 90 W | `douteux` |
-| `tension_alimentation_v` | dans {12, 24, 48} ± 20 % | `douteux` |
-| `angle_horizontal_deg` | entre 1 et 360 | `douteux` |
-| `capacite_batterie_ah` | entre 0,8 et 200 Ah | `douteux` |
-| `nombre_zones_filaires` | entre 1 et 512 | `douteux` |
-| `portee_m` | entre 0,5 et 500 m | `douteux` |
+| Champ | Règle |
+|---|---|
+| `power_w`, `power_w_peak` | entre 1 et 200 W |
+| `ports.poe.power_w` | entre 1 et 90 W ; ≤ plafond de la plus haute classe citée dans la notice (3,84 / 6,49 / 12,95 / 25,5 / 40 / 51 / 62 / 71,3 W), 71,3 W sans classe citée ; aucun plafond si la notice parle d'un PoE propriétaire (High PoE, Hi-PoE, injecteur, PoH) |
+| `ports.poe.class` et `min_standard` | cohérents : af ⇒ 0–3, at ⇒ 0–4, bt ⇒ 1–8 (les deux) ; af avec plus de 12,95 W sans at ni bt cités (les deux) |
+| `ports.dc.voltage_min_v`, `voltage_max_v` | dans {12, 24, 36, 48} ± 25 % ; min ≤ max et min ≥ max / 3 (les deux) ; 44–57 V avec un extrait qui parle de PoE |
+| `ports.dc.current_standby_ma` | entre 20 et 2 000 mA ; ≤ `current_peak_ma` (les deux) |
+| `ports.dc.current_peak_ma` | entre 20 et 5 000 mA ; tension × courant entre 0,5 et 2 fois `power_w_peak` |
+| `power_w`, `ports.poe.power_w` | ≤ `power_w_peak` (les deux) |
+| attributs d'un port | absents si le port n'est pas déclaré présent |
 
 Ces bornes sont larges à dessein : elles attrapent les erreurs d'unité et de
 virgule, pas les erreurs subtiles. Celles-là relèvent de la relecture humaine.

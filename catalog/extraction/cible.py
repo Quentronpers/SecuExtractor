@@ -16,6 +16,8 @@ from pydantic import BaseModel, ConfigDict
 CIBLES_DIR = Path(__file__).resolve().parent / "cibles"
 
 TypeChamp = Literal["booleen", "nombre", "enum"]
+# Valeur d'un champ : booléen, nombre dans l'unité de la cible, ou chaîne (enum).
+Valeur = bool | float | str | None
 
 
 class ChampCible(BaseModel):

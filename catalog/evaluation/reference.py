@@ -20,12 +20,11 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
-from catalog.extraction.cible import ChampCible, Cible, charger_cible
+from catalog.extraction.cible import ChampCible, Cible, Valeur, charger_cible
 
 REFERENCE_DIR = Path(__file__).resolve().parents[2] / "eval" / "reference"
 
 EtatAttendu = Literal["sur", "douteux", "absent"]
-Valeur = bool | float | str | None
 
 
 class ValeurAnnotee(BaseModel):

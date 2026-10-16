@@ -2,8 +2,8 @@
 
 > Statut : **validé par Quentin le 2026-10-15** (relu par `expert-metier`
 > et `architecte-llm` le même jour). L1, L1 bis et L2 terminés et commités le
-> 2026-10-16 (L2 : `8a5e964`) ; L3a terminé le 2026-10-16 (non commité à la
-> rédaction) ; prochain lot : L3b (citations et plausibilité).
+> 2026-10-16 (L2 : `8a5e964`) ; L3a terminé et commité (`19a6c76`) ; L3b
+> terminé le 2026-10-16 (non commité à la rédaction) ; prochain lot : L3c.
 > Sert l'étude de cas de la phase 2 de la recherche d'emploi
 > (vault : `projets/AI-Solutions-Engineer`), du 2026-10-15 au 2026-11-15.
 
@@ -389,7 +389,7 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   courants de la même page (environ 1,5 A sous 56 V) laissent attendre
   plus.
 
-### L3a — Client et réponses brutes (fait le 2026-10-16, non commité à la rédaction)
+### L3a — Client et réponses brutes (fait le 2026-10-16, commit `19a6c76`)
 - `catalog/extraction/brut.py` : `RequeteModele` (modèle, version de prompt,
   messages, schéma, température, `max_jetons`, `reasoning_effort`, graine,
   numéro d'exécution, `contexte_jetons`, `empreinte_modele`) dont la clé est
@@ -435,17 +435,62 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   troncature → échec ; JSON malformé → nouvel essai puis échec ; 429 → attente
   puis réussite ; même clé → réponse rejouée sans appel.
 
-### L3b — Citations et plausibilité
-- Code pur : `citations.py` (§3) et `rules.py` (§3).
-- Relevé au L1 (`expert-metier`, 2026-10-15) : la comparaison de citation
-  ignore aussi les espaces (pdfplumber colle les mots des PDF Axis :
-  « Typical4.8W,max10.7W ») ; la règle « `poe.power_w` ≤ plafond de la
-  classe » compare au plafond de la **plus haute classe citée** dans la
-  notice, pas à `class` (une caméra at Class 4 ou bt Class 6 à 51 W est
-  juste) — l'extraction doit donc garder les autres classes citées.
-- Tests : « 7.7 » ne valide pas « 17.7 W » ; extrait recollé →
-  `citation_recomposee` ; « PoE+ » → 802.3at ; 6,5 W lu 65 W → `douteux` ;
-  classe 4 avec 30 W → `douteux` ; 48 V → `douteux` ; chaque borne exacte.
+### L3b — Citations et plausibilité (fait le 2026-10-16, non commité à la rédaction)
+- `catalog/extraction/citations.py` : `verifier_citation(champ, valeur, page,
+  extrait, pages)` rend un motif ou `None`. Motifs : `citation_absente` (ni
+  page ni extrait, règle 1), `citation_introuvable`, `citation_autre_page`
+  (extrait trouvé sur une autre page envoyée : erreur de numéro, comptée à
+  part), `citation_recomposee`, `valeur_hors_extrait`,
+  `valeur_non_maximale` (`power_w_peak` alors qu'une valeur plus haute est
+  dans l'extrait : « 16 ~ 56W » lu 16). Comparaison sans
+  casse, espaces, séparateurs de cellules (`|`) ni coupures de mot.
+  Valeurs numériques : nombre délimité suivi de l'unité ; nombres d'une
+  plage ou d'une liste qui partagent l'unité (« 10–28 V DC »,
+  « 24.7/11.4 W » de Vivotek) ; bornes d'une tension à tolérance
+  symétrique ou asymétrique ; A → mA. `V` exclut VA, VAC, « V AC » et
+  « AC 24V » (une tension alternative prise pour du continu ferait accepter
+  une alimentation 24 V DC qui détruit la caméra). Port faux : pas
+  de preuve demandée. Port DC vrai : « DC » écrit (un « 12 V » seul ne
+  suffit pas, pour ne pas valider la ligne de tension PoE).
+- `catalog/plausibility/rules.py` (règles) et `checker.py`
+  (`verifier_plausibilite(valeurs, extraits, pages)` → motifs par clé,
+  joints par « ; »). Table reportée dans CLAUDE.md.
+- Écarts au §3, constatés sur le corrigé :
+  - min ≥ max / 3 au lieu de 0,6 × max : les plages Axis « 10–28 V DC »
+    sont légitimes ;
+  - pas de plafond de classe quand la notice mentionne un PoE propriétaire
+    (High PoE, injecteur constructeur) : axis-08 (High PoE 51 W, mode at
+    Class 4) et ipro-04 (injecteur 60 W, 50 W) étaient marqués à tort ;
+  - plafonds réels des classes 1 et 2 (3,84 et 6,49 W) ;
+  - courant < 20 mA refusé quelle que soit la tension (borne basse).
+- Ajouté après relecture `expert-metier` : `valeur_non_maximale` et
+  exclusion de l'AC (les deux bloquants) ; norme af avec plus de 12,95 W
+  sans at ni bt cités → `norme_insuffisante` ; plafond de 71,3 W sans
+  classe citée (« max 90 W » est la capacité du PSE) ; PoH et HDBaseT
+  comptés comme PoE propriétaire, ePoE et UPoE non.
+- Écartés, le corrigé les contredit : tension 37–57 V `douteux` sans
+  condition (vivotek-06 a une vraie entrée « DC 48V ») ; rapport V × I
+  resserré à 0,75–1,5 (hik-01 : `power_w_peak` est le maximum PoE, au-dessus
+  du DC ; dahua-03 : 36 V × 2,23 A pour 45 W, gardé par le corrigé). Le
+  rapport 0,5–2 n'attrape donc ni le courant typique pris pour le maximal
+  ni le calibre d'alimentation : limite connue.
+- Non traités, notés pour L5 : puissance au PSE ou au PD ; `poe.power_w`
+  égal à la typique alors qu'une maximale existe ; classes lues dans tout le
+  texte (fiches multi-références) ; « PoE injector » cité comme simple
+  accessoire coupe le plafond.
+- Contrôle sur les notices réelles, constaté le 2026-10-16 par un script
+  hors dépôt (le texte des notices n'est pas versionné) : chaque extrait du
+  corrigé est retrouvé dans sa page, et chaque page citée est retenue par le
+  découpage. Tests versionnés : chaque valeur du corrigé est justifiée par
+  son extrait, sauf dahua-04 `power_w` « 7.4 (pulling stream in 4G) », sans
+  unité, mis en `douteux` à dessein ; aucune valeur `sur` du corrigé
+  n'échoue la plausibilité.
+- **Pour L4** : la `section` du corrigé HTML est le libellé de ligne
+  (« Input Voltage »), pas le titre de section du lecteur (« Environmental
+  & Electrical ») ; le rappel du découpage devra retrouver la page par
+  l'extrait.
+- Laissé au runner (L3c) : l'état final (`sur` / `douteux` / `absent`) à
+  partir du doute, du motif de citation et des motifs de plausibilité.
 
 ### L3c — Runner, CLI et exécution sur le PC
 - `prompts` (règles 1 à 5 de CLAUDE.md, `VERSION_PROMPT`, référence
@@ -498,7 +543,7 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
 3. ~~Règle de tension~~ **{12, 24, 36, 48} V**, retenu le 2026-10-15 (les
    tensions continues de SecurScope plus 36 V) ; le risque de la tension
    PoE prise pour une entrée DC est couvert par une règle de cohérence
-   (§3). La table de CLAUDE.md sera mise à jour au L3b.
+   (§3). Table de CLAUDE.md mise à jour au L3b.
 4. ~~Sort du schéma français~~ **Décidé le 2026-10-15** :
    `schema/specifications-equipements.json` n'est plus la référence.
    C'est SecurScope qui fixe, par ses besoins, les champs à extraire ; ce
