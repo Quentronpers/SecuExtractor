@@ -1,0 +1,86 @@
+{
+  "id": "dahua-04",
+  "reference": "SD6C3432XB-HNR-AGQ-PV",
+  "sha256": "4fb40d587f94de89d5953b63fff378f285866cb80b2f22f2c6b4aebbad589d1b",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": false,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "12 VDC, 4 A (–10% to +25%)",
+      "note": "caméra 4G, alimentation 12 VDC seule"
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "12 VDC, 4 A (–10% to +25%)",
+      "note": null
+    },
+    "power_w": {
+      "valeur": 7.4,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "Basic: 4.0 W (not pulling stream in 4G), 7.4 (pulling stream in 4G)",
+      "note": "deux « Basic » (4,0 W sans flux 4G, 7,4 W avec) : retenue la plus haute (Quentin) ; Sleep ≤ 1 W"
+    },
+    "power_w_peak": {
+      "valeur": 27.0,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "Max.: 27 W (illuminator + heater + PTZ + speaker + pulling stream in 4G)",
+      "note": null
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 10.8,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "12 VDC, 4 A (–10% to +25%)",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 15.0,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "12 VDC, 4 A (–10% to +25%)",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": "« 4 A » = calibre de l alimentation, pas une consommation (Quentin)"
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "id": "axis-08",
+  "reference": "AXIS Q6135-LE",
+  "sha256": "54615cba7ecf26e7101391da755e42800847363b9fb4db6345f30aaff5efbe08",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "IEEE 802.3at Type 2 Class 4",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": false,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "IEEE 802.3at Type 2 Class 4",
+      "note": "PoE seul (High PoE ou PoE+ par midspan)"
+    },
+    "power_w": {
+      "valeur": 10.3,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Camera consumption: typical 10.3 W (no IR), max 51 W",
+      "note": "typique sans IR"
+    },
+    "power_w_peak": {
+      "valeur": 51.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Camera consumption: typical 10.3 W (no IR), max 51 W",
+      "note": "en High PoE"
+    },
+    "ports.poe.class": {
+      "valeur": "4",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "IEEE 802.3at Type 2 Class 4",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 51.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Camera consumption: typical 10.3 W (no IR), max 51 W",
+      "note": "High PoE propriétaire ; 25 W en PoE+ (802.3at)"
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3at",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "IEEE 802.3at Type 2 Class 4",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "id": "hik-05",
+  "reference": "iDS-2CD7A46G2-IZHSY (2.8-12mm)",
+  "sha256": "56f87cfa64f43516f02d4b7c9c5dd4a4fde6827535cf056a3e53d1a96c8008a8",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 21,
+      "extrait": "PoE: IEEE 802.3at, Type 2, Class 4, 42.5 V to 57 V, 0.53 A to 0.4 A, max. 22.6 W",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 21,
+      "extrait": "12 VDC ± 20%, 1.88 A, max. 22.56 W,",
+      "note": "aussi 24 VAC ± 20 %, 1,57 A, max 21,5 W"
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 22.6,
+      "etat_attendu": "sur",
+      "page": 21,
+      "extrait": "PoE: IEEE 802.3at, Type 2, Class 4, 42.5 V to 57 V, 0.53 A to 0.4 A, max. 22.6 W",
+      "note": "bloc « three-core terminal block » qui cite iDS-2CD7A46G2-IZHSY(2.8-12mm)"
+    },
+    "ports.poe.class": {
+      "valeur": "4",
+      "etat_attendu": "sur",
+      "page": 21,
+      "extrait": "PoE: IEEE 802.3at, Type 2, Class 4, 42.5 V to 57 V, 0.53 A to 0.4 A, max. 22.6 W",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 22.6,
+      "etat_attendu": "sur",
+      "page": 21,
+      "extrait": "PoE: IEEE 802.3at, Type 2, Class 4, 42.5 V to 57 V, 0.53 A to 0.4 A, max. 22.6 W",
+      "note": "courant PoE donné (hors port dc) : 0,53 A à 0,4 A"
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3at",
+      "etat_attendu": "sur",
+      "page": 21,
+      "extrait": "PoE: IEEE 802.3at, Type 2, Class 4, 42.5 V to 57 V, 0.53 A to 0.4 A, max. 22.6 W",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 9.6,
+      "etat_attendu": "sur",
+      "page": 21,
+      "extrait": "12 VDC ± 20%, 1.88 A, max. 22.56 W,",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 14.4,
+      "etat_attendu": "sur",
+      "page": 21,
+      "extrait": "12 VDC ± 20%, 1.88 A, max. 22.56 W,",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": 1880.0,
+      "etat_attendu": "sur",
+      "page": 21,
+      "extrait": "12 VDC ± 20%, 1.88 A, max. 22.56 W,",
+      "note": "courant unique donné avec la puissance max"
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "id": "hanwha-05",
+  "reference": "QNO-7082R",
+  "sha256": "d7da1f65d41047b4937848b173aa486d76d247181a3f16767893b587fba30eb9",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Input Voltage PoE(IEEE802.3af,Class3),12VDC",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Input Voltage PoE(IEEE802.3af,Class3),12VDC",
+      "note": null
+    },
+    "power_w": {
+      "valeur": 8.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE Max11.4W,typical8W",
+      "note": "typique en PoE (règle du 2026-10-16) ; deux consommations typiques (DC et PoE)"
+    },
+    "power_w_peak": {
+      "valeur": 11.4,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE Max11.4W,typical8W",
+      "note": "max en PoE ; DC : 12VDC Max9.6W,typical7W"
+    },
+    "ports.poe.class": {
+      "valeur": "3",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Input Voltage PoE(IEEE802.3af,Class3),12VDC",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 11.4,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE Max11.4W,typical8W",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Input Voltage PoE(IEEE802.3af,Class3),12VDC",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Input Voltage PoE(IEEE802.3af,Class3),12VDC",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Input Voltage PoE(IEEE802.3af,Class3),12VDC",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

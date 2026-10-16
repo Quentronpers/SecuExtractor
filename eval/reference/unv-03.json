@@ -1,0 +1,86 @@
+{
+  "id": "unv-03",
+  "reference": "IPC6858SR-X22",
+  "sha256": "39c8c71575e756f9b7313380e112faee90468971298e19102db1323cd6a33701",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": false,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "AC 24V±25% (Default), DC 24V±25%",
+      "note": "pas de PoE"
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "AC 24V±25% (Default), DC 24V±25%",
+      "note": "24 VAC par défaut, ou 24 VDC"
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 56.0,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "Power consumption: 16 ~ 56W",
+      "note": "plage sans libellé : max = 56 W"
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 18.0,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "AC 24V±25% (Default), DC 24V±25%",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 30.0,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "AC 24V±25% (Default), DC 24V±25%",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

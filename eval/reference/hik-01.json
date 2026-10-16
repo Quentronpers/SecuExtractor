@@ -1,0 +1,86 @@
+{
+  "id": "hik-01",
+  "reference": "DS-2CD2143G2-I (2.8mm)",
+  "sha256": "4f96fb6de93e176c32d2cf12bd6f49df9e1e5e2647d20dcbed744be4c66ebe3c",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE: 802.3af, Class 3, 36 V to 57 V, 0.2 A to 0.15 A, max. 6.5 W",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "12 VDC ± 25%, 0.4 A, max. 5 W, Ø5.5 mm coaxial power plug, reverse polarity protection",
+      "note": null
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 6.5,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE: 802.3af, Class 3, 36 V to 57 V, 0.2 A to 0.15 A, max. 6.5 W",
+      "note": "max 5 W en DC, 6,5 W en PoE"
+    },
+    "ports.poe.class": {
+      "valeur": "3",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE: 802.3af, Class 3, 36 V to 57 V, 0.2 A to 0.15 A, max. 6.5 W",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 6.5,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE: 802.3af, Class 3, 36 V to 57 V, 0.2 A to 0.15 A, max. 6.5 W",
+      "note": "courant PoE donné (hors port dc) : 0,2 A à 0,15 A"
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE: 802.3af, Class 3, 36 V to 57 V, 0.2 A to 0.15 A, max. 6.5 W",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 9.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "12 VDC ± 25%, 0.4 A, max. 5 W, Ø5.5 mm coaxial power plug, reverse polarity protection",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 15.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "12 VDC ± 25%, 0.4 A, max. 5 W, Ø5.5 mm coaxial power plug, reverse polarity protection",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": 400.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "12 VDC ± 25%, 0.4 A, max. 5 W, Ø5.5 mm coaxial power plug, reverse polarity protection",
+      "note": "courant unique donné avec la puissance max"
+    }
+  }
+}

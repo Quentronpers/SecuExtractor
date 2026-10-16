@@ -1,0 +1,86 @@
+{
+  "id": "ipro-03",
+  "reference": "WV-S1536LA",
+  "sha256": "e5f1027c412a74240e3667415a6a194d426e56a3b31f6eb20b0adf535e4f6f61",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE (IEEE802.3af compliant) Device : DC48 V 190 mA, Approx. 9.1 W (Class 0 device)",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "DC power supply : DC12 V 710 mA, Approx. 8.5 W",
+      "note": null
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 9.1,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE (IEEE802.3af compliant) Device : DC48 V 190 mA, Approx. 9.1 W (Class 0 device)",
+      "note": "approx. ; chauffage (anti-condensation)"
+    },
+    "ports.poe.class": {
+      "valeur": "0",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE (IEEE802.3af compliant) Device : DC48 V 190 mA, Approx. 9.1 W (Class 0 device)",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 9.1,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE (IEEE802.3af compliant) Device : DC48 V 190 mA, Approx. 9.1 W (Class 0 device)",
+      "note": "approx. ; courant PoE 190 mA (hors port dc)"
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE (IEEE802.3af compliant) Device : DC48 V 190 mA, Approx. 9.1 W (Class 0 device)",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "DC power supply : DC12 V 710 mA, Approx. 8.5 W",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "DC power supply : DC12 V 710 mA, Approx. 8.5 W",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": 710.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "DC power supply : DC12 V 710 mA, Approx. 8.5 W",
+      "note": "courant unique donné avec la puissance"
+    }
+  }
+}

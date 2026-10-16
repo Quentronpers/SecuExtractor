@@ -1,0 +1,86 @@
+{
+  "id": "hanwha-02",
+  "reference": "QND-7082R",
+  "sha256": "5294fdbbb0c0b21407a45175774399835590b2e1be4629b42d89028198774077",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE(IEEE802.3af, Class3), 12VDC",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE(IEEE802.3af, Class3), 12VDC",
+      "note": null
+    },
+    "power_w": {
+      "valeur": 6.3,
+      "etat_attendu": "sur",
+      "section": "Power Consumption",
+      "extrait": "Max. 8.6W, typical 6.3W",
+      "note": "typique en PoE (règle du 2026-10-16) ; deux consommations typiques (DC et PoE)"
+    },
+    "power_w_peak": {
+      "valeur": 8.6,
+      "etat_attendu": "sur",
+      "section": "Power Consumption",
+      "extrait": "Max. 8.6W, typical 6.3W",
+      "note": "max en PoE ; DC : Max. 7.6W, typical 5.4W"
+    },
+    "ports.poe.class": {
+      "valeur": "3",
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE(IEEE802.3af, Class3), 12VDC",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 8.6,
+      "etat_attendu": "sur",
+      "section": "Power Consumption",
+      "extrait": "Max. 8.6W, typical 6.3W",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE(IEEE802.3af, Class3), 12VDC",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE(IEEE802.3af, Class3), 12VDC",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE(IEEE802.3af, Class3), 12VDC",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

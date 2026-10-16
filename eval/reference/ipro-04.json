@@ -1,0 +1,86 @@
+{
+  "id": "ipro-04",
+  "reference": "WV-X6533LNS",
+  "sha256": "9dd0fa9b7b4e6582d9320d11b86f4292316da1ae9f07309d803816f3b74a042e",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE+ (IEEE802.3at compliant): DC 54V 470 mA, Approx. 25 W(Class4 device)",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": false,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "AC24 V 3.4 A, Approx. 55 W",
+      "note": "24 VAC (3,4 A) ; pas d'entrée continue"
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 55.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "AC24 V 3.4 A, Approx. 55 W",
+      "note": "approx. ; en 24 VAC"
+    },
+    "ports.poe.class": {
+      "valeur": "4",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE+ (IEEE802.3at compliant): DC 54V 470 mA, Approx. 25 W(Class4 device)",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 50.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Tested POE Injector (60 W) : DC 54V 1.0 A, Approx. 50 W",
+      "note": "approx. ; avec l'injecteur PoE 60 W testé ; 25 W en PoE+ 802.3at"
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3at",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE+ (IEEE802.3at compliant): DC 54V 470 mA, Approx. 25 W(Class4 device)",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

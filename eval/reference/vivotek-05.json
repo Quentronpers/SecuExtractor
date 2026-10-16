@@ -1,0 +1,86 @@
+{
+  "id": "vivotek-05",
+  "reference": "IB9391-EHTV-v2",
+  "sha256": "a40f84ffd947c5e2ded4e03af0df3cab480379936ea97facd519a40871c3dc8a",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "IEEE 802.3at PoE Class 4",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "DC 12V power input",
+      "note": "aussi AC 24V"
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 19.38,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "PoE: Max. 19.38/15.80 W (IR on/off )",
+      "note": "IR en marche"
+    },
+    "ports.poe.class": {
+      "valeur": "4",
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "IEEE 802.3at PoE Class 4",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 19.38,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "PoE: Max. 19.38/15.80 W (IR on/off )",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3at",
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "IEEE 802.3at PoE Class 4",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "DC 12V: Max. 15.84/12.26 W (IR on/off )",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "DC 12V: Max. 15.84/12.26 W (IR on/off )",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

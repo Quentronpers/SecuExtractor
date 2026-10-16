@@ -1,0 +1,86 @@
+{
+  "id": "hanwha-06",
+  "reference": "XNO-9083R",
+  "sha256": "5703a621daa76f3e916e33793756afca383214f8c7f3f2c6f15e2bf68a0e0fc6",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE+(IEEE802.3at, Class4), 12VDC",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE+(IEEE802.3at, Class4), 12VDC",
+      "note": null
+    },
+    "power_w": {
+      "valeur": 17.9,
+      "etat_attendu": "sur",
+      "section": "Power Consumption",
+      "extrait": "Max. 22.5W, typical 17.9W",
+      "note": "typique en PoE (règle du 2026-10-16) ; deux consommations typiques (DC et PoE)"
+    },
+    "power_w_peak": {
+      "valeur": 22.5,
+      "etat_attendu": "sur",
+      "section": "Power Consumption",
+      "extrait": "Max. 22.5W, typical 17.9W",
+      "note": "max en PoE ; DC : Max. 20W, typical 15.6W"
+    },
+    "ports.poe.class": {
+      "valeur": "4",
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE+(IEEE802.3at, Class4), 12VDC",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 22.5,
+      "etat_attendu": "sur",
+      "section": "Power Consumption",
+      "extrait": "Max. 22.5W, typical 17.9W",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3at",
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE+(IEEE802.3at, Class4), 12VDC",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE+(IEEE802.3at, Class4), 12VDC",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "section": "Input Voltage",
+      "extrait": "PoE+(IEEE802.3at, Class4), 12VDC",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "id": "dahua-03",
+  "reference": "SD6AL445GB-HNV",
+  "sha256": "4065a88623b8f46ea4b77439c73f33dca1ba1295c22d71f63f3d1080a3fe8c07",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "HI-PoE",
+      "note": "Hi-PoE propriétaire, sans norme ni puissance PoE à part"
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "36 VDC, 2.23 A ± 25%",
+      "note": null
+    },
+    "power_w": {
+      "valeur": 15.0,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "Basic: 15 W",
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 45.0,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "Max: 45 W (illuminator+PTZ)",
+      "note": null
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 45.0,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "Max: 45 W (illuminator+PTZ)",
+      "note": "maximum global sans détail par alimentation, reporté en PoE ; Hi-PoE (validé par Quentin)"
+    },
+    "ports.poe.min_standard": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 36.0,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "36 VDC, 2.23 A ± 25%",
+      "note": "tension nominale ; le ± 25 % suit le courant, ignoré (Quentin)"
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 36.0,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "36 VDC, 2.23 A ± 25%",
+      "note": "tension nominale ; le ± 25 % suit le courant, ignoré (Quentin)"
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": 2230.0,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "36 VDC, 2.23 A ± 25%",
+      "note": "courant unique"
+    }
+  }
+}

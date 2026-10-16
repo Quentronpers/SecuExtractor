@@ -1,0 +1,86 @@
+{
+  "id": "unv-01",
+  "reference": "IPC3234SB-ADZK-I0",
+  "sha256": "b36571ce2ad239de78706100059a9a280a561bd3f54d8ae97714d58e13a03a1b",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "DC 12V±25%, PoE (IEEE 802.3af)",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "DC 12V±25%, PoE (IEEE 802.3af)",
+      "note": null
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 7.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power consumption: Max 7.0W",
+      "note": null
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 7.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power consumption: Max 7.0W",
+      "note": "maximum global sans détail par alimentation, reporté en PoE"
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "DC 12V±25%, PoE (IEEE 802.3af)",
+      "note": "classe non donnée"
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 9.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "DC 12V±25%, PoE (IEEE 802.3af)",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 15.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "DC 12V±25%, PoE (IEEE 802.3af)",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

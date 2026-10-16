@@ -1,0 +1,86 @@
+{
+  "id": "bosch-04",
+  "reference": "NDP-7602-Z40",
+  "sha256": "00568d05e10a226df8cd99846a5c62c2d10051df312c181d8cde7cdb27cfc809",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "with both a 24 VAC/36 VDC power source and an IEEE 802.3bt midspan or a switch connected simultaneously",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "The camera can also accept a standard 24 VAC/36 VDC power source",
+      "note": "24 VAC ou 36 VDC"
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3bt",
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "with both a 24 VAC/36 VDC power source and an IEEE 802.3bt midspan or a switch connected simultaneously",
+      "note": "midspan ou switch 802.3bt"
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 36.0,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "The camera can also accept a standard 24 VAC/36 VDC power source",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 36.0,
+      "etat_attendu": "sur",
+      "page": 3,
+      "extrait": "The camera can also accept a standard 24 VAC/36 VDC power source",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

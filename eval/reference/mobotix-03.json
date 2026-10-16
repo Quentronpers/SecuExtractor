@@ -1,0 +1,86 @@
+{
+  "id": "mobotix-03",
+  "reference": "Mx-BC2A-2-IR",
+  "sha256": "ae5703cc304d8b1d9f878d4fef9c2739775d51a294e32d8d6f5deea1af4ed55b",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Requirements PoE IEEE802.3af, class 0, max 6.78 W",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": false,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Requirements PoE IEEE802.3af, class 0, max 6.78 W",
+      "note": "PoE seul"
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 6.78,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Requirements PoE IEEE802.3af, class 0, max 6.78 W",
+      "note": null
+    },
+    "ports.poe.class": {
+      "valeur": "0",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Requirements PoE IEEE802.3af, class 0, max 6.78 W",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 6.78,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Requirements PoE IEEE802.3af, class 0, max 6.78 W",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Requirements PoE IEEE802.3af, class 0, max 6.78 W",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

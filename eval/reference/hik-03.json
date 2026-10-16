@@ -1,0 +1,86 @@
+{
+  "id": "hik-03",
+  "reference": "DS-2CD2T47G2-L (4mm)",
+  "sha256": "41ddcaf3d2cf249f72d629ca5be8c3f774b804b184241f1d4c9093aea670964e",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE (802.3af, 36 V to 57 V), 0.30 A to 0.18 A, max. 10.5 W",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "12 VDC, 0.7 A, max. 8.5 W",
+      "note": null
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 10.5,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE (802.3af, 36 V to 57 V), 0.30 A to 0.18 A, max. 10.5 W",
+      "note": "max 8,5 W en DC, 10,5 W en PoE"
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 10.5,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE (802.3af, 36 V to 57 V), 0.30 A to 0.18 A, max. 10.5 W",
+      "note": "courant PoE donné (hors port dc) : 0,30 A à 0,18 A"
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "PoE (802.3af, 36 V to 57 V), 0.30 A to 0.18 A, max. 10.5 W",
+      "note": "classe non donnée"
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 9.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "12 VDC ± 25%",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 15.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "12 VDC ± 25%",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": 700.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "12 VDC, 0.7 A, max. 8.5 W",
+      "note": "courant unique donné avec la puissance max"
+    }
+  }
+}

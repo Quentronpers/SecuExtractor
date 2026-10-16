@@ -1,0 +1,86 @@
+{
+  "id": "dahua-02",
+  "reference": "IPC-HFW5442E-ZE",
+  "sha256": "6870f4b1449be54b33804fa0a1226c2800e00751dff26cf4a57879e271ec9394",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "12 VDC/PoE (802.3af)/ePoE",
+      "note": "aussi ePoE (propriétaire)"
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "12 VDC/PoE (802.3af)/ePoE",
+      "note": null
+    },
+    "power_w": {
+      "valeur": 4.9,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "Basic: 3.7 W (12 VDC); 4.9 W (PoE)",
+      "note": "typique en PoE (règle du 2026-10-16) ; deux consommations « Basic » (DC et PoE)"
+    },
+    "power_w_peak": {
+      "valeur": 12.3,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "Max. (H.265+ WDR+ Intelligence on+IR on): 9.8 W (12 VDC); 12.3 W (PoE)",
+      "note": null
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 12.3,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "Max. (H.265+ WDR+ Intelligence on+IR on): 9.8 W (12 VDC); 12.3 W (PoE)",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "12 VDC/PoE (802.3af)/ePoE",
+      "note": "classe non donnée"
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "12 VDC/PoE (802.3af)/ePoE",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "section": "Power",
+      "extrait": "12 VDC/PoE (802.3af)/ePoE",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

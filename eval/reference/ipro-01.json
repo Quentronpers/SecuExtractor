@@ -1,0 +1,86 @@
+{
+  "id": "ipro-01",
+  "reference": "WV-S2236LA",
+  "sha256": "96a125b1df0398821eb4429b9796c5bd69e6f0b52057085636177a143d3308b2",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Power Source and Power Consumption",
+      "extrait": "PoE (IEEE802.3af compliant) Device : DC48 V 180 mA, Approx. 8.7 W (Class 0 device)",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Power Source and Power Consumption",
+      "extrait": "DC power supply : DC12 V 720 mA, Approx. 8.6 W",
+      "note": null
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 8.7,
+      "etat_attendu": "sur",
+      "section": "Power Source and Power Consumption",
+      "extrait": "PoE (IEEE802.3af compliant) Device : DC48 V 180 mA, Approx. 8.7 W (Class 0 device)",
+      "note": "approx."
+    },
+    "ports.poe.class": {
+      "valeur": "0",
+      "etat_attendu": "sur",
+      "section": "Power Source and Power Consumption",
+      "extrait": "PoE (IEEE802.3af compliant) Device : DC48 V 180 mA, Approx. 8.7 W (Class 0 device)",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 8.7,
+      "etat_attendu": "sur",
+      "section": "Power Source and Power Consumption",
+      "extrait": "PoE (IEEE802.3af compliant) Device : DC48 V 180 mA, Approx. 8.7 W (Class 0 device)",
+      "note": "approx. ; courant PoE 180 mA (hors port dc)"
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "section": "Power Source and Power Consumption",
+      "extrait": "PoE (IEEE802.3af compliant) Device : DC48 V 180 mA, Approx. 8.7 W (Class 0 device)",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "section": "Power Source and Power Consumption",
+      "extrait": "DC power supply : DC12 V 720 mA, Approx. 8.6 W",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "section": "Power Source and Power Consumption",
+      "extrait": "DC power supply : DC12 V 720 mA, Approx. 8.6 W",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": 720.0,
+      "etat_attendu": "sur",
+      "section": "Power Source and Power Consumption",
+      "extrait": "DC power supply : DC12 V 720 mA, Approx. 8.6 W",
+      "note": "courant unique donné avec la puissance"
+    }
+  }
+}

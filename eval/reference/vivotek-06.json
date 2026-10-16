@@ -1,0 +1,86 @@
+{
+  "id": "vivotek-06",
+  "reference": "SD9364-EH",
+  "sha256": "97355ea4caddf12c77087d8f885bd98162139f007d7a176b2a81ae661d1dadab",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 2,
+      "extrait": "10/100/1000Mbps PoE connection",
+      "note": "95 W PoH/PoE (ligne Power Input illisible au texte extrait)"
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 2,
+      "extrait": "DC 48V power input",
+      "note": null
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 81.8,
+      "etat_attendu": "sur",
+      "page": 2,
+      "extrait": "SD9364-EH: Max. 81.8 W (Heater on)",
+      "note": "chauffage en marche ; 28,5 W à l'arrêt"
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 81.8,
+      "etat_attendu": "sur",
+      "page": 2,
+      "extrait": "SD9364-EH: Max. 81.8 W (Heater on)",
+      "note": "maximum global sans détail par alimentation, reporté en PoE ; PoH/PoE 95 W non normé (validé par Quentin)"
+    },
+    "ports.poe.min_standard": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 48.0,
+      "etat_attendu": "sur",
+      "page": 2,
+      "extrait": "DC 48V power input",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 48.0,
+      "etat_attendu": "sur",
+      "page": 2,
+      "extrait": "DC 48V power input",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

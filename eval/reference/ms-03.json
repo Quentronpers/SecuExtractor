@@ -1,0 +1,86 @@
+{
+  "id": "ms-03",
+  "reference": "MS-C8266-X4RIPG1",
+  "sha256": "2bd030ecbeb18ad42d6bf2478b55a7930aed238fedaf201143930a44033a915e",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Supply PoE+(802.3at)/DC10V~DC28V",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Supply PoE+(802.3at)/DC10V~DC28V",
+      "note": null
+    },
+    "power_w": {
+      "valeur": 10.2,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "24 Hour Average: 8.6W(DC), 10.2W(PoE+)",
+      "note": "typique en PoE (règle du 2026-10-16) ; moyenne 24 h ; deux valeurs (DC et PoE)"
+    },
+    "power_w_peak": {
+      "valeur": 17.2,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Max.: 14.9W(DC), 17.2W(PoE+)",
+      "note": "colonne de droite = MS-C8266-X4RIPG1 (en-tête p2) ; chauffage d'objectif"
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 17.2,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Max.: 14.9W(DC), 17.2W(PoE+)",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3at",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Supply PoE+(802.3at)/DC10V~DC28V",
+      "note": "classe non donnée"
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 10.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Supply PoE+(802.3at)/DC10V~DC28V",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 28.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power Supply PoE+(802.3at)/DC10V~DC28V",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

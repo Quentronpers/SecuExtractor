@@ -1,0 +1,86 @@
+{
+  "id": "axis-09",
+  "reference": "AXIS Q6225-LE",
+  "sha256": "13ef155322d9c6e824a54f08f800b715d8ad69e3f8520d0606fc17d51789dbbc",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power over Ethernet (PoE) IEEE 802.3bt Type 4",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": false,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power over Ethernet (PoE) IEEE 802.3bt Type 4",
+      "note": "PoE seul"
+    },
+    "power_w": {
+      "valeur": 16.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Full power: typical 16 W (no IR), max 71 W",
+      "note": "typique sans IR ; power profiles"
+    },
+    "power_w_peak": {
+      "valeur": 71.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Full power: typical 16 W (no IR), max 71 W",
+      "note": null
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 71.0,
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Full power: typical 16 W (no IR), max 71 W",
+      "note": "low power max 32 W ; « max 90 W » = capacité High PoE"
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3bt",
+      "etat_attendu": "sur",
+      "page": 4,
+      "extrait": "Power over Ethernet (PoE) IEEE 802.3bt Type 4",
+      "note": "Type 4 sans numéro de classe : class absent"
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

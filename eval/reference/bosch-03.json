@@ -1,0 +1,86 @@
+{
+  "id": "bosch-03",
+  "reference": "MIC-7502-Z30BR",
+  "sha256": "713abf4458e1dbf5be51707a02b2dd4383028f478c8bcaa3f6f6abe7350eada1",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "Input voltage 24 VAC, 50/60 Hz │ High Power over Ethernet 56VDC nominal",
+      "note": "High PoE (propriétaire, midspan 60 ou 95 W) ; courant High PoE ~1,5 A"
+    },
+    "ports.dc": {
+      "valeur": false,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "Input voltage 24 VAC, 50/60 Hz │ High Power over Ethernet 56VDC nominal",
+      "note": "24 VAC (~3,15 A) ; alimentation recommandée 24 V 100 VA"
+    },
+    "power_w": {
+      "valeur": 40.0,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "Power Consumption (typ- 40 W ical), without illuminator",
+      "note": "typique sans illuminateur (validé par Quentin)"
+    },
+    "power_w_peak": {
+      "valeur": 70.0,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "Power Consumption (typ- 70 W ical), with illuminator",
+      "note": "typique avec illuminateur accessoire, aucune maximale annoncée (validé par Quentin)"
+    },
+    "ports.poe.class": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

@@ -5,8 +5,9 @@ Il tranche les cas ambigus **avant** l'annotation, pour que la bonne réponse
 ne dépende pas de l'humeur du jour. Une règle qui manque s'ajoute ici, datée,
 jamais au cas par cas dans un fichier.
 
-Le corrigé est écrit à la main, sans pré-remplissage par un modèle. Pour
-contrôler un fichier :
+Le corrigé a été annoté par Claude le 2026-10-16 (`annotateur: "Claude"`),
+notice lue et citée ; les champs incertains sont en `douteux` et relus par
+Quentin. Aucun des modèles évalués n'y a touché. Pour contrôler un fichier :
 
 ```bash
 docker exec dev_catalog sh -c "cd /app && python -m catalog.evaluation.reference"
@@ -120,6 +121,11 @@ page est celle du fichier : la puissance d'axis-01 est page 5.)
   SecurScope qui lira `ports.poe.power_w` d'abord pour le budget PoE.
 - `power_w` = la **typique**, seulement si la fiche donne aussi une maximale.
   Une seule valeur de consommation ⇒ `power_w_peak` seul.
+- **Plusieurs typiques, une par alimentation** (décidé le 2026-10-16) →
+  `power_w` = **la typique en PoE** : c'est elle qui sert au
+  dimensionnement du switch ; une entrée DC passe par une alimentation
+  dédiée, sans dimensionnement prévu. Vaut aussi pour « Basic » (Dahua) et
+  la moyenne 24 h (Milesight). Sans PoE, la règle ne s'applique pas.
 - `ports.poe.power_w` = le **pire cas annoncé en PoE**. PoE propriétaire
   non chiffré (Hikvision « Hi-PoE » sans watts) ⇒ absent.
 - « 6,4 W (12V DC) ; 7,7 W (PoE) » → `power_w_peak` 7,7, `ports.poe.power_w`
@@ -129,6 +135,10 @@ page est celle du fichier : la puissance d'axis-01 est page 5.)
   sur deux lignes) → `power_w` 6,79, `ports.poe.power_w` 10,73 ;
   `power_w_peak` = le maximum des entrées PoE, VDC et VAC **du bloc de la
   référence visée** ; bloc non attribuable ⇒ `douteux`.
+- **Maximum global sans détail par alimentation** (décidé le 2026-10-16),
+  la caméra ayant un port PoE → `power_w_peak` et aussi
+  `ports.poe.power_w` : en PoE, elle peut tirer ce maximum sur le switch
+  (UNV « Max. 8.5 W », Dahua Hi-PoE « Max: 45 W », Vivotek « Max. 81.8 W »).
 - Consommation **sans libellé** donnée en plage (UNV « 16 ~ 56W ») →
   `power_w_peak` 56, `power_w` absent.
 - **Min / moyenne 24 h / max** (Milesight) → `power_w` = la moyenne 24 h,
@@ -172,7 +182,10 @@ page est celle du fichier : la puissance d'axis-01 est page 5.)
 - « 12 V DC ± 25 % » → `voltage_min_v` 9, `voltage_max_v` 15.
 - Tolérance asymétrique : Dahua « 12 VDC, 4 A (–10% to +25%) » → 10,8 / 15.
 - Tolérance placée après le courant : Dahua « 36 VDC, 2.23 A ± 25% » →
-  27 / 45 en `douteux` (on ne sait pas si elle porte sur la tension).
+  tension nominale, 36 / 36 (décidé le 2026-10-16 : on ne sait pas si
+  elle porte sur la tension, on l'ignore).
+- Un courant qui est le calibre de l'alimentation et non une consommation
+  (Dahua 4G « 12 VDC, 4 A » pour 27 W max) → `absent`.
 - « 12 V DC » seul → min = max = 12.
 - « 10–28 V DC » → 10 et 28.
 - **Jamais** 44 à 57 V venant du PoE dans les tensions du port `dc`.

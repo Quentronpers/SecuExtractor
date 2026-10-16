@@ -1,0 +1,86 @@
+{
+  "id": "bosch-01",
+  "reference": "NDV-5703-A",
+  "sha256": "fc1f810c9be3b9a8c36f2fbb9228a4dc3a17bb119b2311787818de80e6d3689a",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "PoE input PoE IEEE 802.3af / 802.3at Type 1, Class 3",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": false,
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "Input voltage Power-over-Ethernet (48 VDC nominal)",
+      "note": "PoE seul"
+    },
+    "power_w": {
+      "valeur": 5.2,
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "PoE: 5.2 W / 6.2 W",
+      "note": "ligne (5 MP) = NDV-5703-A"
+    },
+    "power_w_peak": {
+      "valeur": 6.2,
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "PoE: 5.2 W / 6.2 W",
+      "note": null
+    },
+    "ports.poe.class": {
+      "valeur": "3",
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "PoE input PoE IEEE 802.3af / 802.3at Type 1, Class 3",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 6.2,
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "PoE: 5.2 W / 6.2 W",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "PoE input PoE IEEE 802.3af / 802.3at Type 1, Class 3",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

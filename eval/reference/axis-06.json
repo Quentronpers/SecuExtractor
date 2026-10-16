@@ -1,0 +1,86 @@
+{
+  "id": "axis-06",
+  "reference": "AXIS Q1806-LE",
+  "sha256": "6cd73617eabf12441945d9461e87c9cb61d7b281f1486f9f9095871b120c46ea",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Power over Ethernet (PoE) IEEE 802.3at Type 2 Class 4",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "10–28 V DC, typical 13 W, max 31.1 W",
+      "note": "aussi 20–24 V AC, typical 12 VA, max 30 VA"
+    },
+    "power_w": {
+      "valeur": 14.6,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "typical 14.6 W, max 25.5 W",
+      "note": "typique en PoE (règle du 2026-10-16) ; deux typiques : 14,6 W en PoE, 13 W en DC"
+    },
+    "power_w_peak": {
+      "valeur": 51.0,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Power over Ethernet (PoE) IEEE 802.3bt Type 3 Class 6, typical 14.6 W, max 51 W",
+      "note": "mode bt requis pour alimenter un second appareil en PoE-out (30 W)"
+    },
+    "ports.poe.class": {
+      "valeur": "4",
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Power over Ethernet (PoE) IEEE 802.3at Type 2 Class 4",
+      "note": "bt Class 6 → 51 W (plusieurs modes PoE, GUIDE)"
+    },
+    "ports.poe.power_w": {
+      "valeur": 51.0,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Power over Ethernet (PoE) IEEE 802.3bt Type 3 Class 6, typical 14.6 W, max 51 W",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3at",
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Power over Ethernet (PoE) IEEE 802.3at Type 2 Class 4",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 10.0,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "10–28 V DC, typical 13 W, max 31.1 W",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 28.0,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "10–28 V DC, typical 13 W, max 31.1 W",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

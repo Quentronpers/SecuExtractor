@@ -25,7 +25,7 @@ modèle hébergé, avec l'écart chiffré.
 | **Périmètre : `camera_dome`, `camera_tube`, `camera_ptz`**, bloc alimentation. `camera_thermique` exclue. | Les trois types portent les mêmes champs d'alimentation dans SecurScope (`video.camera.fixed`, `video.camera.ptz`). Les PTZ apportent les cas durs (802.3bt, 24 V AC, chauffage). |
 | **Les champs cibles sont ceux du modèle SecurScope** (décision de Quentin, 2026-10-15), pas ceux de `schema/specifications-equipements.json`. Onze champs : présence des ports `poe` et `dc` (2 booléens) ; attributs de la caméra `power_w` (typique) et `power_w_peak` (maximale, IR + chauffage + moteur) ; port `poe_pd` : `class`, `power_w` (pire cas en PoE), `min_standard` ; port `power_dc_in` : `voltage_min_v`, `voltage_max_v`, `current_standby_ma`, `current_peak_ma`. | Le but est que la donnée extraite entre telle quelle dans SecurScope : `power_w_peak` alimente la règle `poe_budget` (Σ ≤ 80 % du budget du switch), les tensions du port DC servent au contrôle de compatibilité avec l'alimentation. Les courants sont presque toujours absents des fiches caméra : ils mesurent si le modèle invente un courant à partir des watts (règle 5 de CLAUDE.md). |
 | **Ces 11 champs sont décrits dans `catalog/extraction/cibles/camera_alimentation.json`** (clé SecurScope, unité, définition reprise du modèle, commit SecurScope d'origine). Le schéma français n'est pas touché ; le réaligner sur SecurScope est un chantier à part (§6). | SecurScope est privé et vit ailleurs : le projet ne peut pas le lire en CI, sur le PC ni dans le dépôt public. Une description courte, datée et sourcée suffit. |
-| **Corrigé annoté à la main par Quentin**, sans pré-remplissage. 10 notices réannotées deux semaines plus tard pour mesurer la fiabilité de l'annotation. | Seule vérité terrain défendable : le modèle évalué n'y a pas touché. La réannotation dit combien vaut le corrigé lui-même. |
+| **Corrigé annoté par Claude, relu par Quentin** (changé le 2026-10-16, faute de temps de Quentin ; prévu d'abord : annoté à la main par Quentin). Claude a lu chaque notice et cité page et extrait ; les champs dont il n'est pas sûr sont en `douteux` et Quentin les tranche, puis contrôle entièrement quelques notices tirées au hasard (à la place de la réannotation). Publié tel quel dans les limites. | Les modèles évalués (Ollama, Groq) ne sont pas Claude : le corrigé reste indépendant d'eux. Risque assumé : un LLM annotateur peut partager les erreurs de lecture d'un LLM extracteur ; la relecture des `douteux` et le contrôle aléatoire le mesurent. |
 | **Jeu de mise au point (15) et jeu de test (35)**, tirés au hasard dès L1, stratifiés par type et fabricant. Le prompt ne s'ajuste que sur les 15 ; le test est mesuré une fois par version de prompt et son empreinte est enregistrée. | Sans cette séparation, on ajuste le prompt au corrigé et les chiffres publiés sont flatteurs. |
 | **Modèle principal local** : Ollama sur le PC de Quentin (GPU 16 Go), `qwen3:14b` comme premier candidat. **Comparaison** avec un gros modèle ouvert gratuit sur **Groq** (confirmé par Quentin). | Coût nul, données qui ne sortent pas : l'argument qui compte chez un industriel. La comparaison donne le plafond atteignable. |
 | **Un seul client, compatible OpenAI** (`/v1/chat/completions`), paramétré par URL, modèle et clé, appelé avec `requests` (déjà en dépendance). Sortie structurée par **un seul schéma JSON au format strict** (tous les champs `required`, `additionalProperties: false`, nullables en `["number", "null"]`), validée par Pydantic. | Ollama et Groq exposent la même API ; le format strict est le plus petit commun dénominateur des deux. Changer de modèle reste un paramètre. |
@@ -249,10 +249,17 @@ mesure : précision ≥ 90 % sur `power_w_peak`, invention ≤ 2 %, tri
   inconnu, page manquante pour une valeur présente → refusés ; identifiants
   uniques ; tirage stratifié reproductible (graine fixe).
 
-### L1 bis — Annotation (Quentin, hors session de code)
-50 fichiers `eval/reference/<id>.json`, 4 à 6 h, puis 10 réannotés deux
-semaines plus tard (environ 1 h). Claude ne les écrit pas et ne les modifie
-pas (hook). Un validateur signale les fichiers malformés.
+### L1 bis — Annotation (Claude le 2026-10-16, relecture Quentin)
+50 fichiers `eval/reference/<id>.json` écrits par Claude (`annotateur:
+"Claude"`), 50/50 valides, chaque extrait retrouvé dans sa page (sauf
+unv-02, archive HTML mal décodée). Les 20 champs `douteux` ont été
+tranchés par Quentin le 2026-10-16 (règles ajoutées au GUIDE : typique en
+PoE, maximum global reporté en PoE, tolérance après le courant ignorée,
+calibre d'alimentation ≠ consommation). Contrôle complet par Quentin de
+5 notices tirées au hasard (graine 20261016 : axis-09, bosch-03,
+mobotix-03, unv-02, vivotek-03), soit 55 cellules : aucun écart. À
+publier avec cette taille d'échantillon (5 notices sur 50 ne prouvent pas
+un corrigé sans faute). Un validateur signale les fichiers malformés.
 
 ### L2 — Lecture des documents
 - `pdf_reader` : texte et tableaux par page. `html_reader` : sections

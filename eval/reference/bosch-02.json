@@ -1,0 +1,86 @@
+{
+  "id": "bosch-02",
+  "reference": "NBE-5704-AL",
+  "sha256": "ca92024b483e11376e8b0516c75591d94ce9094ba89e82a968af501abf22f5e1",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "PoE input PoE IEEE 802.3af / 802.3at Type 1, Class 3",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "Input voltage (VDC) 12 VDC ± 10%",
+      "note": "aussi 24 VAC ± 10 %"
+    },
+    "power_w": {
+      "valeur": 6.62,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "Power consumption PoE (W) (typical 6.62 W – 10.59 W",
+      "note": "typique en PoE (règle du 2026-10-16) ; trois typiques (PoE 6,62 ; VDC 6,16 ; VAC 6,31 W) ; bloc NBE-5704-AL"
+    },
+    "power_w_peak": {
+      "valeur": 10.76,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "Power consumption VAC (W) (typical 6.31 W – 10.76 W",
+      "note": "max en VAC ; PoE 10,59 W, VDC 10,23 W"
+    },
+    "ports.poe.class": {
+      "valeur": "3",
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "PoE input PoE IEEE 802.3af / 802.3at Type 1, Class 3",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 10.59,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "Power consumption PoE (W) (typical 6.62 W – 10.59 W",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "PoE input PoE IEEE 802.3af / 802.3at Type 1, Class 3",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 10.8,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "Input voltage (VDC) 12 VDC ± 10%",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 13.2,
+      "etat_attendu": "sur",
+      "page": 8,
+      "extrait": "Input voltage (VDC) 12 VDC ± 10%",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "id": "mobotix-04",
+  "reference": "Mx-SD1A-540-IR-VA",
+  "sha256": "0788792ceea8f92a813ca33f6f2368be210310f76ecdc206cb96b168756e08ee",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "Power Requirements IEEE802.3bt, Type 3, class 6, max 51.00 watt",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": false,
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "AC24V, max 59.05 watt, max 87.12 VA",
+      "note": "24 VAC ; pas d'entrée continue"
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 59.05,
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "AC24V, max 59.05 watt, max 87.12 VA",
+      "note": "en AC24V (87,12 VA) ; chauffage intégré"
+    },
+    "ports.poe.class": {
+      "valeur": "6",
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "Power Requirements IEEE802.3bt, Type 3, class 6, max 51.00 watt",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 51.0,
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "Power Requirements IEEE802.3bt, Type 3, class 6, max 51.00 watt",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3bt",
+      "etat_attendu": "sur",
+      "page": 7,
+      "extrait": "Power Requirements IEEE802.3bt, Type 3, class 6, max 51.00 watt",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

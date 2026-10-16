@@ -1,0 +1,86 @@
+{
+  "id": "axis-05",
+  "reference": "AXIS P1465-LE",
+  "sha256": "bee96ba1a27a3c98b6d4f4f1336ce0aa3e404d58c2c7fb5c2b88150787d2ef28",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Power over Ethernet IEEE 802.3af/802.3at Type 1",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "10–28 V DC, typical 7.2 W, max 12.95 W",
+      "note": null
+    },
+    "power_w": {
+      "valeur": 7.9,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Typical: 7.9 W, max 12.95 W",
+      "note": "typique en PoE (règle du 2026-10-16) ; deux typiques : 7,9 W en PoE, 7,2 W en DC"
+    },
+    "power_w_peak": {
+      "valeur": 12.95,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Typical: 7.9 W, max 12.95 W",
+      "note": null
+    },
+    "ports.poe.class": {
+      "valeur": "3",
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Class 3",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 12.95,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Typical: 7.9 W, max 12.95 W",
+      "note": null
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3af",
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "Power over Ethernet IEEE 802.3af/802.3at Type 1",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 10.0,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "10–28 V DC, typical 7.2 W, max 12.95 W",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 28.0,
+      "etat_attendu": "sur",
+      "page": 5,
+      "extrait": "10–28 V DC, typical 7.2 W, max 12.95 W",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "page": null,
+      "extrait": null,
+      "note": null
+    }
+  }
+}

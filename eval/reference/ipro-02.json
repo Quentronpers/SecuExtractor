@@ -1,0 +1,86 @@
+{
+  "id": "ipro-02",
+  "reference": "WV-X22300-V3L",
+  "sha256": "605027cd98e9fddf360ec278b360e8dec1ce6603d8fab8c14ecb023f3c54d5c9",
+  "annotateur": "Claude",
+  "date_annotation": "2026-10-16",
+  "champs": {
+    "ports.poe": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Power Source/Power Consumption",
+      "extrait": "DC12 V, PoE+ (IEEE802.3at compliant)",
+      "note": null
+    },
+    "ports.dc": {
+      "valeur": true,
+      "etat_attendu": "sur",
+      "section": "Power Source/Power Consumption",
+      "extrait": "DC12 V, PoE+ (IEEE802.3at compliant)",
+      "note": null
+    },
+    "power_w": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "power_w_peak": {
+      "valeur": 14.2,
+      "etat_attendu": "sur",
+      "section": "Power Source/Power Consumption",
+      "extrait": "DC12 V ：1.2 A／ Approx. 14.2 W",
+      "note": "approx. ; 14,2 W en DC > 14,0 W en PoE+"
+    },
+    "ports.poe.class": {
+      "valeur": "4",
+      "etat_attendu": "sur",
+      "section": "Power Source/Power Consumption",
+      "extrait": "PoE+ DC 54 V ：260 mA／ Approx. 14.0 W（Class 4 device）",
+      "note": null
+    },
+    "ports.poe.power_w": {
+      "valeur": 14.0,
+      "etat_attendu": "sur",
+      "section": "Power Source/Power Consumption",
+      "extrait": "PoE+ DC 54 V ：260 mA／ Approx. 14.0 W（Class 4 device）",
+      "note": "approx. ; courant PoE 260 mA (hors port dc)"
+    },
+    "ports.poe.min_standard": {
+      "valeur": "802.3at",
+      "etat_attendu": "sur",
+      "section": "Power Source/Power Consumption",
+      "extrait": "DC12 V, PoE+ (IEEE802.3at compliant)",
+      "note": null
+    },
+    "ports.dc.voltage_min_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "section": "Power Source/Power Consumption",
+      "extrait": "DC12 V ：1.2 A／ Approx. 14.2 W",
+      "note": null
+    },
+    "ports.dc.voltage_max_v": {
+      "valeur": 12.0,
+      "etat_attendu": "sur",
+      "section": "Power Source/Power Consumption",
+      "extrait": "DC12 V ：1.2 A／ Approx. 14.2 W",
+      "note": null
+    },
+    "ports.dc.current_standby_ma": {
+      "valeur": null,
+      "etat_attendu": "absent",
+      "section": null,
+      "extrait": null,
+      "note": null
+    },
+    "ports.dc.current_peak_ma": {
+      "valeur": 1200.0,
+      "etat_attendu": "sur",
+      "section": "Power Source/Power Consumption",
+      "extrait": "DC12 V ：1.2 A／ Approx. 14.2 W",
+      "note": "courant unique donné avec la puissance"
+    }
+  }
+}
