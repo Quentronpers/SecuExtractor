@@ -15,3 +15,6 @@ data/extractions/
 reprise.md
 .mypy_cache/
 .ruff_cache/
+
+# Agent partagé, source dans le vault (lien symbolique local)
+.claude/agents/recruteur-ia.md
