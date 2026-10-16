@@ -32,7 +32,11 @@ Dans cet ordre, sans sauter d'étape :
      l'attaquer ;
    - ce qui n'est pas commité.
    Il met à jour les docs du repo, le vault (commit compris), la mémoire
-   et écrit `reprise.md`. Une leçon qui vaut hors de SecuExtractor
+   et écrit `reprise.md`. **`README.md` (anglais, vitrine publique)** suit
+   chaque lot : ce qui est construit, les limites levées ou nouvelles, les
+   commandes, et les chiffres recopiés des fichiers de résultats, jamais
+   arrondis à la main. Toute affirmation sur la méthode doit rester vraie
+   dans le code ; un doute → `architecte-llm` relit le README. Une leçon qui vaut hors de SecuExtractor
    (outil, NAS, CI, méthode) va aussi dans `vault/connaissances/` : le
    dire dans le brief.
 4. **Proposer le commit** : liste des fichiers, message au format du

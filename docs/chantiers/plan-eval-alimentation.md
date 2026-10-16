@@ -639,6 +639,26 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
 - Avant de passer le dépôt en public : licence, CLAUDE.md corrigé (Stack et
   Structure), décision sur les fichiers `.claude/` versionnés. Passage en
   public avec l'accord de Quentin.
+- **Audit avant publication** (demandé par Quentin le 2026-10-16 : dépôt
+  sûr et propre, pas une mauvaise vitrine), lancé en parallèle par
+  `/conseil`, verdict de chaque agent avant l'accord de Quentin :
+  - *sécurité* : secrets, `.env`, chemins et noms internes (NAS, `/volume1`,
+    adresses), courriels, dans les fichiers **et tout l'historique git** ;
+    aucun PDF, texte de notice ni réponse brute versionné, **à aucun
+    commit de l'historique** ; fixtures de `tests/` construites à la main ;
+    URL de `eval/notices.csv` sans jeton ni lien signé ; extraits du
+    corrigé courts (citation courte, source indiquée) ; contenu de
+    `.claude/` (hooks, réglages, liens vers le vault) ;
+  - *organisation* (`Explore`) : fichiers morts ou hérités (`schema/`,
+    `catalog/models.py`, `review/`, `export/`, dépendance `anthropic`),
+    cohérence entre README, CLAUDE.md, `docs/` et le code ;
+  - *conformité* (`relecteur-conformite`) : règles de CLAUDE.md sur tout le
+    dépôt, pas seulement un diff ;
+  - *tests* (`expert-tests`) : couverture des modules publiés ;
+  - *méthode* (`architecte-llm`) : chaque affirmation du README vraie dans
+    le code, chiffres recopiés des fichiers de résultats ;
+  - *vitrine* (`recruteur-ia`) : lecture à 30 s et à 3 min.
+  Les écarts sont corrigés puis l'audit est rejoué sur ce qui a changé.
 - Vault et portfolio mis à jour (via `/fin-de-lot`).
 
 ## 6. Questions ouvertes
