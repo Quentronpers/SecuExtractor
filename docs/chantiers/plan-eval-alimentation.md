@@ -998,9 +998,31 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   déplacée en `douteux` (`sur` 105 → 102, toutes justes). Règles écrites
   sur la mise au point ; jugées sur le test Groq. Les indices de
   `checker.py` ont rejoint `indices.py`.
-- À faire : test Groq (35) le 2026-10-20 (quota du jour entamé) ; rejeu de
-  qwen3 v1 avec les nouvelles règles sur le PC (réponses brutes là-bas) ;
-  bootstrap apparié Groq / qwen3.
+- **Test Groq (35), 2026-10-20**, avec les nouvelles règles, rapport
+  `2026-10-20_openai-gpt-oss-120b_camera-alimentation-v1_low_test` : 35/35
+  sans échec technique, 155 000 jetons, 2,6 s par notice. Exactitude 92,5 %
+  [87,0–96,6], précision 94,6 %, rappel 91,4 %, invention 5,0 %,
+  `power_w_peak` 97,0 %. qwen3 v1 (rejeu L5, sans les nouvelles règles) :
+  90,4 / 91,5 / 89,1 % ; ligne de base 80,5 %. L'écart de la mise au point
+  (97,6 contre 89,7 %) se resserre : intervalles qui se recouvrent,
+  bootstrap apparié à calculer.
+- **Tri des erreurs** : 5/14 en `douteux` (35,7 %) contre 63,6 % pour
+  qwen3 ; 3/14 sans les deux règles. Les nouvelles règles se déclenchent
+  chacune une fois, sur une vraie erreur (axis-08 `poe_non_maximale`,
+  hik-02 `repos_sans_max`), **aucune fausse alerte**. Les 4 `douteux`
+  justes viennent des contrôles existants (citation recomposée ou absente,
+  consommation citée).
+- **Erreurs silencieuses (`sur`)** : inventions de `power_w` sur trois
+  Vivotek (typique remplie sans typique dans la notice) et de
+  `ports.poe.power_w` sur bosch-03 (70 W) ; ipro-04 25 au lieu de 50 W
+  (incohérence du GUIDE sur les deux modes, déjà notée) ; ipro-01 8,6 au
+  lieu de 8,7 W ; dahua-03 DC déclaré absent ; dahua-04 typique 4 W et
+  courant 4 000 mA inventé. Manqués : ms-02 presque entier (colonne
+  voisine, déjà noté), dahua-03 entrée 36 V. dahua-03 et dahua-04 sont
+  cités dans le prompt : à donner à part.
+- À faire : rejeu de qwen3 v1 avec les nouvelles règles sur le PC
+  (réponses brutes là-bas) ; bootstrap apparié Groq / qwen3 ; règle sur
+  `power_w` rempli quand la notice ne donne qu'une consommation (Vivotek).
 
 ### L6 — Restitution
 - **README en anglais**, écrit dès la fin de L3c, sans chiffres : le
