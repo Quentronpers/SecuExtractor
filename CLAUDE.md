@@ -393,9 +393,10 @@ autres familles s'écriront avec leurs cibles, quand un chantier les ouvrira.
 |---|---|
 | `power_w`, `power_w_peak` | entre 1 et 200 W |
 | `ports.poe.power_w` | entre 1 et 90 W ; ≤ plafond de la plus haute classe citée dans la notice (3,84 / 6,49 / 12,95 / 25,5 / 40 / 51 / 62 / 71,3 W), 71,3 W sans classe citée ; aucun plafond si la notice parle d'un PoE propriétaire (High PoE, Hi-PoE, injecteur, PoH) |
+| `ports.poe.power_w` (extrait) | douteux si l'extrait porte un indice de typique (typ, basic, nominal, average) et, sur la ligne de la valeur retenue, une puissance plus haute que ne précède ni calibre (injecteur, classe, norme…) ni autre alimentation (AC, DC) |
 | `ports.poe.class` et `min_standard` | cohérents : af ⇒ 0–3, at ⇒ 0–4, bt ⇒ 1–8 (les deux) ; af avec plus de 12,95 W sans at ni bt cités (les deux) |
 | `ports.dc.voltage_min_v`, `voltage_max_v` | dans {12, 24, 36, 48} ± 25 % ; min ≤ max et min ≥ max / 3 (les deux) ; 44–57 V avec un extrait qui parle de PoE |
-| `ports.dc.current_standby_ma` | entre 20 et 2 000 mA ; ≤ `current_peak_ma` (les deux) |
+| `ports.dc.current_standby_ma` | entre 20 et 2 000 mA ; ≤ `current_peak_ma` (les deux) ; jamais seul : sans `current_peak_ma`, douteux (un courant unique est le maximal) |
 | `ports.dc.current_peak_ma` | entre 20 et 5 000 mA ; tension × courant entre 0,5 et 2 fois `power_w_peak` |
 | `power_w`, `ports.poe.power_w` | ≤ `power_w_peak` (les deux) |
 | `power_w_peak` | ≥ la plus forte consommation citée quand le texte cite plusieurs alimentations (PoE, DC, AC) ; consommation = valeur en W précédée sur sa ligne d'un indice (max, typical, approx, consumption), ou qui suit une telle valeur ; calibres exclus (midspan, injecteur, alimentation, transformateur, classe, norme, PoE propriétaire, switch, sortie) |

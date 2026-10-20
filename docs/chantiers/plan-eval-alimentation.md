@@ -3,10 +3,10 @@
 > Statut : **validé par Quentin le 2026-10-15** (relu par `expert-metier`
 > et `architecte-llm` le même jour). L1, L1 bis et L2 terminés et commités le
 > 2026-10-16 (L2 : `8a5e964`) ; L3a (`19a6c76`) et L3b (`fb034a2`)
-> terminés et commités ; L3c fait le 2026-10-16, non commité (premier
-> passage réel reporté à L4) ; L4 terminé le 2026-10-16 (partie sans GPU :
-> `c90750e` ; premier passage réel et résultats : non commités) ; prochain
-> lot : L5. Périmètre de L4 à L6 resserré
+> terminés et commités ; L3c `38bf97e` ; L4 terminé le 2026-10-16 (partie
+> sans GPU : `c90750e` ; premier passage réel et résultats : `a57f668`) ;
+> L5 partie 1 `82c0bf0` ; prochain pas : L5 partie 2, comparaison Groq
+> (2026-10-19). Périmètre de L4 à L6 resserré
 > le 2026-10-16 après l'avis de l'agent `recruteur-ia` (ligne de base sans
 > LLM, un seul modèle local, README anglais anticipé).
 > Sert l'étude de cas de la phase 2 de la recherche d'emploi
@@ -971,6 +971,36 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
     brutes ; contrôle de citation tolérant une cellule voisine déconseillé
     tel quel (ms-02 est une colonne voisine) : seulement un libellé à
     gauche sur la même ligne, critère fixé avant de mesurer.
+
+#### Journal de L5 (2026-10-19, partie 2 : Groq)
+
+- **Groq depuis le NAS** (sans GPU) : `openai/gpt-oss-120b`,
+  `--reflexion low`, clé passée par `docker exec --env-file .env` (le
+  fichier n'est ni lu ni écrit par Claude). Fumée axis-03 : 11/11, 2 s,
+  ≈ 4 000 jetons.
+- **Mise au point (15)**, prompt v1, rapport
+  `2026-10-19_openai-gpt-oss-120b_camera-alimentation-v1_low_miseaupoint` :
+  exactitude 97,6 % [94,5–100], précision 97,3 %, rappel 97,3 %, invention
+  1,8 %, `power_w_peak` 100 %, 2,5 s par notice, 75 600 jetons. qwen3 v1
+  (rejeu L5) : 89,7 / 90,4 / 85,5 %. Mais **0 erreur sur 3 en `douteux`**
+  (qwen3 : 8/10) : moins d'erreurs, toutes silencieuses. hanwha-07
+  `ports.poe.power_w` 30 au lieu de 60 W et bosch-01 5,2 au lieu de 6,2 W
+  (typique retenue, maximale dans l'extrait) ; hik-04 1 190 mA rangés au
+  repos au lieu du maximal.
+- **Deux règles sans modèle** (avis `expert-metier`, décidées par Quentin) :
+  `poe_non_maximale` (`plausibility/indices.py`, `regle_poe_typique`) :
+  extrait avec indice de typique, puissance plus haute sur la même ligne
+  que la valeur retenue, texte qui la précède sans indice de calibre ni
+  autre alimentation (AC, DC) ; la version large (toute valeur plus haute)
+  refusait ipro-04 (injecteur 60 W). `repos_sans_max` (`regle_courants`) :
+  courant au repos sans courant maximal. Aucun refus sur le corrigé.
+  Rejeu de Groq : tri des erreurs 0 → 100 % (3/3), aucune valeur juste
+  déplacée en `douteux` (`sur` 105 → 102, toutes justes). Règles écrites
+  sur la mise au point ; jugées sur le test Groq. Les indices de
+  `checker.py` ont rejoint `indices.py`.
+- À faire : test Groq (35) le 2026-10-20 (quota du jour entamé) ; rejeu de
+  qwen3 v1 avec les nouvelles règles sur le PC (réponses brutes là-bas) ;
+  bootstrap apparié Groq / qwen3.
 
 ### L6 — Restitution
 - **README en anglais**, écrit dès la fin de L3c, sans chiffres : le

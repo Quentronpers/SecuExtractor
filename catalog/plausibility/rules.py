@@ -10,7 +10,7 @@ Motifs : ``hors_bornes``, ``tension_hors_gamme``, ``tension_poe``,
 ``depasse_plafond_classe``, ``norme_insuffisante``,
 ``typique_superieure_max``, ``poe_superieure_max``, ``port_absent``,
 ``repos_superieur_max``, ``courant_incoherent``,
-``inferieure_consommation_citee``.
+``inferieure_consommation_citee``, ``poe_non_maximale``, ``repos_sans_max``.
 """
 
 from __future__ import annotations
@@ -20,6 +20,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
 from catalog.extraction.cible import Valeur
+from catalog.plausibility.indices import typique_au_lieu_du_max
 
 Motifs = list[tuple[str, str]]
 
@@ -205,6 +206,21 @@ def regle_consommation_citee(ctx: Contexte) -> Motifs:
     return []
 
 
+def regle_poe_typique(ctx: Contexte) -> Motifs:
+    """Puissance PoE : la typique retenue alors que la maximale est citée.
+
+    Erreurs de Groq en L5 (hanwha-07 : 30 W pour « Max. 60W, typical : 30W » ;
+    bosch-01). Sous-estimer la puissance PoE fait choisir un switch trop petit.
+    """
+    poe, extrait = (
+        ctx.nombre("ports.poe.power_w"),
+        ctx.extraits.get("ports.poe.power_w"),
+    )
+    if poe is not None and extrait and typique_au_lieu_du_max(poe, extrait):
+        return [("ports.poe.power_w", "poe_non_maximale")]
+    return []
+
+
 def regle_ports(ctx: Contexte) -> Motifs:
     """Un attribut de port renseigné alors que le port n'est pas déclaré présent."""
     motifs: Motifs = []
@@ -227,6 +243,9 @@ def regle_courants(ctx: Contexte) -> Motifs:
     motifs: Motifs = []
     repos = ctx.nombre("ports.dc.current_standby_ma")
     pointe = ctx.nombre("ports.dc.current_peak_ma")
+    if repos is not None and pointe is None:
+        # Un courant unique va dans current_peak_ma (eval/GUIDE.md, Courants).
+        motifs.append(("ports.dc.current_standby_ma", "repos_sans_max"))
     if repos is not None and pointe is not None and repos > pointe:
         motifs += _deux(
             "ports.dc.current_standby_ma",
@@ -249,6 +268,7 @@ REGLES: tuple[Callable[[Contexte], Motifs], ...] = (
     regle_plafond,
     regle_puissances,
     regle_consommation_citee,
+    regle_poe_typique,
     regle_ports,
     regle_courants,
 )

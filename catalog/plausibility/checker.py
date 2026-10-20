@@ -13,6 +13,11 @@ import unicodedata
 from collections.abc import Mapping, Sequence
 
 from catalog.extraction.cible import Valeur
+from catalog.plausibility.indices import (
+    INDICE_CALIBRE,
+    INDICE_CONSOMMATION,
+    WATTS,
+)
 from catalog.plausibility.rules import REGLES, Contexte
 from catalog.reading.page import Page
 
@@ -32,18 +37,6 @@ _ALIMENTATIONS = (
     re.compile(r"poe|802\.3|power[\s-]*over[\s-]*ethernet"),
     re.compile(r"(?<![a-z])v?dc(?![a-z])"),
     re.compile(r"(?<![a-z])v?ac(?![a-z])"),
-)
-_WATTS = re.compile(r"(\d+(?:[.,]\d+)?)\s*(?:watts?|w)(?![a-z])")
-# Lus entre la valeur précédente de la ligne et celle-ci. Un indice de calibre
-# (midspan, injecteur, alimentation, classe, norme ou capacité PoE, PoE
-# propriétaire, switch, sortie) écarte la valeur ; un indice de consommation
-# la retient ; sinon elle suit la précédente (« Max.: 7W (DC), 8.5W (PoE) »,
-# borne haute d'une plage). « typ » sans « type » : « Type 3 (60 W) ».
-_INDICE_CONSOMMATION = re.compile(r"consum|max|typ(?!e)|approx")
-_INDICE_CALIBRE = re.compile(
-    r"midspan|inject|supply|psu|adapt|transformer|class|802\.3|ethernet|switch"
-    r"|output|budget|rated|recommend"
-    r"|(?<![a-z])poh(?![a-z])|hi-?poe|high[\s-]*poe|hpoe|upoe"
 )
 
 
@@ -72,12 +65,12 @@ def consommations_citees(pages: Sequence[Page]) -> list[float]:
     trouvees = []
     for ligne in _texte(pages).splitlines():
         debut, retenue = 0, False
-        for nombre in _WATTS.finditer(ligne):
+        for nombre in WATTS.finditer(ligne):
             avant = ligne[debut : nombre.start()]
             debut = nombre.end()
-            if _INDICE_CALIBRE.search(avant):
+            if INDICE_CALIBRE.search(avant):
                 retenue = False
-            elif _INDICE_CONSOMMATION.search(avant):
+            elif INDICE_CONSOMMATION.search(avant):
                 retenue = True
             if retenue:
                 trouvees.append(float(nombre[1].replace(",", ".")))
