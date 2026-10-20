@@ -21,7 +21,11 @@ from pathlib import Path
 from typing import Any
 
 from catalog.evaluation import comparaison, decoupage, ligne_de_base, rapport
-from catalog.evaluation.execution import commit_courant, documents, suffixe_ids
+from catalog.evaluation.execution import (
+    commit_courant,
+    documents,
+    suffixe_ids,
+)
 from catalog.evaluation.notices import NOTICES_PATH
 from catalog.evaluation.reference import REFERENCE_DIR, Corrige, charger_corriges
 from catalog.evaluation.rejeu import charger_resultats, rejouer
@@ -57,7 +61,14 @@ def evaluer_run(
     reglages = dossier / "execution.json"
     meta = json.loads(reglages.read_text(encoding="utf-8")) if reglages.exists() else {}
     resultats = [rejouer(r, archive, cible) for r in charger_resultats(dossier)]
-    return resultats, meta | {"nom": dossier.name, "source": "rejeu"}
+    # Provenance : le commit de l'extraction est dans execution.json ; celui
+    # du code qui rejoue (contrôles, règles) peut être plus récent.
+    return resultats, meta | {
+        "nom": dossier.name,
+        "source": "rejeu",
+        "commit_evaluation": commit_courant(),
+        "date_evaluation": maintenant(),
+    }
 
 
 def evaluer_ligne_de_base(
@@ -107,6 +118,22 @@ def _rapport_ligne_de_base(
     return construit | {"decoupage": decoupage.resumer(places)}, nom
 
 
+def _rapport_run(
+    args: argparse.Namespace, cible: Cible, corriges: dict[str, Corrige]
+) -> tuple[dict[str, Any], str]:
+    """Rapport d'une exécution rejouée, réduit aux ``--ids`` s'il y en a."""
+    resultats, meta = evaluer_run(args.run, cible, ArchiveBrute())
+    ids = {i.strip() for i in args.ids.split(",") if i.strip()}
+    inconnus = ids - {r.document for r in resultats}
+    if inconnus:
+        raise SystemExit(f"absents de {args.run.name} : {', '.join(sorted(inconnus))}")
+    if ids:
+        resultats = [r for r in resultats if r.document in ids]
+    nom = args.run.name + suffixe_ids(args.ids)
+    meta |= {"nom": nom, "ids": args.ids}
+    return rapport.construire(resultats, corriges, meta), nom
+
+
 def _comparer(chemins: list[Path], sortie: Path) -> None:
     """Compare deux rapports, affiche le tableau et l'écrit à côté."""
     a, b = (comparaison.charger_comptes(c) for c in chemins)
@@ -129,8 +156,7 @@ def cmd_evaluate(args: argparse.Namespace) -> None:
     cible = charger_cible("camera", "alimentation")
     corriges = charger_corriges(REFERENCE_DIR, cible)
     if args.run:
-        resultats, meta = evaluer_run(args.run, cible, ArchiveBrute())
-        construit, nom = rapport.construire(resultats, corriges, meta), args.run.name
+        construit, nom = _rapport_run(args, cible, corriges)
     else:
         construit, nom = _rapport_ligne_de_base(args, cible, corriges)
     chemin = rapport.ecrire(construit, nom, args.sortie)

@@ -126,6 +126,7 @@ def test_evaluer_un_dossier_d_execution(
     assert construit["meta"]["modele"] == "qwen3:14b"
     assert construit["par_execution"]["precision"]["min"] == 1.0
     assert construit["erreurs"] == []
+    assert construit["meta"]["commit_evaluation"] is not None
 
 
 def test_rapport_liste_les_erreurs_et_s_ecrit(tmp_path: Path) -> None:
@@ -169,3 +170,27 @@ def test_rapport_sans_effectifs_par_notice(tmp_path: Path) -> None:
     ancien.write_text(json.dumps({"global": {}}))
     with pytest.raises(comparaison.RapportIncomplet):
         comparaison.charger_comptes(ancien)
+
+
+def test_run_reduit_aux_ids(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import argparse
+
+    from catalog.evaluation import evaluate
+    from catalog.extraction import runner
+    from catalog.extraction.runner import Moteur
+
+    monkeypatch.setattr(runner, "lire_document", lambda chemin: PAGES)
+    archive = ArchiveBrute(tmp_path / "brut")
+    monkeypatch.setattr(evaluate, "ArchiveBrute", lambda: archive)
+    moteur = Moteur(CONFIG, archive, FauxModele(reponse_correcte()))
+    autre = DOCUMENT.model_copy(update={"id": "axis-02"})
+    list(executer_lot([DOCUMENT, autre], CIBLE, moteur, 1, tmp_path / "run"))
+    corriges = {"axis-01": corrige(), "axis-02": corrige()}
+    args = argparse.Namespace(run=tmp_path / "run", ids="axis-02")
+    construit, nom = evaluate._rapport_run(args, CIBLE, corriges)
+    assert construit["notices"] == ["axis-02"]
+    assert nom.startswith("run_ids1-") and construit["meta"]["ids"] == "axis-02"
+    with pytest.raises(SystemExit):
+        evaluate._rapport_run(
+            argparse.Namespace(run=tmp_path / "run", ids="hik-09"), CIBLE, corriges
+        )
