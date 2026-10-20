@@ -10,7 +10,8 @@ Motifs : ``hors_bornes``, ``tension_hors_gamme``, ``tension_poe``,
 ``depasse_plafond_classe``, ``norme_insuffisante``,
 ``typique_superieure_max``, ``poe_superieure_max``, ``port_absent``,
 ``repos_superieur_max``, ``courant_incoherent``,
-``inferieure_consommation_citee``, ``poe_non_maximale``, ``repos_sans_max``.
+``inferieure_consommation_citee``, ``poe_non_maximale``, ``repos_sans_max``,
+``typique_dans_couple_max``.
 """
 
 from __future__ import annotations
@@ -20,7 +21,10 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
 from catalog.extraction.cible import Valeur
-from catalog.plausibility.indices import typique_au_lieu_du_max
+from catalog.plausibility.indices import (
+    typique_au_lieu_du_max,
+    typique_dans_couple_max,
+)
 
 Motifs = list[tuple[str, str]]
 
@@ -221,6 +225,14 @@ def regle_poe_typique(ctx: Contexte) -> Motifs:
     return []
 
 
+def regle_typique_couple(ctx: Contexte) -> Motifs:
+    """Typique lue dans un couple de maximums « Max. A/B W (X on/off) »."""
+    typique, extrait = ctx.nombre("power_w"), ctx.extraits.get("power_w")
+    if typique is not None and extrait and typique_dans_couple_max(typique, extrait):
+        return [("power_w", "typique_dans_couple_max")]
+    return []
+
+
 def regle_ports(ctx: Contexte) -> Motifs:
     """Un attribut de port renseigné alors que le port n'est pas déclaré présent."""
     motifs: Motifs = []
@@ -269,6 +281,7 @@ REGLES: tuple[Callable[[Contexte], Motifs], ...] = (
     regle_puissances,
     regle_consommation_citee,
     regle_poe_typique,
+    regle_typique_couple,
     regle_ports,
     regle_courants,
 )

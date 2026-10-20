@@ -1020,9 +1020,28 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   courant 4 000 mA inventé. Manqués : ms-02 presque entier (colonne
   voisine, déjà noté), dahua-03 entrée 36 V. dahua-03 et dahua-04 sont
   cités dans le prompt : à donner à part.
+- **Bootstrap apparié** branché (`evaluate --comparer A B`,
+  `evaluation/comparaison.py`) ; les rapports portent désormais
+  `par_document`. Groq contre ligne de base au test : exactitude +11,9
+  points [+4,7 ; +19,5], départagés. Groq contre qwen3 : à faire sur le PC
+  (rapports qwen3 à régénérer depuis les réponses brutes).
+- **Règle Vivotek** `typique_dans_couple_max` (avis `expert-metier`) :
+  `power_w` douteux si l'extrait, sans indice de typique, porte
+  « max A/B W » et que la valeur est A ou B. La règle large (aucun indice
+  de typique) refusait bosch-01 au corrigé ; la règle complémentaire
+  `typique_egale_max_poe` (typique ≥ PoE max) a été retirée après rejeu :
+  trois fausses alertes (bosch-01, hanwha-07, axis-08, où c'est la PoE qui
+  est fausse) et aucun cas propre. Rejeu Groq avec toutes les règles
+  (rapports `_rejeu-regles`) : mise au point 3/3, test **8/14** erreurs en
+  `douteux` (5/14 avant), aucune nouvelle fausse alerte.
+- **Trois règles reportées, mesurées** par `expert-metier` (corrigé et
+  sorties Groq) : port déclaré faux avec son propre marqueur, à adopter
+  sous forme resserrée (tension continue chiffrée hors 44–57 V et hors
+  « output ») : attrape dahua-03, aucune fausse alerte ; extrait PoE qui
+  parle d'AC : aucun déclenchement, à abandonner ; `current_peak_ma`
+  < 100 mA : sans coût ni gain. Décision de Quentin attendue.
 - À faire : rejeu de qwen3 v1 avec les nouvelles règles sur le PC
-  (réponses brutes là-bas) ; bootstrap apparié Groq / qwen3 ; règle sur
-  `power_w` rempli quand la notice ne donne qu'une consommation (Vivotek).
+  (réponses brutes là-bas) ; bootstrap apparié Groq / qwen3.
 
 ### L6 — Restitution
 - **README en anglais**, écrit dès la fin de L3c, sans chiffres : le

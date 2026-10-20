@@ -141,3 +141,31 @@ def test_rapport_liste_les_erreurs_et_s_ecrit(tmp_path: Path) -> None:
 def test_resultat_sans_corrige_ignore(tmp_path: Path) -> None:
     resultat = extraire(reponse_correcte(), tmp_path)
     assert rapport.cellules([resultat], {}) == []
+
+
+def test_comparaison_appariee(tmp_path: Path) -> None:
+    from catalog.evaluation import comparaison
+
+    juste = extraire(reponse_correcte(), tmp_path)
+    bon = rapport.construire([juste], {"axis-01": corrige()}, {})
+    mauvais = rapport.construire([juste], {"axis-01": corrige(12.0)}, {})
+    chemins = []
+    for nom, r in (("bon", bon), ("mauvais", mauvais)):
+        chemins.append(rapport.ecrire(r, nom, tmp_path / "rapports"))
+    a, b = (comparaison.charger_comptes(c) for c in chemins)
+    resultat = comparaison.comparer(a, b)
+    assert resultat["notices"] == {"communes": 1}
+    assert resultat["exactitude"]["ecart"] == pytest.approx(1 / 11)
+    assert resultat["exactitude"]["ic"] == pytest.approx((1 / 11, 1 / 11))
+    assert "| exactitude | 100.0 % |" in comparaison.markdown(
+        "bon", "mauvais", resultat
+    )
+
+
+def test_rapport_sans_effectifs_par_notice(tmp_path: Path) -> None:
+    from catalog.evaluation import comparaison
+
+    ancien = tmp_path / "ancien.json"
+    ancien.write_text(json.dumps({"global": {}}))
+    with pytest.raises(comparaison.RapportIncomplet):
+        comparaison.charger_comptes(ancien)

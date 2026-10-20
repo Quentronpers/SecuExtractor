@@ -69,3 +69,25 @@ def typique_au_lieu_du_max(valeur: float, extrait: str) -> bool:
         and _plus_haute_sur_ligne(ligne, valeur)
         for ligne in texte.splitlines()
     )
+
+
+_COUPLE_MAX = re.compile(
+    r"max\.?\s*:?\s*(\d+(?:[.,]\d+)?)\s*w?\s*/\s*(\d+(?:[.,]\d+)?)\s*w(?![a-z])"
+)
+
+
+def typique_dans_couple_max(valeur: float, extrait: str) -> bool:
+    """Une typique lue dans un couple de maximums « Max. A/B W (X on/off) ».
+
+    Vivotek donne deux maximums (chauffage ou IR en marche / à l'arrêt), pas
+    une typique (``expert-metier``, 2026-10-20). Sans indice de typique dans
+    l'extrait seulement : « typ./max. : 4.8/6 W » donne bien une typique.
+    """
+    texte = normaliser(extrait)
+    if INDICE_TYPIQUE.search(texte):
+        return False
+    return any(
+        math.isclose(_lire(n), valeur, abs_tol=0.005)
+        for couple in _COUPLE_MAX.finditer(texte)
+        for n in couple.groups()
+    )

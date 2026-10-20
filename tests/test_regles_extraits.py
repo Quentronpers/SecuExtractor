@@ -1,11 +1,14 @@
-"""Règles tirées des erreurs de Groq en L5 : typique PoE, courant au repos seul."""
+"""Règles tirées des erreurs de Groq en L5 : typique PoE, courant au repos, Vivotek."""
 
 from __future__ import annotations
 
 import pytest
 
 from catalog.extraction.cible import Valeur
-from catalog.plausibility.indices import typique_au_lieu_du_max
+from catalog.plausibility.indices import (
+    typique_au_lieu_du_max,
+    typique_dans_couple_max,
+)
 from tests.test_plausibilite import _motifs
 
 
@@ -62,3 +65,27 @@ def test_courant_au_repos_avec_maximal() -> None:
         "ports.dc.current_peak_ma": 1190.0,
     }
     assert "ports.dc.current_standby_ma" not in _motifs(valeurs)
+
+
+@pytest.mark.parametrize(
+    ("valeur", "extrait", "attendu"),
+    [
+        (11.4, "PoE: Max. 24.7/11.4 W (Heater on/off)", True),  # vivotek-01
+        (24.7, "PoE: Max. 24.7/11.4 W (Heater on/off)", True),
+        (12.0, "PoE: Max. 23.3/12 W (Heater on/off)", True),  # vivotek-04
+        (4.8, "typ./max. : 4.8/6 W", False),  # vraie typique
+        (5.2, "PoE: 5.2 W / 6.2 W", False),  # bosch-01, sans « max »
+        (9.0, "PoE: Max. 24.7/11.4 W", False),  # valeur hors du couple
+    ],
+)
+def test_typique_dans_couple_max(valeur: float, extrait: str, attendu: bool) -> None:
+    assert typique_dans_couple_max(valeur, extrait) is attendu
+
+
+def test_regle_typique_couple() -> None:
+    extrait = "PoE: Max. 24.7/11.4 W (Heater on/off)"
+    motifs = _motifs(
+        {"power_w": 11.4, "power_w_peak": 24.7, "ports.poe.power_w": 24.7},
+        {"power_w": extrait},
+    )
+    assert motifs == {"power_w": "typique_dans_couple_max"}

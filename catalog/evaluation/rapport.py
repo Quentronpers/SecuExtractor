@@ -111,11 +111,15 @@ def construire(
     liste = cellules(resultats, corriges)
     utilises = {i: corriges[i] for i in {c.document for c in liste}}
     par_champ = regrouper(liste, "cle")
+    par_document = regrouper(liste, "document")
     return {
         "meta": dict(meta) | {"empreinte_corriges": empreinte_corriges(utilises)},
         "notices": sorted(utilises),
         "global": taux(total(liste)),
-        "intervalles": bootstrap(regrouper(liste, "document")),
+        "intervalles": bootstrap(par_document),
+        # Effectifs par notice : ce que le bootstrap apparié rééchantillonne
+        # pour comparer deux rapports (``comparaison.py``).
+        "par_document": {d: asdict(c) for d, c in sorted(par_document.items())},
         "effectifs": asdict(total(liste)),
         "par_execution": _par_execution(liste),
         "par_champ": {

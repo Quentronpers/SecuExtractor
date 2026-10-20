@@ -1,9 +1,10 @@
 """Sous-commande ``evaluate`` : métriques contre le corrigé, sans modèle.
 
-Deux sources, au choix :
+Trois usages, au choix :
 
 - ``--run <dossier>`` : une exécution de ``extract``, rejouée depuis les
   réponses brutes avec les contrôles du code courant (``rejeu.py``) ;
+- ``--comparer A B`` : deux rapports, par bootstrap apparié ;
 - ``--ligne-de-base`` : la ligne de base par expressions régulières sur les
   notices du jeu, avec le rappel du découpage (lit ``data/sources/``).
 
@@ -19,7 +20,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from catalog.evaluation import decoupage, ligne_de_base, rapport
+from catalog.evaluation import comparaison, decoupage, ligne_de_base, rapport
 from catalog.evaluation.execution import commit_courant, documents, suffixe_ids
 from catalog.evaluation.notices import NOTICES_PATH
 from catalog.evaluation.reference import REFERENCE_DIR, Corrige, charger_corriges
@@ -39,6 +40,9 @@ def ajouter_evaluate(subparsers: argparse._SubParsersAction) -> None:
     source = sous.add_mutually_exclusive_group(required=True)
     source.add_argument("--run", type=Path, help="dossier de résultats d'extract")
     source.add_argument("--ligne-de-base", action="store_true")
+    source.add_argument(
+        "--comparer", nargs=2, type=Path, metavar=("A", "B"), help="deux rapports"
+    )
     sous.add_argument("--notices", type=Path, default=NOTICES_PATH)
     sous.add_argument("--jeu", choices=["miseaupoint", "test"], default="miseaupoint")
     sous.add_argument("--ids", default="", help="identifiants séparés par des virgules")
@@ -103,8 +107,25 @@ def _rapport_ligne_de_base(
     return construit | {"decoupage": decoupage.resumer(places)}, nom
 
 
+def _comparer(chemins: list[Path], sortie: Path) -> None:
+    """Compare deux rapports, affiche le tableau et l'écrit à côté."""
+    a, b = (comparaison.charger_comptes(c) for c in chemins)
+    resultat = comparaison.comparer(a, b)
+    texte = comparaison.markdown(chemins[0].stem, chemins[1].stem, resultat)
+    nom = f"comparaison_{chemins[0].stem}__{chemins[1].stem}"
+    sortie.mkdir(parents=True, exist_ok=True)
+    (sortie / f"{nom}.json").write_text(
+        json.dumps(resultat, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    (sortie / f"{nom}.md").write_text(texte, encoding="utf-8")
+    print(texte)
+
+
 def cmd_evaluate(args: argparse.Namespace) -> None:
     """Calcule et écrit le rapport, puis affiche les métriques globales."""
+    if args.comparer:
+        _comparer(args.comparer, args.sortie)
+        return
     cible = charger_cible("camera", "alimentation")
     corriges = charger_corriges(REFERENCE_DIR, cible)
     if args.run:
