@@ -136,8 +136,12 @@ def _rapport_run(
 
 def _comparer(chemins: list[Path], sortie: Path) -> None:
     """Compare deux rapports, affiche le tableau et l'écrit à côté."""
+    try:
+        meta = comparaison.provenance(chemins)
+    except comparaison.CorrigesDifferents as erreur:
+        raise SystemExit(str(erreur)) from erreur
     a, b = (comparaison.charger_comptes(c) for c in chemins)
-    resultat = comparaison.comparer(a, b)
+    resultat = {"meta": meta} | comparaison.comparer(a, b)
     texte = comparaison.markdown(chemins[0].stem, chemins[1].stem, resultat)
     nom = f"comparaison_{chemins[0].stem}__{chemins[1].stem}"
     sortie.mkdir(parents=True, exist_ok=True)

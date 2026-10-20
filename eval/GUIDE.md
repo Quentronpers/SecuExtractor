@@ -160,11 +160,15 @@ page est celle du fichier : la puissance d'axis-01 est page 5.)
 - « PoE+ » = 802.3at ; « PoE++ » = 802.3bt ; « Class 4 » = `"4"`.
 - `min_standard` = la norme **la plus basse** avec laquelle la caméra
   fonctionne (« 802.3af/802.3at » → `802.3af`).
-- **Plusieurs modes PoE** (AXIS Q1806-LE : « 802.3at Class 4 max 25,5 W,
-  ou 802.3bt Type 3 Class 6 max 51 W ») → `min_standard` et `class` du mode
-  le plus bas (802.3at, "4") : c'est le port de switch sur lequel la caméra
-  démarre ; `ports.poe.power_w` et `power_w_peak` = le pire cas (51) ; note
-  « bt Class 6 → 51 W ».
+- **Plusieurs modes PoE normés** (AXIS Q1806-LE : « 802.3at Class 4 max
+  25,5 W, ou 802.3bt Type 3 Class 6 max 51 W ») → `class`,
+  `ports.poe.power_w` et `power_w_peak` du **pire cas** ("6", 51) : la
+  classe et la puissance forment une paire cohérente pour SecurScope ;
+  `min_standard` reste la norme la plus basse (802.3at), celle sur laquelle
+  la caméra fonctionne ; note « fonctionne en 802.3at Class 4 (25,5 W) sans
+  PoE-out ».
+  Tranché par Quentin le 2026-10-20 ; avant, la classe était celle du mode
+  bas, avec la puissance du mode haut (paire incohérente).
 - On ne déduit pas une classe d'un type : « Type 4 » sans numéro de classe
   ⇒ `class` absent.
 - **Classe seule** (sans norme écrite) → `min_standard` absent. On ne
@@ -176,7 +180,10 @@ page est celle du fichier : la puissance d'axis-01 est page 5.)
   `min_standard` absent, note du nom commercial. S'il existe **aussi** un
   mode normé (AXIS Q6135-LE : « High PoE … max 51 W » et « IEEE802.3at
   Type2 Class4 … max 25 W ») → la norme et la classe de ce mode,
-  `ports.poe.power_w` = le pire cas (51).
+  `ports.poe.power_w` = le pire cas (51). Exception assumée à la paire
+  cohérente : le mode propriétaire n'a pas de classe, et la classe du mode
+  normé dit sur quel port de switch la caméra démarre (Quentin,
+  2026-10-20 ; de même pour un injecteur testé, i-PRO WV-X6533LNS).
 
 ### Tensions
 - « 12 V DC ± 25 % » → `voltage_min_v` 9, `voltage_max_v` 15.

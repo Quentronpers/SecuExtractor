@@ -18,6 +18,7 @@ from catalog.plausibility.indices import (
     INDICE_CONSOMMATION,
     WATTS,
 )
+from catalog.plausibility.regles_extraits import REGLES_EXTRAITS
 from catalog.plausibility.rules import REGLES, Contexte
 from catalog.reading.page import Page
 
@@ -100,7 +101,7 @@ def verifier_plausibilite(
         consommation_max_citee(pages),
     )
     motifs: dict[str, list[str]] = {}
-    for regle in REGLES:
+    for regle in (*REGLES, *REGLES_EXTRAITS):
         for cle, motif in regle(contexte):
             deja = motifs.setdefault(cle, [])
             if motif not in deja:

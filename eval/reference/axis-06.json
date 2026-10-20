@@ -34,11 +34,11 @@
       "note": "mode bt requis pour alimenter un second appareil en PoE-out (30 W)"
     },
     "ports.poe.class": {
-      "valeur": "4",
+      "valeur": "6",
       "etat_attendu": "sur",
       "page": 5,
-      "extrait": "Power over Ethernet (PoE) IEEE 802.3at Type 2 Class 4",
-      "note": "bt Class 6 → 51 W (plusieurs modes PoE, GUIDE)"
+      "extrait": "Power over Ethernet (PoE) IEEE 802.3bt Type 3 Class 6, typical 14.6 W, max 51 W",
+      "note": "pire cas (GUIDE, plusieurs modes PoE, 2026-10-20) ; fonctionne en 802.3at Class 4 (25,5 W) sans PoE-out"
     },
     "ports.poe.power_w": {
       "valeur": 51.0,

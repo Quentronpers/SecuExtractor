@@ -2,7 +2,7 @@
 
 Les deux systèmes sont rééchantillonnés sur les mêmes notices à chaque
 tirage : l'écart ne paie pas la variance due au choix des notices. Un écart
-dont l'intervalle exclut zéro est réel à 95 % ; sinon les 35 notices ne
+dont l'intervalle exclut zéro est réel à 95 % ; sinon les notices ne
 suffisent pas à départager. Seules les notices communes aux deux rapports
 comptent, et les rapports doivent porter les effectifs par notice
 (``par_document``, écrits depuis le 2026-10-20).
@@ -15,7 +15,13 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from catalog.evaluation.metriques import Compte, bootstrap_apparie, taux
+from catalog.evaluation.metriques import (
+    GRAINE,
+    TIRAGES,
+    Compte,
+    bootstrap_apparie,
+    taux,
+)
 
 METRIQUES = (
     "exactitude",
@@ -38,6 +44,32 @@ def charger_comptes(chemin: Path) -> dict[str, Compte]:
     if "par_document" not in rapport:
         raise RapportIncomplet(f"{chemin.name} : pas d'effectifs par notice")
     return {doc: Compte(**c) for doc, c in rapport["par_document"].items()}
+
+
+def provenance(chemins: list[Path]) -> dict[str, Any]:
+    """Rapports comparés, corrigé commun et réglages du bootstrap.
+
+    Deux rapports faits sur des corrigés différents ne se comparent pas :
+    l'écart mêlerait le modèle et le changement de corrigé.
+    """
+    rapports = [json.loads(c.read_text(encoding="utf-8")) for c in chemins]
+    empreintes = {r["meta"].get("empreinte_corriges") for r in rapports}
+    if len(empreintes) != 1:
+        raise CorrigesDifferents(
+            "corrigés différents : régénérer les rapports avec `evaluate`"
+        )
+    return {
+        "a": chemins[0].name,
+        "b": chemins[1].name,
+        "empreinte_corriges": empreintes.pop(),
+        "commits": [r["meta"].get("commit_evaluation") for r in rapports],
+        "tirages": TIRAGES,
+        "graine": GRAINE,
+    }
+
+
+class CorrigesDifferents(ValueError):
+    """Les deux rapports ne reposent pas sur le même corrigé."""
 
 
 def comparer(

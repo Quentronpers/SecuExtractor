@@ -224,6 +224,71 @@ overfitting, and a paired comparison of v1 and v3 has not been computed.
 not generalise. A further prompt change would need fresh datasheets to be
 judged, since the test set is no longer blind to it.
 
+### Local vs hosted: `gpt-oss-120b` on Groq
+
+Same prompt (v1), same checks, `openai/gpt-oss-120b` on Groq with
+reasoning set to low (it rejects "none"), 2026-10-19 and 20. The datasheet
+text is sent to Groq for this run only. Figures are replayed with the final
+rules and ground truth (`*_rejeu-regles` reports).
+
+| Test set (35 datasheets) | Groq `gpt-oss-120b` | Baseline (regex) |
+|---|---|---|
+| Precision | 94.2 % [90.2 ; 97.2] | 82.3 % [73.9 ; 90.4] |
+| Precision of confident values | 97.9 % [95.7 ; 99.6] | 88.5 % [81.7 ; 94.8] |
+| Recall | 91.0 % [82.8 ; 96.6] | 76.7 % [68.4 ; 85.3] |
+| Cell accuracy | 92.2 % [86.8 ; 96.4] | 80.3 % [73.5 ; 87.3] |
+| Invention | 5.0 % [1.7 ; 8.8] | 11.8 % [4.2 ; 20.3] |
+| Peak-power precision | 97.0 % | 79.4 % |
+| Errors caught as doubtful | 66.7 % (10/15), see below | 40.9 % (18/44) |
+| Time / tokens per datasheet | 2.6 s / 4,429 (155,022 / 35) | — |
+
+Paired bootstrap, Groq minus baseline, on the 35 test datasheets: cell
+accuracy +11.9 points [+4.7 ; +19.5], recall +14.3 [+6.3 ; +22.3],
+precision +11.9 [+3.0 ; +21.0]. These gaps are real at 95 %; invention
+(−6.7 [−15.9 ; +1.8]) is not separated. The triage gap is not a fair
+comparison, for the reason below.
+
+On the development set Groq reaches 97.6 % cell accuracy against 89.7 % for
+`qwen3:14b`; on the test set the gap shrinks to about 2 points (qwen3:
+90.4 % [85.7 ; 94.5], figures of 2026-10-16), inside both intervals. **The
+paired comparison with qwen3 is not computed yet**: its raw responses are
+on the GPU machine, and its figures predate the rules and the ground-truth
+change below.
+
+**Fewer errors, but silent ones.** Before the rules below, none of Groq's
+3 development errors and 3 of its 14 test errors came out doubtful (qwen3:
+8 of 10 and 14 of 22). The big model fails where the checks built for the
+small one do not look. Checks were added from those errors, each measured
+on the ground truth (no correct value may be rejected) and on Groq's
+outputs, after review by a domain-expert agent:
+
+| Rule | Catches | Shaped by |
+|---|---|---|
+| PoE power is the typical value while a higher, non-rating wattage sits on the same line of its own quote | hanwha-07, bosch-01 (dev); axis-08 (test) | development errors |
+| Standby current filled, peak current empty | hik-04 (dev); hik-02 (test) | development errors |
+| Typical power read from a "Max. A/B W (heater on/off)" pair; PoE power taken as the lower of such a pair | vivotek-01, 03, 04 | **test errors** |
+| Port declared absent while its own quote gives a DC voltage (not 44–57 V PoE, not an output) or mentions PoE | dahua-03 | **test errors** |
+| PoE power above the ceiling of the extracted class (unless proprietary PoE) | axis-06 | **test error**, after the ground-truth change |
+
+Counted with every rule, 10 of Groq's 15 test errors come out doubtful.
+**Without the three rules shaped by test errors, it is 5 of 15 (33.3 %)**,
+below the baseline: that is the honest figure for unseen datasheets until a
+fresh set measures them. The two development-shaped rules fired on the test
+set only on real errors. The class-ceiling rule flags both fields of an
+incoherent pair, so on axis-06 the correct 51 W is flagged with the wrong
+class; there are 5 correct test values in doubtful, 4 before. One candidate
+rule (typical ≥ worst-case PoE) was dropped: three false alarms on Groq's
+outputs, no case of its own.
+
+**Ground-truth change (2026-10-20).** For a camera with two standard PoE
+modes (AXIS Q1806-LE: 802.3at Class 4 up to 25.5 W, or 802.3bt Class 6 up
+to 51 W, the bt mode only needed for its PoE output) the guide used to pair
+the low mode's class with the high mode's wattage. The class now follows
+the worst case (6, 51 W); the minimum standard stays the lowest (802.3at).
+One cell changed (axis-06, test). When the high mode is proprietary (High
+PoE, tested injector) there is no class to take: the standard mode's class
+is kept, and no ceiling applies.
+
 ### Typical errors
 
 The dangerous ones are wrong values marked confident. The main cause is
@@ -244,9 +309,10 @@ hik-03).
 
 ## Limitations, stated up front
 
-- **One run, one model.** Each figure comes from a single run at
-  temperature 0 with `qwen3:14b` (prompt v1; v2 and v3 tried): no Groq
-  comparison, no reasoning mode yet. Repeat runs would only show GPU non-determinism.
+- **One run per model.** Each figure comes from a single run: `qwen3:14b`
+  at temperature 0 without reasoning (prompt v1; v2 and v3 tried), and
+  `gpt-oss-120b` on Groq with low reasoning. qwen3 with reasoning is not
+  measured.
 - **Web pages do not reproduce exactly.** The SHA-256 of a re-downloaded
   HTML page changes between downloads (tokens, scripts): 7 of the 10 pages
   (dahua-01 to 04, hanwha-01, 02, 06) differ from the files used, though
@@ -258,6 +324,8 @@ hik-03).
   test datasheets (dahua-03, dahua-04) are quoted as examples in the prompt.
   The error analysis of the first run also covered test datasheets, and it
   shaped the prompt revisions (see "Prompt iteration"); v1 predates it.
+  Three plausibility rules were shaped by Groq's test errors (see
+  "Local vs hosted"): the test triage rate is 66.7 % with them, 33.3 % without.
 - **Small sample.** 15 development and 35 test datasheets: intervals
   around ±10 points, and wider on rare cases.
   Currents and PoE-less cameras rest on few cases.
@@ -270,7 +338,8 @@ hik-03).
   and ground-truth errors counted. None of the evaluated models is Claude.
 - **Citation check blind spots.** In "6.4 W (12 V DC); 7.7 W (PoE)", both
   numbers are in the quote, so swapping them passes. A port declared absent
-  (`false`) is not checked against the quote.
+  (`false`) is checked against its own quote only for a DC voltage or a PoE
+  mention; two-mode PoE classes (axis-06) are not checked at all.
 - **Repeat runs measure little.** At temperature 0 the seed has no effect;
   repeated runs only show GPU non-determinism.
 - **Groq exposes no model digest**: a model changed under the same name is
@@ -393,7 +462,8 @@ server or model. Raw
 responses go to `data/extractions/` (not versioned: they contain datasheet
 text). `evaluate` replays checks and metrics from them without a model, and
 `catalog evaluate --ligne-de-base --jeu test` scores the regular-expression
-baseline.
+baseline. `catalog evaluate --comparer A.json B.json` compares two reports
+from `eval/resultats/` by paired bootstrap on their common datasheets.
 
 ## Repository layout
 

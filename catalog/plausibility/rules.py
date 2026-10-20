@@ -10,8 +10,8 @@ Motifs : ``hors_bornes``, ``tension_hors_gamme``, ``tension_poe``,
 ``depasse_plafond_classe``, ``norme_insuffisante``,
 ``typique_superieure_max``, ``poe_superieure_max``, ``port_absent``,
 ``repos_superieur_max``, ``courant_incoherent``,
-``inferieure_consommation_citee``, ``poe_non_maximale``, ``repos_sans_max``,
-``typique_dans_couple_max``.
+``inferieure_consommation_citee``, ``repos_sans_max``. Les règles qui lisent
+l'extrait d'un champ sont dans ``regles_extraits.py``.
 """
 
 from __future__ import annotations
@@ -21,10 +21,6 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
 from catalog.extraction.cible import Valeur
-from catalog.plausibility.indices import (
-    typique_au_lieu_du_max,
-    typique_dans_couple_max,
-)
 
 Motifs = list[tuple[str, str]]
 
@@ -34,7 +30,8 @@ BORNES: dict[str, tuple[float, float]] = {
     "ports.poe.power_w": (1, 90),
     # Moins de 20 mA : des ampères lus comme des milliampères.
     "ports.dc.current_standby_ma": (20, 2000),
-    "ports.dc.current_peak_ma": (20, 5000),
+    # Sous 100 mA en 12 V : 1,2 W, aucune caméra IP ne consomme si peu.
+    "ports.dc.current_peak_ma": (100, 5000),
 }
 TENSIONS_NOMINALES = (12.0, 24.0, 36.0, 48.0)
 TOLERANCE_TENSION = 0.25
@@ -48,6 +45,7 @@ PLAFONDS_CLASSE = {
     5: 40.0, 6: 51.0, 7: 62.0, 8: 71.3,
 }  # fmt: skip
 PLAFOND_PD = 71.3  # 802.3bt Class 8 ; « max 90 W » est la capacité du PSE
+ORDRE_NORMES = ("802.3af", "802.3at", "802.3bt")
 CLASSES_PAR_NORME = {
     "802.3af": range(0, 4),
     "802.3at": range(0, 5),
@@ -139,11 +137,25 @@ def regle_tensions(ctx: Contexte) -> Motifs:
 
 
 def regle_classe(ctx: Contexte) -> Motifs:
-    """Classe compatible avec la norme ; af exclut plus de 12,95 W."""
+    """Classe compatible avec la norme ; af exclut plus de 12,95 W.
+
+    La classe est celle du pire cas, ``min_standard`` la norme la plus basse
+    (GUIDE, plusieurs modes PoE) : une classe admise par une norme plus haute
+    citée dans la notice passe (Q1806-LE : at, classe 6 du mode bt).
+    """
     motifs: Motifs = []
     classe = ctx.classe()
     norme = ctx.valeurs.get("ports.poe.min_standard")
-    admises = CLASSES_PAR_NORME.get(norme) if isinstance(norme, str) else None
+    admises: set[int] | None = None
+    if isinstance(norme, str) and norme in CLASSES_PAR_NORME:
+        rang = ORDRE_NORMES.index(norme)
+        normes = {norme} | (ctx.normes_citees & set(ORDRE_NORMES[rang + 1 :]))
+        admises = {c for n in normes for c in CLASSES_PAR_NORME.get(n, ())}
+        # Une norme plus haute n'admet que des classes citées dans la notice :
+        # « Midspan 802.3bt » ne justifie pas une classe 8 jamais écrite.
+        admises &= set(CLASSES_PAR_NORME[norme]) | set(
+            range((ctx.classe_max_citee or 0) + 1)
+        )
     if classe is not None and admises is not None and classe not in admises:
         motifs += _deux(
             "ports.poe.class", "ports.poe.min_standard", "classe_norme_incoherentes"
@@ -164,22 +176,25 @@ def regle_classe(ctx: Contexte) -> Motifs:
 
 
 def regle_plafond(ctx: Contexte) -> Motifs:
-    """Puissance PoE sous le plafond de la plus haute classe citée, ou de 71,3 W.
+    """Puissance PoE sous le plafond de sa classe ; sans classe, 71,3 W.
 
-    Le plafond est celui de la plus haute classe citée dans la notice, pas de
-    ``class`` : une caméra 802.3at Class 4 qui accepte aussi 802.3bt Class 6
-    peut tirer 51 W (eval/GUIDE.md, plusieurs modes PoE). Pas de plafond quand
-    la notice mentionne un PoE propriétaire (High PoE, injecteur constructeur) :
-    la classe citée est celle du mode normé, pas du pire cas.
+    Classe et puissance forment une paire du pire cas (eval/GUIDE.md,
+    plusieurs modes PoE) : « Class 4 » avec 51 W ferait proposer un port de
+    switch trop faible. Sans classe extraite, le plafond est celui de la plus
+    haute classe citée. Pas de plafond quand la notice mentionne un PoE
+    propriétaire (High PoE, injecteur constructeur) : la classe est alors
+    celle du mode normé, pas du pire cas.
     """
-    puissance = ctx.nombre("ports.poe.power_w")
+    puissance, classe = ctx.nombre("ports.poe.power_w"), ctx.classe()
     if ctx.poe_proprietaire or puissance is None:
         return []
-    citees = [c for c in (ctx.classe(), ctx.classe_max_citee) if c is not None]
-    plafond = PLAFONDS_CLASSE[max(citees)] if citees else PLAFOND_PD
-    if puissance > plafond:
+    reference = classe if classe is not None else ctx.classe_max_citee
+    plafond = PLAFONDS_CLASSE[reference] if reference is not None else PLAFOND_PD
+    if puissance <= plafond:
+        return []
+    if classe is None:
         return [("ports.poe.power_w", "depasse_plafond_classe")]
-    return []
+    return _deux("ports.poe.power_w", "ports.poe.class", "depasse_plafond_classe")
 
 
 def regle_puissances(ctx: Contexte) -> Motifs:
@@ -207,29 +222,6 @@ def regle_consommation_citee(ctx: Contexte) -> Motifs:
     maxi, citee = ctx.nombre("power_w_peak"), ctx.consommation_max_citee
     if maxi is not None and citee is not None and maxi < citee:
         return [("power_w_peak", "inferieure_consommation_citee")]
-    return []
-
-
-def regle_poe_typique(ctx: Contexte) -> Motifs:
-    """Puissance PoE : la typique retenue alors que la maximale est citée.
-
-    Erreurs de Groq en L5 (hanwha-07 : 30 W pour « Max. 60W, typical : 30W » ;
-    bosch-01). Sous-estimer la puissance PoE fait choisir un switch trop petit.
-    """
-    poe, extrait = (
-        ctx.nombre("ports.poe.power_w"),
-        ctx.extraits.get("ports.poe.power_w"),
-    )
-    if poe is not None and extrait and typique_au_lieu_du_max(poe, extrait):
-        return [("ports.poe.power_w", "poe_non_maximale")]
-    return []
-
-
-def regle_typique_couple(ctx: Contexte) -> Motifs:
-    """Typique lue dans un couple de maximums « Max. A/B W (X on/off) »."""
-    typique, extrait = ctx.nombre("power_w"), ctx.extraits.get("power_w")
-    if typique is not None and extrait and typique_dans_couple_max(typique, extrait):
-        return [("power_w", "typique_dans_couple_max")]
     return []
 
 
@@ -280,8 +272,6 @@ REGLES: tuple[Callable[[Contexte], Motifs], ...] = (
     regle_plafond,
     regle_puissances,
     regle_consommation_citee,
-    regle_poe_typique,
-    regle_typique_couple,
     regle_ports,
     regle_courants,
 )

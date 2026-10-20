@@ -192,6 +192,8 @@ python -m catalog.cli extract --jeu miseaupoint [--ids axis-03,hik-01] \
 # par expressions régulières avec le rappel du découpage
 python -m catalog.cli evaluate --run data/extractions/resultats/<dossier>
 python -m catalog.cli evaluate --ligne-de-base --jeu miseaupoint
+# Deux rapports comparés par bootstrap apparié (notices communes)
+python -m catalog.cli evaluate --comparer eval/resultats/A.json eval/resultats/B.json
 
 # Notices du jeu : retéléchargement et contrôle d'empreinte (vérification
 # seule ; --archiver écrit dans data/sources/, avec l'accord de Quentin)
@@ -302,6 +304,8 @@ securscope-catalog/
 │   │   └── runner.py            # orchestration d'un lot
 │   ├── plausibility/
 │   │   ├── rules.py             # règles de vraisemblance par champ
+│   │   ├── regles_extraits.py   # règles qui confrontent une valeur à son extrait
+│   │   ├── indices.py           # indices de consommation, calibre, typique
 │   │   └── checker.py           # application des règles
 │   ├── storage/
 │   │   ├── db.py                # SQLite, schéma et connexion
@@ -313,7 +317,14 @@ securscope-catalog/
 │   └── evaluation/
 │       ├── notices.py           # jeu de notices, tirage, fichier archivé
 │       ├── reference.py         # format du corrigé (eval/reference/)
-│       └── execution.py         # sous-commande extract sur le jeu
+│       ├── execution.py         # sous-commande extract sur le jeu
+│       ├── evaluate.py          # sous-commande evaluate (rejeu, ligne de base, comparaison)
+│       ├── rejeu.py             # rejeu des réponses brutes, sans modèle
+│       ├── metriques.py         # comparaison au corrigé, taux, bootstrap
+│       ├── comparaison.py       # bootstrap apparié entre deux rapports
+│       ├── rapport.py           # eval/resultats/<nom>.json et .md
+│       ├── decoupage.py         # rappel du découpage
+│       └── ligne_de_base.py     # ligne de base sans LLM (regex)
 │
 ├── eval/                        # jeu d'évaluation publié : notices.csv, GUIDE.md, reference/
 │
@@ -386,21 +397,24 @@ Elles sont ce qui rattrape les erreurs que la citation ne détecte pas. Un
 modèle peut citer correctement un extrait et se tromper sur l'unité.
 
 Règles du bloc alimentation des caméras, dans `plausibility/rules.py`
+(et `regles_extraits.py` pour celles qui lisent l'extrait cité)
 (clés SecurScope ; tout échec met le champ en `douteux`). Les règles des
 autres familles s'écriront avec leurs cibles, quand un chantier les ouvrira.
 
 | Champ | Règle |
 |---|---|
 | `power_w`, `power_w_peak` | entre 1 et 200 W |
-| `ports.poe.power_w` | entre 1 et 90 W ; ≤ plafond de la plus haute classe citée dans la notice (3,84 / 6,49 / 12,95 / 25,5 / 40 / 51 / 62 / 71,3 W), 71,3 W sans classe citée ; aucun plafond si la notice parle d'un PoE propriétaire (High PoE, Hi-PoE, injecteur, PoH) |
-| `ports.poe.power_w` (extrait) | douteux si l'extrait porte un indice de typique (typ, basic, nominal, average) et, sur la ligne de la valeur retenue, une puissance plus haute que ne précède ni calibre (injecteur, classe, norme…) ni autre alimentation (AC, DC) |
-| `ports.poe.class` et `min_standard` | cohérents : af ⇒ 0–3, at ⇒ 0–4, bt ⇒ 1–8 (les deux) ; af avec plus de 12,95 W sans at ni bt cités (les deux) |
+| `ports.poe.power_w` | entre 1 et 90 W ; ≤ plafond de la classe extraite (3,84 / 6,49 / 12,95 / 25,5 / 40 / 51 / 62 / 71,3 W ; classe et puissance du pire cas, GUIDE), sinon de la plus haute classe citée, 71,3 W sans classe citée (les deux si la classe est extraite) ; aucun plafond si la notice parle d'un PoE propriétaire (High PoE, Hi-PoE, injecteur, PoH) |
+| `ports.poe.power_w` (extrait) | douteux si l'extrait porte un indice de typique (typ, basic, nominal, average, avg, moyen) et, sur la ligne de la valeur retenue, une puissance plus haute que ne précède ni calibre (injecteur, classe, norme…) ni autre alimentation (AC, DC) |
+| `ports.poe.power_w` (extrait) | douteux si c'est la plus basse d'un couple « Max. A/B W » (chauffage ou IR en marche / à l'arrêt) |
+| `ports.poe.class` et `min_standard` | cohérents : af ⇒ 0–3, at ⇒ 0–4, bt ⇒ 1–8, ou classe admise par une norme plus haute citée et dont le numéro est cité (classe du pire cas, GUIDE) (les deux) ; af avec plus de 12,95 W sans at ni bt cités (les deux) |
 | `ports.dc.voltage_min_v`, `voltage_max_v` | dans {12, 24, 36, 48} ± 25 % ; min ≤ max et min ≥ max / 3 (les deux) ; 44–57 V avec un extrait qui parle de PoE |
 | `ports.dc.current_standby_ma` | entre 20 et 2 000 mA ; ≤ `current_peak_ma` (les deux) ; jamais seul : sans `current_peak_ma`, douteux (un courant unique est le maximal) |
-| `ports.dc.current_peak_ma` | entre 20 et 5 000 mA ; tension × courant entre 0,5 et 2 fois `power_w_peak` |
+| `ports.dc.current_peak_ma` | entre 100 et 5 000 mA ; tension × courant entre 0,5 et 2 fois `power_w_peak` |
 | `power_w`, `ports.poe.power_w` | ≤ `power_w_peak` (les deux) |
 | `power_w` (extrait) | douteux si l'extrait, sans indice de typique, donne un couple de maximums « Max. A/B W » (chauffage ou IR en marche / à l'arrêt) et que la valeur est A ou B |
 | `power_w_peak` | ≥ la plus forte consommation citée quand le texte cite plusieurs alimentations (PoE, DC, AC) ; consommation = valeur en W précédée sur sa ligne d'un indice (max, typical, approx, consumption), ou qui suit une telle valeur ; calibres exclus (midspan, injecteur, alimentation, transformateur, classe, norme, PoE propriétaire, switch, sortie) |
+| `ports.dc`, `ports.poe` (extrait) | déclaré `false` alors que son propre extrait donne une tension continue chiffrée (hors 44–57 V et hors « output ») ou parle de PoE sans le nier (« PoE: N/A », « non-PoE ») ; « output » avant ou après la tension l'écarte |
 | attributs d'un port | absents si le port n'est pas déclaré présent |
 
 Ces bornes sont larges à dessein : elles attrapent les erreurs d'unité et de

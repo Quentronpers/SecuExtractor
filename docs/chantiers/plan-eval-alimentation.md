@@ -5,8 +5,8 @@
 > 2026-10-16 (L2 : `8a5e964`) ; L3a (`19a6c76`) et L3b (`fb034a2`)
 > terminés et commités ; L3c `38bf97e` ; L4 terminé le 2026-10-16 (partie
 > sans GPU : `c90750e` ; premier passage réel et résultats : `a57f668`) ;
-> L5 partie 1 `82c0bf0` ; prochain pas : L5 partie 2, comparaison Groq
-> (2026-10-19). Périmètre de L4 à L6 resserré
+> L5 parties 1 et 2 (Groq, règles, bootstrap apparié) closes le 2026-10-20,
+> sauf le rejeu de qwen3 sur le PC ; prochain lot : L6. Périmètre de L4 à L6 resserré
 > le 2026-10-16 après l'avis de l'agent `recruteur-ia` (ligne de base sans
 > LLM, un seul modèle local, README anglais anticipé).
 > Sert l'étude de cas de la phase 2 de la recherche d'emploi
@@ -162,7 +162,10 @@ la mesure qui dira combien de fois cela arrive.
   `voltage_min_v` ≤ `voltage_max_v`, et min ≥ 0,6 × max.
 - Une tension entre 44 et 57 V dont l'extrait parle de PoE → `douteux` :
   c'est la tension côté switch, pas une entrée DC de la caméra.
-- `min_standard` et `class` cohérents : af ⇒ 0–3, at ⇒ 0–4, bt ⇒ 1–8.
+- `min_standard` et `class` cohérents : af ⇒ 0–3, at ⇒ 0–4, bt ⇒ 1–8
+  (depuis le 2026-10-20 : ou classe d'une norme plus haute citée, la classe
+  étant celle du pire cas ; plafond de la classe extraite, hors PoE
+  propriétaire).
 - Port `poe.power_w` ≤ plafond côté caméra de la classe
   (12,95 / 25,5 / 40 / 51 / 62 / 71,3 W) ; entre 1 et 90 W sinon.
 - `power_w` ≤ `power_w_peak` ; `poe.power_w` ≤ `power_w_peak`.
@@ -1040,8 +1043,37 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   « output ») : attrape dahua-03, aucune fausse alerte ; extrait PoE qui
   parle d'AC : aucun déclenchement, à abandonner ; `current_peak_ma`
   < 100 mA : sans coût ni gain. Décision de Quentin attendue.
-- À faire : rejeu de qwen3 v1 avec les nouvelles règles sur le PC
-  (réponses brutes là-bas) ; bootstrap apparié Groq / qwen3.
+- **Clôture de L5 sans GPU (2026-10-20, décisions de Quentin)** :
+  - corrigé et GUIDE : plusieurs modes PoE normés → classe et puissance du
+    pire cas, `min_standard` le plus bas ; axis-06 passe de classe 4 à 6
+    (seule cellule changée). Mode haut propriétaire (axis-08, ipro-04) :
+    classe du mode normé, exception écrite. `regle_classe` admet une classe
+    d'une norme plus haute citée ;
+  - règle `port_faux_marqueur` (forme resserrée) ; borne basse de
+    `current_peak_ma` à 100 mA ; extrait PoE parlant d'AC abandonné ;
+  - règles qui lisent l'extrait déplacées dans
+    `plausibility/regles_extraits.py` (`rules.py` à 300 lignes) ;
+  - provenance des rejeux (`commit_evaluation`) et `--ids` avec `--run` ;
+  - relectures de fin de lot : `expert-metier` (2 bloquants corrigés :
+    plafond de la classe extraite, la paire classe/puissance n'étant plus
+    contrôlée ; couple « Max. A/B » étendu à `ports.poe.power_w`, motif
+    `minimum_d_un_couple_max`) ; `architecte-llm` (4 bloquants corrigés :
+    README « 5/14 avant les règles » faux, 3/14 ; « sorties des deux
+    modèles » faux ; biais du tri chiffré ; provenance, rapports régénérés
+    après commit) ; comparaison qui refuse deux corrigés différents ;
+  - rejeu Groq final (`_rejeu-regles`) : test exactitude 92,2 %
+    [86,8–96,4], tri **10/15 (66,7 %)**, **5/15 (33,3 %) sans les trois
+    règles tirées d'erreurs du test** (couple Vivotek, port faux, plafond
+    de classe retouché pour axis-06), sous la ligne de base (40,9 %) ;
+    5 valeurs justes en `douteux` (axis-06 51 W signalé avec sa classe
+    fausse). Groq contre ligne de base : exactitude +11,9 points
+    [+4,7 ; +19,5] ;
+  - README : section « Local vs hosted », limites mises à jour.
+- **Reste sur le PC (réponses brutes de qwen3 là-bas, sans GPU)** : rejeu
+  de qwen3 v1 avec les règles et le corrigé finaux, rapports avec
+  `par_document`, puis `evaluate --comparer` Groq / qwen3 et qwen3 v1 / v3 ;
+  chiffres qwen3 du README à remplacer. L5 est clos pour le reste ; on
+  passe à L6.
 
 ### L6 — Restitution
 - **README en anglais**, écrit dès la fin de L3c, sans chiffres : le

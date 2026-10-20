@@ -71,7 +71,7 @@ def typique_au_lieu_du_max(valeur: float, extrait: str) -> bool:
     )
 
 
-_COUPLE_MAX = re.compile(
+_COUPLE_MAX = re.compile(  # « max 24.7 W / 11.4 W » ou « Max. 24.7/11.4 W »
     r"max\.?\s*:?\s*(\d+(?:[.,]\d+)?)\s*w?\s*/\s*(\d+(?:[.,]\d+)?)\s*w(?![a-z])"
 )
 
@@ -91,3 +91,18 @@ def typique_dans_couple_max(valeur: float, extrait: str) -> bool:
         for couple in _COUPLE_MAX.finditer(texte)
         for n in couple.groups()
     )
+
+
+def minimum_d_un_couple_max(valeur: float, extrait: str) -> bool:
+    """La plus basse d'un couple de maximums retenue comme pire cas.
+
+    « PoE max 24.7 W / 11.4 W (Heater on/off) » : 11,4 W sous-dimensionne le
+    switch (``expert-metier``, 2026-10-20).
+    """
+    for couple in _COUPLE_MAX.finditer(normaliser(extrait)):
+        a, b = (_lire(n) for n in couple.groups())
+        if max(a, b) > min(a, b) + 0.005 and math.isclose(
+            valeur, min(a, b), abs_tol=0.005
+        ):
+            return True
+    return False

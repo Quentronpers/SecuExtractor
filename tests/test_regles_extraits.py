@@ -1,4 +1,4 @@
-"""Règles tirées des erreurs de Groq en L5 : typique PoE, courant au repos, Vivotek."""
+"""Règles tirées des erreurs de Groq en L5 : extraits, ports, classe du pire cas."""
 
 from __future__ import annotations
 
@@ -6,9 +6,11 @@ import pytest
 
 from catalog.extraction.cible import Valeur
 from catalog.plausibility.indices import (
+    minimum_d_un_couple_max,
     typique_au_lieu_du_max,
     typique_dans_couple_max,
 )
+from catalog.plausibility.regles_extraits import entree_continue_citee
 from tests.test_plausibilite import _motifs
 
 
@@ -89,3 +91,73 @@ def test_regle_typique_couple() -> None:
         {"power_w": extrait},
     )
     assert motifs == {"power_w": "typique_dans_couple_max"}
+
+
+@pytest.mark.parametrize(
+    ("extrait", "attendu"),
+    [
+        ("36 VDC, 2.23 A ± 25% HI-PoE", True),  # dahua-03
+        ("DC12V ± 25%", True),
+        ("12 V DC", True),
+        ("Power-over-Ethernet (48 VDC nominal)", False),  # bosch-01 : PoE
+        ("High Power over Ethernet 56VDC nominal", False),  # bosch-03
+        ("12VDC output, max 1.2 W", False),  # sortie accessoires
+        ("PoE IEEE 802.3at, 24 VAC", False),
+        ("Power output: DC12V, max 100 mA", False),  # sortie écrite avant
+    ],
+)
+def test_entree_continue_citee(extrait: str, attendu: bool) -> None:
+    assert entree_continue_citee(extrait) is attendu
+
+
+def test_port_dc_faux_avec_son_marqueur() -> None:
+    motifs = _motifs({"ports.dc": False}, {"ports.dc": "36 VDC, 2.23 A ± 25% HI-PoE"})
+    assert motifs == {"ports.dc": "port_faux_marqueur"}
+
+
+def test_port_poe_faux_avec_son_marqueur() -> None:
+    motifs = _motifs({"ports.poe": False}, {"ports.poe": "PoE IEEE 802.3af Class 2"})
+    assert motifs == {"ports.poe": "port_faux_marqueur"}
+
+
+def test_port_dc_faux_cite_sur_l_extrait_poe() -> None:
+    # GUIDE : « PoE seul » se cite par l'extrait PoE, sans tension continue.
+    extrait = "Power over Ethernet (PoE) IEEE 802.3af/802.3at Type 1"
+    assert _motifs({"ports.dc": False}, {"ports.dc": extrait}) == {}
+
+
+@pytest.mark.parametrize(("citee", "admis"), [("802.3bt", True), ("", False)])
+def test_classe_du_pire_cas_avec_norme_basse(citee: str, admis: bool) -> None:
+    # Q1806-LE : démarre en at, classe 6 du mode bt (GUIDE, 2026-10-20).
+    valeurs: dict[str, Valeur] = {
+        "ports.poe.class": "6",
+        "ports.poe.min_standard": "802.3at",
+    }
+    motifs = _motifs(valeurs, texte=f"IEEE 802.3at Class 4 ; {citee} Class 6")
+    assert ("ports.poe.class" not in motifs) is admis
+
+
+@pytest.mark.parametrize(
+    ("valeur", "extrait", "attendu"),
+    [
+        (11.4, "PoE max 24.7 W / 11.4 W (Heater on/off)", True),
+        (11.4, "PoE: Max. 24.7/11.4 W (Heater on/off)", True),
+        (24.7, "PoE: Max. 24.7/11.4 W (Heater on/off)", False),  # la bonne
+        (12.0, "PoE: Max. 12/12 W", False),  # couple égal
+    ],
+)
+def test_minimum_d_un_couple_max(valeur: float, extrait: str, attendu: bool) -> None:
+    assert minimum_d_un_couple_max(valeur, extrait) is attendu
+
+
+def test_regle_poe_couple() -> None:
+    motifs = _motifs(
+        {"ports.poe.power_w": 11.4, "power_w_peak": 24.7},
+        {"ports.poe.power_w": "PoE max 24.7 W / 11.4 W (Heater on/off)"},
+    )
+    assert motifs == {"ports.poe.power_w": "minimum_d_un_couple_max"}
+
+
+@pytest.mark.parametrize("extrait", ["PoE: N/A", "Non-PoE model", "12 VDC, no PoE"])
+def test_poe_nie_pas_de_fausse_alerte(extrait: str) -> None:
+    assert _motifs({"ports.poe": False}, {"ports.poe": extrait}) == {}

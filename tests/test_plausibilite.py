@@ -48,7 +48,7 @@ def test_valeurs_ordinaires_sans_motif() -> None:
         ("power_w_peak", (1.0, 200.0), (0.99, 200.01)),
         ("ports.poe.power_w", (1.0, 90.0), (0.99, 90.01)),
         ("ports.dc.current_standby_ma", (20.0, 2000.0), (19.9, 2000.1)),
-        ("ports.dc.current_peak_ma", (20.0, 5000.0), (19.9, 5000.1)),
+        ("ports.dc.current_peak_ma", (100.0, 5000.0), (99.9, 5000.1)),
     ],
 )
 def test_bornes_exactes(
@@ -136,7 +136,10 @@ def test_classe_et_norme(norme: str, classe: str, admis: bool) -> None:
 
 def test_classe_4_avec_30_w() -> None:
     motifs = _motifs({"ports.poe.class": "4", "ports.poe.power_w": 30.0})
-    assert motifs == {"ports.poe.power_w": "depasse_plafond_classe"}
+    assert motifs == {
+        "ports.poe.power_w": "depasse_plafond_classe",
+        "ports.poe.class": "depasse_plafond_classe",
+    }
 
 
 @pytest.mark.parametrize(
@@ -148,12 +151,26 @@ def test_plafond_de_classe_exact(classe: str, plafond: float) -> None:
     assert motifs["ports.poe.power_w"] == "depasse_plafond_classe"
 
 
-def test_plafond_de_la_plus_haute_classe_citee() -> None:
-    # AXIS Q1806-LE : 802.3at Class 4, ou 802.3bt Type 3 Class 6 max 51 W.
+def test_paire_classe_puissance_du_pire_cas() -> None:
+    # AXIS Q1806-LE : at Class 4 max 25,5 W, ou bt Class 6 max 51 W. Le GUIDE
+    # (2026-10-20) veut la paire du pire cas : classe 6 avec 51 W.
     texte = "IEEE 802.3at Class 4 max 25.5 W, or IEEE 802.3bt Type 3 Class 6 max 51 W"
+    pire: dict[str, Valeur] = {"ports.poe.class": "6", "ports.poe.power_w": 51.0}
+    assert _motifs(pire, texte=texte) == {}
+    bas: dict[str, Valeur] = {"ports.poe.class": "4", "ports.poe.power_w": 51.0}
+    assert set(_motifs(bas, texte=texte)) == {"ports.poe.class", "ports.poe.power_w"}
+
+
+def test_sans_classe_extraite_plafond_de_la_plus_haute_citee() -> None:
+    texte = "IEEE 802.3bt Type 3 Class 6 max 51 W"
+    assert _motifs({"ports.poe.power_w": 51.0}, texte=texte) == {}
+    assert _motifs({"ports.poe.power_w": 51.0}, texte="Class 4") != {}
+
+
+def test_poe_proprietaire_sans_plafond() -> None:
+    # AXIS Q6135-LE : classe du mode normé, puissance du High PoE (GUIDE).
     valeurs: dict[str, Valeur] = {"ports.poe.class": "4", "ports.poe.power_w": 51.0}
-    assert _motifs(valeurs, texte=texte) == {}
-    assert _motifs(valeurs, texte="IEEE 802.3at Class 4") != {}
+    assert _motifs(valeurs, texte="High PoE, IEEE 802.3at Class 4") == {}
 
 
 def test_sans_classe_citee_plafond_de_la_classe_8() -> None:

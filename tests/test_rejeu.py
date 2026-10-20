@@ -194,3 +194,21 @@ def test_run_reduit_aux_ids(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
         evaluate._rapport_run(
             argparse.Namespace(run=tmp_path / "run", ids="hik-09"), CIBLE, corriges
         )
+
+
+def test_comparaison_refuse_deux_corriges(tmp_path: Path) -> None:
+    from catalog.evaluation import comparaison
+
+    resultat = extraire(reponse_correcte(), tmp_path)
+    chemins = [
+        rapport.ecrire(
+            rapport.construire([resultat], {"axis-01": corrige(peak)}, {}),
+            f"r{i}",
+            tmp_path / "rapports",
+        )
+        for i, peak in enumerate((10.7, 12.0))
+    ]
+    with pytest.raises(comparaison.CorrigesDifferents):
+        comparaison.provenance(chemins)
+    meta = comparaison.provenance([chemins[0], chemins[0]])
+    assert meta["a"] == "r0.json" and meta["tirages"] == 2000
