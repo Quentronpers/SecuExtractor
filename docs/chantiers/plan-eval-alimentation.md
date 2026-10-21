@@ -6,7 +6,9 @@
 > terminés et commités ; L3c `38bf97e` ; L4 terminé le 2026-10-16 (partie
 > sans GPU : `c90750e` ; premier passage réel et résultats : `a57f668`) ;
 > L5 parties 1 et 2 (Groq, règles, bootstrap apparié) closes le 2026-10-20,
-> rejeu de qwen3 sur le PC le 2026-10-21 : **L5 clos** ; prochain lot : L6. Périmètre de L4 à L6 resserré
+> rejeu de qwen3 sur le PC le 2026-10-21 : **L5 clos** ; L6 fait le
+> 2026-10-21 (`5b0ca7f` docs, `07e0f36` refactor, CI verte), dépôt public :
+> **chantier clos**. Périmètre de L4 à L6 resserré
 > le 2026-10-16 après une relecture extérieure du plan (ligne de base sans
 > LLM, un seul modèle local, README anglais anticipé).
 
@@ -1131,6 +1133,62 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   - *vitrine* (`recruteur-ia`) : lecture à 30 s et à 3 min.
   Les écarts sont corrigés puis l'audit est rejoué sur ce qui a changé.
 - Vault et portfolio mis à jour (via `/fin-de-lot`).
+
+#### Journal de L6 (2026-10-21)
+- Audit avant publication par six agents en parallèle (`/conseil` : sécurité
+  avec tout l'historique git, organisation, conformité, tests, méthode,
+  relecture vitrine), puis rejoué sur le diff (conformité, sécurité,
+  méthode). Sécurité : aucun secret, aucune notice ni réponse brute
+  versionnée à aucun commit.
+- Lot README et rapports :
+  - ligne de base du 16/10 remplacée par celle du 20/10 (précision test
+    82,3 % au lieu de 82,7 %) ; « Try it » régénéré
+    (`eval/resultats/2026-10-21_ligne-de-base-v1_test_ids27-5d06c6.json` :
+    précision 80,6 % [70,1 ; 90,0], rappel 79,0 %) ;
+  - décomptes du tri recalculés depuis `erreurs[].regle` des rapports
+    `_rejeu-regles`, avec le corrigé actuel : Groq 3/15 avant les nouvelles
+    règles (le README disait 3/14, ancien corrigé), 5/15 sans les règles
+    tirées du test, 10/15 avec toutes ; qwen3 14/23 (disait 14/22), 15/23
+    avec toutes ;
+  - résumé chiffré en tête, objectifs atteints et manqués, axis-06 imputé à
+    la consigne du prompt v1 (« class of the lowest mode »), désaccords
+    modèle/corrigé déclarés non relus, impossibilité pour un tiers de
+    rescorer les rapports des modèles ; README à la première personne ;
+  - 12 rapports périmés dans `eval/resultats/archives/`, index
+    `eval/resultats/README.md`, `LICENSE` MIT, `docs/decisions.md` (résumé
+    anglais).
+- Lot nettoyage : `catalog/models.py`, `schema/` et la dépendance
+  `anthropic` supprimés (accord de Quentin), `uv.lock` régénéré ;
+  sous-commandes `export` et `status` retirées (prévues, non livrées) ;
+  chemins privés retirés de `.claude/`, CLAUDE.md et docker-compose.yml ;
+  agents propres à l'auteur sortis du dépôt (liens locaux ignorés).
+- Lot acquisition :
+  - `catalog/acquisition/robots.py`, analyseur RFC 9309 maison à la place
+    de `urllib.robotparser` (qui ignorait `*` et `$` et la règle la plus
+    longue) ; revérifié à chaque redirection ;
+  - contact `SECURSCOPE_CONTACT` obligatoire (message clair, code 2 dans la
+    CLI) ; reprises seulement sur erreur réseau, 429 et 5xx, `Retry-After`
+    plafonné à 60 s ; cause de chaque échec dans `echecs.json` ;
+  - pages produit filtrées et plafonnées à 50 par page catalogue,
+    récupérées une seule fois ; PDF nommés avec l'empreinte et refusés sans
+    `%PDF` ;
+  - bug trouvé par les tests : `Retry-After` jamais lu (une
+    `requests.Response` en erreur vaut faux en booléen) ; relecture : BOM,
+    agent en sous-chaîne, `Disallow` vide qui ne fermait pas le groupe,
+    normalisation %XX, corrigés avec tests.
+- Tests : 414 → 475 (robots, fetcher, cascade, bootstrap apparié,
+  intervalle, incohérences, borne `power_w`, CLI).
+- Décisions de Quentin : historique git publié tel quel ; « PoE++ » non
+  reconnu comme bt au contrôle de citation, laissé tel quel (prudent) ;
+  sous-ressources playwright non filtrées et pas de plafond de taille sur
+  les documents, laissés tels quels.
+- GitHub : dépôt public ; wiki et projects désactivés, description et
+  topics, Dependabot, secret scanning et push protection, signalement privé
+  de vulnérabilité, CI des forks soumise à approbation, ruleset « master
+  protégée » (ni force-push ni suppression).
+- Le chantier est clos. Pistes pour la suite : jeu de notices vierge pour
+  mesurer le tri sans biais, relecture des désaccords modèle/corrigé,
+  acquisition à l'échelle.
 
 ## 6. Questions ouvertes
 
