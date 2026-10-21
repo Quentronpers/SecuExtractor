@@ -137,17 +137,19 @@ Planned before any run, so they cannot be picked after seeing results:
 First real run, 2026-10-16: `qwen3:14b` on Ollama (digest `bdbd181c…`),
 prompt `camera-alimentation-v1`, temperature 0, no reasoning, one run,
 16 GB GPU. Figures are copied from `eval/resultats/`; brackets are 95 %
-bootstrap intervals over datasheets.
+bootstrap intervals over datasheets. They are replayed from the raw
+responses with the final rules and ground truth (`*_rejeu-regles`
+reports, 2026-10-21); the as-run figures stay in the original reports.
 
 | | Development (15 datasheets, 165 cells) | Test (35 datasheets, 385 cells) |
 |---|---|---|
-| Precision | 90.4 % [82.9 ; 97.1] | 91.5 % [85.9 ; 96.2] |
-| Precision of confident values | 95.8 % [90.7 ; 100.0] | 95.6 % [92.6 ; 98.2] |
-| Recall | 85.5 % [77.1 ; 93.2] | 89.1 % [83.2 ; 94.2] |
-| Cell accuracy | 89.7 % [84.2 ; 95.2] | 90.4 % [85.7 ; 94.5] |
+| Precision | 90.4 % [82.9 ; 97.1] | 91.1 % [85.5 ; 96.0] |
+| Precision of confident values | 97.8 % [94.7 ; 100.0] | 96.4 % [93.6 ; 98.7] |
+| Recall | 85.5 % [77.1 ; 93.2] | 88.7 % [82.7 ; 93.9] |
+| Cell accuracy | 89.7 % [84.2 ; 95.2] | 90.1 % [85.5 ; 94.3] |
 | Invention | 1.8 % [0.0 ; 5.9] | 6.7 % [1.0 ; 13.9] |
 | Underestimation (peak / PoE power) | 3.4 % [0.0 ; 10.3] | 4.6 % [0.0 ; 10.1] |
-| Errors caught as doubtful | 60.0 % [33.3 ; 100.0] | 54.5 % [25.0 ; 74.2] |
+| Errors caught as doubtful | 80.0 % [50.0 ; 100.0] (8/10) | 65.2 % [40.0 ; 83.3] (15/23) |
 | Technical failures | 0.0 % | 0.0 % |
 | Mean time per datasheet | 10.7 s | 8.3 s |
 
@@ -160,8 +162,10 @@ justify is about 9 points of precision, not 20.
 
 Against the targets fixed beforehand: peak-power precision on the test set
 is 91.2 % (target 90 %, met); invention is 6.7 % (target 2 %, missed);
-errors caught as doubtful are 54.5 % (target 80 %, missed). The test set
-confirms the development set, so there is no sign of overfitting to it.
+errors caught as doubtful are 65.2 % (target 80 %, missed). On the first
+run, before any plausibility rule below, they were 60.0 % and 54.5 %.
+Cell accuracy on the test set confirms the development set, so there is
+no sign of overfitting to it.
 
 **Plausibility rule added afterwards** (no model involved, replayed on the
 same raw responses): when the datasheet cites several power inputs and
@@ -176,7 +180,9 @@ and ms-01, for one false alarm on a multi-reference sheet (ms-03, whose
 neighbouring variant draws more). On the test set the figures are 54.5 %
 to 63.6 % (14 of 22) and 95.6 % to 96.4 %, but they are biased upwards:
 parts of the rule (the "Ethernet" capacity exclusion, the reading of a
-second value on the same line) were adjusted on test datasheets. "Errors
+second value on the same line) were adjusted on test datasheets. With the
+rules and ground-truth change of 2026-10-20 (see "Local vs hosted"), the
+test figure is 65.2 % (15 of 23), the one in the table. "Errors
 caught as doubtful" counts wrong values produced; missed fields (absent
 instead of a value) are not in it.
 
@@ -187,29 +193,30 @@ run. **That analysis covered both sets**: nine test datasheets (axis-01,
 axis-04, bosch-02, bosch-03, dahua-04, hik-02, hik-03, hik-06, ipro-04)
 shaped the new wording. v2 and v3 were then judged on the development set,
 v3 was measured once on the test set, and the choice between versions was
-made after seeing that measurement. Same model and settings; v1 is
-replayed with the same checks, plausibility rule included. Exact prompt
-texts are in `eval/prompts/`.
+made after seeing that measurement. Same model and settings; both are
+replayed with the final rules and ground truth (`*_rejeu-regles`). Exact
+prompt texts are in `eval/prompts/`.
 
 | | v1 dev | v3 dev | v1 test | v3 test |
 |---|---|---|---|---|
-| Precision | 90.4 % | 97.1 % | 91.5 % | 91.8 % [87.0 ; 95.6] |
-| Precision of confident values | 97.8 % | 100.0 % | 96.4 % | 95.1 % [91.2 ; 98.4] |
-| Recall | 85.5 % | 92.7 % | 89.1 % | 88.0 % [81.7 ; 93.3] |
+| Precision | 90.4 % | 97.1 % | 91.1 % | 92.2 % [87.4 ; 96.1] |
+| Precision of confident values | 97.8 % | 100.0 % | 96.4 % | 96.0 % [92.4 ; 98.8] |
+| Recall | 85.5 % | 92.7 % | 88.7 % | 88.3 % [82.0 ; 93.6] |
+| Cell accuracy | 89.7 % | 95.2 % | 90.1 % | 91.2 % [86.8 ; 95.1] |
 | Invention | 1.8 % | 0.0 % | 6.7 % | 2.5 % [0.0 ; 5.6] |
 | Underestimation | 3.4 % | 3.4 % | 4.6 % | 3.2 % [0.0 ; 7.9] |
-| Errors caught as doubtful | 80.0 % (8/10) | 100.0 % (3/3) | 63.6 % (14/22) | 47.6 % (10/21) |
-| Wrong values marked confident | 2 | 0 | 8 | 11 |
+| Errors caught as doubtful | 80.0 % (8/10) | 100.0 % (3/3) | 65.2 % (15/23) | 55.0 % (11/20) |
+| Wrong values marked confident | 2 | 0 | 8 | 9 |
 
 Split of the test errors (all states, of which confident in brackets):
 
 | Test datasheets | v1 | v3 |
 |---|---|---|
-| the 9 that shaped the prompt | 23 (8) | 12 (5) |
-| the 26 others | 14 (0) | 23 (6) |
+| the 9 that shaped the prompt | 23 (8) | 12 (4) |
+| the 26 others | 15 (0) | 22 (5) |
 
 v3 fixes the cases it was written from and gets worse on the datasheets
-that played no part in it: six wrong values come out confident where v1
+that played no part in it: five wrong values come out confident where v1
 had none. Peak-power precision on the test set falls from 91.2 % to
 88.2 % (target 90 %). Some new errors come straight from the added
 wording: "compare all PoE modes, High PoE included" made the model take a
@@ -219,7 +226,9 @@ that lists one input per line (axis-05); dahua-03's DC input is also
 declared false, with no clear cause; ms-02 values from a
 neighbouring column now carry a well-formed quote, so the citation check
 no longer flags them. Three versions judged on 15 datasheets is
-overfitting, and a paired comparison of v1 and v3 has not been computed.
+overfitting. Paired on the 35 test datasheets, v1 minus v3 is −1.0 point
+of cell accuracy [−5.2 ; +3.1] and +4.2 points of invention [−1.9 ; +11.9]:
+neither gap is separated.
 **v1 stays the prompt**; v2 and v3 are reported as an attempt that did
 not generalise. A further prompt change would need fresh datasheets to be
 judged, since the test set is no longer blind to it.
@@ -248,12 +257,27 @@ precision +11.9 [+3.0 ; +21.0]. These gaps are real at 95 %; invention
 (−6.7 [−15.9 ; +1.8]) is not separated. The triage gap is not a fair
 comparison, for the reason below.
 
-On the development set Groq reaches 97.6 % cell accuracy against 89.7 % for
-`qwen3:14b`; on the test set the gap shrinks to about 2 points (qwen3:
-90.4 % [85.7 ; 94.5], figures of 2026-10-16), inside both intervals. **The
-paired comparison with qwen3 is not computed yet**: its raw responses are
-on the GPU machine, and its figures predate the rules and the ground-truth
-change below.
+**Against the local model.** On the development set Groq reaches 97.6 %
+cell accuracy against 89.7 % for `qwen3:14b`; on the test set the gap
+shrinks to 2.1 points (qwen3: 90.1 % [85.5 ; 94.3], replayed with the same
+rules and ground truth). Paired on the 35 test datasheets, Groq minus
+qwen3:
+
+| Metric | Groq | qwen3 | Gap (points) | 95 % interval | Separated |
+|---|---|---|---|---|---|
+| Cell accuracy | 92.2 % | 90.1 % | +2.1 | [−2.9 ; +6.8] | no |
+| Precision | 94.2 % | 91.1 % | +3.0 | [−1.0 ; +7.9] | no |
+| Recall | 91.0 % | 88.7 % | +2.3 | [−4.0 ; +8.0] | no |
+| Invention | 5.0 % | 6.7 % | −1.7 | [−7.9 ; +3.8] | no |
+| Errors caught as doubtful | 66.7 % | 65.2 % | +1.4 | [−22.4 ; +37.6] | no |
+
+On this set, the 14B model on one consumer GPU is not distinguishable
+from the 120B hosted model, and the datasheets never leave the machine.
+qwen3 does separate from the baseline: +9.9 points of cell accuracy
+[+3.1 ; +16.4], +12.0 of recall [+3.6 ; +19.6]. It takes 8.3 s and
+3,375 tokens per datasheet (118,130 / 35), against 2.6 s on Groq. The
+caveat on triage below applies to both models: three rules were shaped by
+Groq's test errors.
 
 **Fewer errors, but silent ones.** Before the rules below, none of Groq's
 3 development errors and 3 of its 14 test errors came out doubtful (qwen3:

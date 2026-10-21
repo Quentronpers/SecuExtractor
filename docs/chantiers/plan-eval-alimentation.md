@@ -6,7 +6,7 @@
 > terminés et commités ; L3c `38bf97e` ; L4 terminé le 2026-10-16 (partie
 > sans GPU : `c90750e` ; premier passage réel et résultats : `a57f668`) ;
 > L5 parties 1 et 2 (Groq, règles, bootstrap apparié) closes le 2026-10-20,
-> sauf le rejeu de qwen3 sur le PC ; prochain lot : L6. Périmètre de L4 à L6 resserré
+> rejeu de qwen3 sur le PC le 2026-10-21 : **L5 clos** ; prochain lot : L6. Périmètre de L4 à L6 resserré
 > le 2026-10-16 après l'avis de l'agent `recruteur-ia` (ligne de base sans
 > LLM, un seul modèle local, README anglais anticipé).
 > Sert l'étude de cas de la phase 2 de la recherche d'emploi
@@ -1069,11 +1069,30 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
     fausse). Groq contre ligne de base : exactitude +11,9 points
     [+4,7 ; +19,5] ;
   - README : section « Local vs hosted », limites mises à jour.
-- **Reste sur le PC (réponses brutes de qwen3 là-bas, sans GPU)** : rejeu
-  de qwen3 v1 avec les règles et le corrigé finaux, rapports avec
-  `par_document`, puis `evaluate --comparer` Groq / qwen3 et qwen3 v1 / v3 ;
-  chiffres qwen3 du README à remplacer. L5 est clos pour le reste ; on
-  passe à L6.
+- ~~**Reste sur le PC (réponses brutes de qwen3 là-bas, sans GPU)**~~ :
+  fait le 2026-10-21, voir ci-dessous.
+- **Rejeu de qwen3 sur le PC (2026-10-21, sans GPU, code de `6569cc6`)** :
+  v1 et v3, mise au point et test, rejoués depuis les réponses brutes du
+  2026-10-16 avec les règles et le corrigé finaux (rapports
+  `*_rejeu-regles`, avec `par_document`). Le nom vient d'un lien
+  symbolique vers le dossier d'exécution, suffixé `_rejeu-regles`, pour ne
+  pas écraser les rapports d'origine.
+  - qwen3 v1, test : exactitude 90,1 % [85,5 ; 94,3] (90,4 % avant),
+    précision 91,1 %, rappel 88,7 %, invention 6,7 %, tri **15/23
+    (65,2 %)** (14/22 avant ; l'erreur de plus vient du changement de
+    corrigé d'axis-06). Mise au point inchangée : 89,7 %, tri 8/10.
+  - v3, test : exactitude 91,2 %, tri 11/20 ; découpage inspirantes /
+    vierges : v1 23 (8) / 15 (0), v3 12 (4) / 22 (5) (5 `sur` faux sur
+    les vierges, 6 avant).
+  - Comparaisons appariées (35 notices de test), aucune départagée sauf la
+    ligne de base : Groq − qwen3 exactitude +2,1 [−2,9 ; +6,8], invention
+    −1,7 [−7,9 ; +3,8] ; qwen3 − ligne de base exactitude +9,9
+    [+3,1 ; +16,4] et rappel +12,0 [+3,6 ; +19,6], **départagés** ;
+    v1 − v3 exactitude −1,0 [−5,2 ; +3,1].
+  - README : chiffres qwen3 remplacés, tableau apparié Groq / qwen3 dans
+    « Local vs hosted ». Message pour l'étude de cas : sur ce jeu, le 14B
+    local ne se distingue pas du 120B hébergé et bat la ligne de base.
+  - L5 est clos ; on passe à L6.
 
 ### L6 — Restitution
 - **README en anglais**, écrit dès la fin de L3c, sans chiffres : le
