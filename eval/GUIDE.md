@@ -43,7 +43,7 @@ jamais passer pour un absent.
   "id": "axis-01",
   "reference": "AXIS P3265-LVE 9 mm",
   "sha256": "<empreinte de eval/notices.csv>",
-  "annotateur": "Quentin",
+  "annotateur": "Claude",
   "date_annotation": "2026-10-20",
   "champs": {
     "ports.poe": {"valeur": true, "etat_attendu": "sur", "page": 5,

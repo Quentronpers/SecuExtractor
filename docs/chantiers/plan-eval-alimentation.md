@@ -7,10 +7,8 @@
 > sans GPU : `c90750e` ; premier passage réel et résultats : `a57f668`) ;
 > L5 parties 1 et 2 (Groq, règles, bootstrap apparié) closes le 2026-10-20,
 > rejeu de qwen3 sur le PC le 2026-10-21 : **L5 clos** ; prochain lot : L6. Périmètre de L4 à L6 resserré
-> le 2026-10-16 après l'avis de l'agent `recruteur-ia` (ligne de base sans
+> le 2026-10-16 après une relecture extérieure du plan (ligne de base sans
 > LLM, un seul modèle local, README anglais anticipé).
-> Sert l'étude de cas de la phase 2 de la recherche d'emploi
-> (vault : `projets/AI-Solutions-Engineer`), du 2026-10-15 au 2026-11-15.
 
 ## 1. Le besoin
 
@@ -159,7 +157,7 @@ la mesure qui dira combien de fois cela arrive.
 
 - Tensions du port DC autour de {12, 24, 36, 48} V ± 25 % (les tensions
   d'alimentation continue de SecurScope, plus 36 V vu sur des PTZ) ;
-  `voltage_min_v` ≤ `voltage_max_v`, et min ≥ 0,6 × max.
+  `voltage_min_v` ≤ `voltage_max_v`, et min ≥ max / 3.
 - Une tension entre 44 et 57 V dont l'extrait parle de PoE → `douteux` :
   c'est la tension côté switch, pas une entrée DC de la caméra.
 - `min_standard` et `class` cohérents : af ⇒ 0–3, at ⇒ 0–4, bt ⇒ 1–8
@@ -281,7 +279,7 @@ mesure : précision ≥ 90 % sur `power_w_peak`, invention ≤ 2 %, tri
     la puissance maximale), typique + max dans les deux champs ;
   - `power_w_peak` garde le 24 V AC (décidé le 2026-10-15) ; le budget PoE
     de SecurScope lira `ports.poe.power_w` d'abord (piste notée dans la
-    fiche SecurScope du vault) ;
+    documentation de SecurScope) ;
   - fiche multi-références : la ligne de la référence complète, sinon
     absent.
 - Modèle Pydantic du corrigé (`catalog/evaluation/reference.py`) ;

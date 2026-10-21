@@ -1,5 +1,12 @@
 # Pipeline d'extraction — déroulé détaillé
 
+> **État d'avancement.** Ce document décrit le pipeline visé. Sont livrés :
+> l'acquisition (§ 1 bis), la lecture, l'extraction du bloc alimentation
+> des caméras IP avec citation et plausibilité, et son évaluation sur
+> 50 notices (`docs/chantiers/plan-eval-alimentation.md`, `README.md`).
+> Le stockage (§ 5), la relecture (§ 6), l'export (§ 7) et la commande
+> `status` sont prévus, pas encore construits.
+
 ## 1. Vue d'ensemble
 
 ```
@@ -146,7 +153,7 @@ version étant conservée avec un suffixe de date.
 }
 ```
 
-`status` agrège ce journal : combien de fabricants bloqués, à quelle étape, et
+`status` (prévue) agrégera ce journal : combien de fabricants bloqués, à quelle étape, et
 ce qu'il faut fournir. **C'est ce qui rend le complément manuel supportable** —
 tu sais exactement quoi renseigner au lieu d'explorer à l'aveugle.
 

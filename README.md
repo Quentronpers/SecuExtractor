@@ -1,9 +1,28 @@
 # SecuExtractor — how often does a local LLM get CCTV power specs wrong?
 
+[![CI](https://github.com/Quentronpers/SecuExtractor/actions/workflows/ci.yml/badge.svg)](https://github.com/Quentronpers/SecuExtractor/actions/workflows/ci.yml)
+
 A measured pipeline that extracts IP-camera power data from manufacturer
 datasheets with a local LLM. Every value carries its source quote, is
 checked by deterministic code, and is scored against a 50-datasheet ground
 truth.
+
+**In short** (35 test datasheets, 11 power fields each, 95 % intervals):
+
+- `qwen3:14b` on one 16 GB consumer GPU: 90.1 % cell accuracy
+  [85.5 ; 94.3], 8.3 s per datasheet; the datasheets never leave the machine.
+- `gpt-oss-120b` hosted on Groq: 92.2 % [86.8 ; 96.4]. The paired gap,
+  +2.1 points [−2.9 ; +6.8], does not separate the two models on this set.
+- Both beat a regular-expression baseline (80.3 % cell accuracy); qwen3 by
+  +9.9 points [+3.1 ; +16.4].
+- Groq's errors are harder to catch. Before checks were built from them, 3
+  of its 15 test errors came out doubtful; without the checks shaped by its
+  test errors, 5 of 15 (qwen3: 14 of 23).
+- Targets fixed beforehand: peak-power precision met (91.2 %); invention
+  (6.7 % against 2 %) and errors caught as doubtful (65.2 % against 80 %)
+  missed.
+- Small set, test set no longer blind: see Limitations. Code and internal
+  docs are in French; this README is the English entry point.
 
 ## The problem
 
@@ -15,7 +34,7 @@ and traps: typical versus maximum consumption, heaters and IR that only draw
 in winter, proprietary "Hi-PoE", 24 V AC inputs, one datasheet covering six
 references.
 
-The client is the author's own product: **SecurScope**, a security-design
+The client is my own product: **SecurScope**, a security-design
 tool (private) that places equipment on plans and checks PoE budgets and
 power compatibility. It needs a catalogue of up to **50,000
 electronic-security references**: cameras, recorders, switches, intrusion
@@ -114,11 +133,14 @@ Planned before any run, so they cannot be picked after seeing results:
 
 - **Scoring rule**: exact match after unit and decimal normalisation; a
   1 % gap is reported separately, never counted right. Any non-absent value
-  counts as produced.
+  counts as produced. As implemented, the schema fixes each field's unit,
+  so numbers match within 0.005 and strings match exactly; no conversion
+  happens at scoring time.
 - **Per field**: precision, precision of confident values (what the
   application consumes without warning), recall, **invention rate**
   (fields absent from the datasheet but filled), **underestimation rate** of
-  peak and PoE power (the error that undersizes a switch), citation
+  peak and PoE power (the error that undersizes a switch; counted where
+  both values are numbers, a missed value is a recall error), citation
   failures, and **triage rate**: the share of errors that landed in
   doubtful, i.e. that the system caught.
 - **Overall**: cell accuracy, technical failures (truncation, invalid JSON,
@@ -153,17 +175,20 @@ reports, 2026-10-21); the as-run figures stay in the original reports.
 | Technical failures | 0.0 % | 0.0 % |
 | Mean time per datasheet | 10.7 s | 8.3 s |
 
-Baseline (regular expressions on the same selected text): precision
-69.0 % on the development set and 82.7 % [74.3 ; 90.7] on the test set;
-precision of confident values 77.0 % and 86.8 %; recall 72.7 % and
-77.1 %; invention 20.0 % and 11.8 %. The test-set datasheets are easier
+Baseline (regular expressions on the same selected text,
+`2026-10-20_ligne-de-base-v1_*` reports): precision 69.0 % on the
+development set and 82.3 % [73.9 ; 90.4] on the test set; precision of
+confident values 76.5 % and 88.5 %; recall 72.7 % and 76.7 %; invention
+20.0 % and 11.8 %. The test-set datasheets are easier
 for the baseline than the development ones: the gap the model has to
 justify is about 9 points of precision, not 20.
 
 Against the targets fixed beforehand: peak-power precision on the test set
 is 91.2 % (target 90 %, met); invention is 6.7 % (target 2 %, missed);
 errors caught as doubtful are 65.2 % (target 80 %, missed). On the first
-run, before any plausibility rule below, they were 60.0 % and 54.5 %.
+run, before any plausibility rule below, errors caught as doubtful were
+60.0 % on the development set and 54.5 % on the test set (as-run reports,
+former ground truth).
 Cell accuracy on the test set confirms the development set, so there is
 no sign of overfitting to it.
 
@@ -178,7 +203,8 @@ set, errors caught as doubtful rise from 60.0 % to 80.0 % (8 of 10) and
 precision of confident values from 95.8 % to 97.8 %; it catches hanwha-07
 and ms-01, for one false alarm on a multi-reference sheet (ms-03, whose
 neighbouring variant draws more). On the test set the figures are 54.5 %
-to 63.6 % (14 of 22) and 95.6 % to 96.4 %, but they are biased upwards:
+to 63.6 % (14 of 22, intermediate replay in `eval/resultats/archives/`)
+and 95.6 % to 96.4 %, but they are biased upwards:
 parts of the rule (the "Ethernet" capacity exclusion, the reading of a
 second value on the same line) were adjusted on test datasheets. With the
 rules and ground-truth change of 2026-10-20 (see "Local vs hosted"), the
@@ -280,8 +306,10 @@ caveat on triage below applies to both models: three rules were shaped by
 Groq's test errors.
 
 **Fewer errors, but silent ones.** Before the rules below, none of Groq's
-3 development errors and 3 of its 14 test errors came out doubtful (qwen3:
-8 of 10 and 14 of 22). The big model fails where the checks built for the
+3 development errors and 3 of its 15 test errors came out doubtful (qwen3:
+8 of 10 and 14 of 23). These counts come from the `erreurs` list of the
+`_rejeu-regles` reports, where each wrong value carries the rules that
+fired on it (`regle`); `eval/resultats/README.md` says how. The big model fails where the checks built for the
 small one do not look. Checks were added from those errors, each measured
 on the ground truth (no correct value may be rejected) and on Groq's
 outputs, after review by a domain-expert agent:
@@ -297,7 +325,8 @@ outputs, after review by a domain-expert agent:
 Counted with every rule, 10 of Groq's 15 test errors come out doubtful.
 **Without the three rules shaped by test errors, it is 5 of 15 (33.3 %)**,
 below the baseline: that is the honest figure for unseen datasheets until a
-fresh set measures them. The two development-shaped rules fired on the test
+fresh set measures them. The same count for qwen3 gives 14 of 23 (60.9 %),
+against 15 of 23 with every rule. The two development-shaped rules fired on the test
 set only on real errors. The class-ceiling rule flags both fields of an
 incoherent pair, so on axis-06 the correct 51 W is flagged with the wrong
 class; there are 5 correct test values in doubtful, 4 before. One candidate
@@ -309,13 +338,16 @@ modes (AXIS Q1806-LE: 802.3at Class 4 up to 25.5 W, or 802.3bt Class 6 up
 to 51 W, the bt mode only needed for its PoE output) the guide used to pair
 the low mode's class with the high mode's wattage. The class now follows
 the worst case (6, 51 W); the minimum standard stays the lowest (802.3at).
-One cell changed (axis-06, test). When the high mode is proprietary (High
+One cell changed (axis-06, test). Prompt v1 still tells the model to take
+the class of the lowest mode, so both models answer 4, as instructed, and
+are counted wrong on that cell. When the high mode is proprietary (High
 PoE, tested injector) there is no class to take: the standard mode's class
 is kept, and no ceiling applies.
 
-### Typical errors
+### Typical errors (first qwen3 run)
 
-The dangerous ones are wrong values marked confident. The main cause is
+The dangerous ones are wrong values marked confident. On the first run the
+main cause was
 **the maximum taken from one power source instead of the maximum over all of
 them**, which underestimates a calculation field:
 
@@ -323,6 +355,9 @@ them**, which underestimates a calculation field:
 - ipro-04, PoE power 25 W instead of 50 W (60 W PoE injector);
 - axis-04 (23 instead of 24 W, DC above PoE) and bosch-02 (10.59 instead
   of 10.76 W, AC above PoE).
+
+The cited-consumption rule above now flags hanwha-07, axis-04 and bosch-02
+as doubtful; ipro-04 is still marked confident.
 
 The others: a 24 V AC figure filed under DC or PoE (hik-06, bosch-03); a
 misread table (an auxiliary 12 V DC output taken for an input, a 4 A supply
@@ -353,13 +388,13 @@ hik-03).
 - **Small sample.** 15 development and 35 test datasheets: intervals
   around ±10 points, and wider on rare cases.
   Currents and PoE-less cameras rest on few cases.
-- **The ground truth was annotated by Claude, then reviewed by a human.**
-  The 20 fields Claude marked uncertain were decided by the author; 5
+- **The ground truth was annotated by Claude, then reviewed by me.**
+  I decided the 20 fields Claude marked uncertain; 5
   datasheets drawn at random (55 cells) were fully re-checked with no
   discrepancy. That does not prove an error-free ground truth, and an LLM
-  annotator may share reading errors with an LLM extractor. Every
-  disagreement between a model and the ground truth will be re-read by hand,
-  and ground-truth errors counted. None of the evaluated models is Claude.
+  annotator may share reading errors with an LLM extractor. Disagreements
+  between a model and the ground truth have not been re-read by hand yet:
+  every one counts against the model. None of the evaluated models is Claude.
 - **Citation check blind spots.** In "6.4 W (12 V DC); 7.7 W (PoE)", both
   numbers are in the quote, so swapping them passes. A port declared absent
   (`false`) is checked against its own quote only for a DC voltage or a PoE
@@ -405,7 +440,7 @@ Streamlit, used elsewhere in the pipeline):
 ```bash
 git clone https://github.com/Quentronpers/SecuExtractor.git && cd SecuExtractor
 python3.12 -m venv .venv && .venv/bin/pip install -e .
-export SECURSCOPE_CONTACT="you@example.com"   # contact sent in the User-Agent
+export SECURSCOPE_CONTACT="you@your-domain"    # a real address, sent in the User-Agent; required
 ```
 
 **Without a GPU: download the datasheets and score the baseline.**
@@ -423,8 +458,8 @@ are not archived. Hence the `IDS` line, which keeps the PDF datasheets
 only (27 of the 35 test datasheets; it also leaves out 3 pages that did
 reproduce, to keep the filter simple). Without it, the command stops on
 the first missing page. On those 27, the baseline gives a precision of
-81.1 % [70.5 ; 90.5] and a recall of 79.5 %
-(`eval/resultats/2026-10-16_ligne-de-base-v1_test_ids27-5d06c6.json`); a
+80.6 % [70.1 ; 90.0] and a recall of 79.0 %
+(`eval/resultats/2026-10-21_ligne-de-base-v1_test_ids27-5d06c6.json`); a
 run with `--ids` is named after its subset, so it never overwrites the
 full report. These figures cover fewer datasheets than the
 Results table, so they differ from it.
@@ -463,12 +498,14 @@ No test calls the network or a model. Fixtures are hand-built files; the
 tests also read the ground-truth quotes.
 
 Running an extraction needs a GPU host with Ollama and the datasheets on
-disk. **A third party cannot reproduce the published scores exactly**:
-`catalog recuperer` re-downloads the 50 datasheets from `eval/notices.csv`
-and checks each SHA-256, but 7 HTML pages no longer match (see
-Limitations), so "Try it" runs on the PDF datasheets only. On the author's
-machine (Linux, no Docker,
-a local virtual environment):
+disk. `catalog recuperer` re-downloads the 50 datasheets listed in
+`eval/notices.csv` and compares each SHA-256 with the annotated version.
+The 40 PDFs match; 7 of the 10 web pages have changed since annotation and
+are not archived (see Limitations). A third party can run the pipeline on
+the PDF datasheets, as "Try it" does, but **cannot reproduce the published
+scores exactly**.
+
+I run it on Linux without Docker, in a local virtual environment:
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -e . ruff mypy pytest
@@ -484,7 +521,9 @@ set runs the comparison (Groq's reasoning models reject `none`, so the
 command refuses it); `LLM_BASE_URL` and `LLM_MODEL` point to another
 server or model. Raw
 responses go to `data/extractions/` (not versioned: they contain datasheet
-text). `evaluate` replays checks and metrics from them without a model, and
+text). `evaluate` replays checks and metrics from them without a model.
+Since these raw responses are not published, a third party can re-score the
+baseline but not the published model reports.
 `catalog evaluate --ligne-de-base --jeu test` scores the regular-expression
 baseline. `catalog evaluate --comparer A.json B.json` compares two reports
 from `eval/resultats/` by paired bootstrap on their common datasheets.
@@ -493,17 +532,26 @@ from `eval/resultats/` by paired bootstrap on their common datasheets.
 
 ```
 catalog/   readers, extraction, citation and plausibility checks, evaluation
-eval/      notices.csv, GUIDE.md, reference/ (ground truth)
-docs/      pipeline.md, chantiers/ (design decisions, in French)
+eval/      notices.csv, GUIDE.md, reference/ (ground truth), prompts/,
+           resultats/ (every report quoted here; README.md indexes them)
+tests/     unit tests, hand-built fixtures, architecture checks
+docs/      decisions.md (design decisions in English), pipeline.md and
+           chantiers/ (full plan and journal, in French)
 ```
 
 `tests/test_architecture.py` enforces module boundaries and size limits.
 
 ## How it was built
 
-The author is both the builder and the client: the scope, the field
+I am both the builder and the client: the scope, the field
 definitions, the domain rules and the evaluation protocol come from
 SecurScope's needs. Most of the code was written with Claude Code, under
-the author's review; design decisions are logged in
-`docs/chantiers/plan-eval-alimentation.md`. Claude annotated the ground
-truth and the author reviewed it. Claude is not one of the evaluated models.
+my review; design decisions are logged in
+`docs/chantiers/plan-eval-alimentation.md` (summary in `docs/decisions.md`). Claude annotated the ground
+truth and I reviewed it. Claude is not one of the evaluated models.
+
+## License
+
+MIT, see `LICENSE`. The datasheets themselves are not redistributed:
+`eval/notices.csv` links to the manufacturers' public pages, and the ground
+truth keeps only short quotes.
