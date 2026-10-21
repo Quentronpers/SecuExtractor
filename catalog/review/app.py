@@ -1,5 +1,7 @@
 """Interface Streamlit de relecture — la pièce centrale du projet.
 
+Prévue, pas encore construite : ce module n'affiche qu'un message.
+
 Traite une file priorisée, jamais un lot complet. Voir CLAUDE.md (section
 « L'interface de relecture ») pour l'ordre de la file et les actions
 attendues : valider, corriger, marquer absent.

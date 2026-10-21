@@ -1,4 +1,7 @@
-"""Lecture et écriture des références, champs et historique en base."""
+"""Lecture et écriture des références, champs et historique en base.
+
+Prévu, pas encore construit (docs/pipeline.md, § 5).
+"""
 
 from __future__ import annotations
 

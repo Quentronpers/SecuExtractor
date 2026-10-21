@@ -11,13 +11,16 @@ truth.
 
 - `qwen3:14b` on one 16 GB consumer GPU: 90.1 % cell accuracy
   [85.5 ; 94.3], 8.3 s per datasheet; the datasheets never leave the machine.
+  96.4 % [93.6 ; 98.7] of the values it marks confident are right.
 - `gpt-oss-120b` hosted on Groq: 92.2 % [86.8 ; 96.4]. The paired gap,
   +2.1 points [−2.9 ; +6.8], does not separate the two models on this set.
 - Both beat a regular-expression baseline (80.3 % cell accuracy); qwen3 by
   +9.9 points [+3.1 ; +16.4].
-- Groq's errors are harder to catch. Before checks were built from them, 3
-  of its 15 test errors came out doubtful; without the checks shaped by its
-  test errors, 5 of 15 (qwen3: 14 of 23).
+- Groq makes fewer errors, but they are harder to catch: without the checks
+  shaped by its test errors, 5 of its 15 are flagged doubtful (qwen3: 14 of
+  23).
+- At the target scale of 50,000 datasheets, that is about 115 GPU-hours
+  locally (8.3 s each), or about 221 million tokens on Groq (4,429 each).
 - Targets fixed beforehand: peak-power precision met (91.2 %); invention
   (6.7 % against 2 %) and errors caught as doubtful (65.2 % against 80 %)
   missed.

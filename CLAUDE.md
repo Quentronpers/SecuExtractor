@@ -1,5 +1,9 @@
 # CLAUDE.md — SecurScope Catalog
 
+> Instructions for the coding agent (Claude Code), in French. The project
+> overview for readers is `README.md`; parts marked « prévu » are planned,
+> not built yet.
+
 Pipeline d'extraction des caractéristiques techniques d'équipements depuis les
 notices PDF constructeur. Projet **autonome**, distinct de l'application
 SecurScope. Sa sortie est un fichier de données vérifiées que l'application
