@@ -6,6 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from catalog.extraction.cible import charger_cible
+from catalog.extraction.etats import incoherences
 from catalog.extraction.prompts import (
     CONSIGNES,
     ReponseBloc,
@@ -83,3 +84,24 @@ def test_reponse_incomplete_refusee() -> None:
 def test_ports_faux_demandent_une_citation() -> None:
     assert "For true or false, quote" in CONSIGNES["ports.dc"]
     assert "For true or false, quote" in CONSIGNES["ports.poe"]
+
+
+def test_valeur_nulle_avec_extrait_ou_doute_est_incoherente() -> None:
+    donnees = {cle: _rendu(None) for cle in CIBLE.par_cle()}
+    donnees["power_w"] = {
+        "extrait": "Power: 5 W",
+        "page": 2,
+        "valeur": None,
+        "doute": False,
+    }
+    donnees["power_w_peak"] = {
+        "extrait": None,
+        "page": None,
+        "valeur": None,
+        "doute": True,
+    }
+
+    assert incoherences(ReponseBloc.model_validate(donnees)) == [
+        "power_w",
+        "power_w_peak",
+    ]

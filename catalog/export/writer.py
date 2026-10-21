@@ -1,6 +1,7 @@
 """Export du catalogue : tous les champs, avec leur niveau de fiabilité.
 
-Voir CLAUDE.md (section « L'export ») pour le format de sortie. Rien
+Prévu, pas encore construit. Voir docs/pipeline.md (§ 7, « L'export ») pour
+le format de sortie. Rien
 n'attend la relecture : les champs ``extrait`` sont exportés au même titre
 que les champs ``verifie``, avec leur niveau porté explicitement.
 """

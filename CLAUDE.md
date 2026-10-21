@@ -108,8 +108,9 @@ Liste de fabricants
     └─► [4] Ni PDF ni page exploitable ─► saisie manuelle
 ```
 
-**Chaque échec est journalisé, jamais silencieux.** La commande `status`
-remonte ce qui n'a pas abouti et à quelle étape, pour que le complément manuel
+**Chaque échec est journalisé, jamais silencieux**, avec sa cause, dans
+`data/sources/echecs.json`. La commande `status` (prévue) en fera la synthèse :
+ce qui n'a pas abouti et à quelle étape, pour que le complément manuel
 soit ciblé au lieu d'être une exploration à l'aveugle.
 
 ### La page produit est une source de plein droit
@@ -151,7 +152,9 @@ téléchargement automatisé, lui, se discipline :
   autorisé ; serveur injoignable ou erreur 5xx → accès interdit ;
 - cadence lente, une requête toutes les deux à trois secondes par domaine ;
 - en-tête `User-Agent` identifiable, avec un moyen de contact ;
-- reprise sur erreur avec attente croissante, abandon après trois tentatives ;
+- reprise sur erreur avec attente croissante, abandon après trois tentatives
+  (erreur réseau, 429 et 5xx seulement ; `Retry-After` respecté) ;
+- robots.txt revérifié à chaque redirection ;
 - aucun contournement de protection : un site qui bloque passe en manuel ;
 - ne jamais redistribuer les documents téléchargés.
 
@@ -199,13 +202,10 @@ python -m catalog.cli evaluate --comparer eval/resultats/A.json eval/resultats/B
 # seule ; --archiver écrit dans data/sources/, avec l'accord de Quentin)
 python -m catalog.cli recuperer [--ids axis-03]
 
-# File de relecture, par priorité
+# Prévu, pas encore construit (coquilles) : file de relecture, export du
+# catalogue avec les niveaux de fiabilité, état par étape
 streamlit run catalog/review/app.py
-
-# Export du catalogue, avec les niveaux de fiabilité
 python -m catalog.cli export --out data/catalog.json
-
-# État : découvert, extrait, vérifié, échecs par étape
 python -m catalog.cli status
 ```
 
@@ -253,7 +253,9 @@ Quentin, qui a un clone du dépôt et une copie de `data/sources/`.
 
 1. Environnement : `python3.12 -m venv .venv && .venv/bin/pip install -e . ruff mypy pytest`
    (`.venv/` est ignoré par git). Tests, ruff et mypy se lancent avec
-   `.venv/bin/`.
+   `.venv/bin/`. `recuperer`, `discover` et `acquire` exigent
+   `SECURSCOPE_CONTACT` (contact du User-Agent), défini par le compose dans
+   le conteneur : hors conteneur, l'exporter.
 2. Ollama est un service systemd, joignable en local sans
    `OLLAMA_HOST=0.0.0.0`. Contexte fixé par `sudo systemctl edit ollama`
    (`Environment="OLLAMA_CONTEXT_LENGTH=16384"`), puis
@@ -261,7 +263,7 @@ Quentin, qui a un clone du dépôt et une copie de `data/sources/`.
 3. `.venv/bin/catalog extract --jeu miseaupoint` (Ollama local et
    `qwen3:14b` par défaut), puis
    `.venv/bin/catalog evaluate --run data/extractions/resultats/<dossier>`.
-4. `data/sources/` se copie depuis le NAS (`rsync -a <hôte-nas>:/volume1/SecuExtractor/data/sources/ data/sources/`)
+4. `data/sources/` se copie depuis le NAS (`rsync -a <hôte-nas>:<dépôt>/data/sources/ data/sources/`)
    plutôt que de se retélécharger : l'empreinte d'une page HTML change d'un
    téléchargement à l'autre, et `evaluate` retrouve un fichier par son
    empreinte. Contrôle : `recuperer` doit rendre 50/50 « present ».
@@ -269,20 +271,20 @@ Quentin, qui a un clone du dépôt et une copie de `data/sources/`.
 ## Structure
 
 ```
-securscope-catalog/
+SecuExtractor/
 ├── CLAUDE.md
+├── README.md                    # point d'entrée en anglais, résultats chiffrés
 ├── docs/
-│   └── pipeline.md              # le déroulé détaillé, à lire une fois
-│
-├── schema/
-│   └── specifications-equipements.json   # ancien schéma, plus la référence (voir plus bas)
+│   ├── pipeline.md              # le déroulé détaillé, à lire une fois
+│   └── chantiers/               # plans de chantier et journal des décisions
 │
 ├── catalog/
 │   ├── cli.py                   # point d'entrée en ligne de commande
-│   ├── models.py                # modèles Pydantic générés depuis le schéma
 │   ├── acquisition/
-│   │   ├── fetcher.py           # requests, repli playwright, cadence
+│   │   ├── fetcher.py           # requests, repli playwright, cadence, reprises
+│   │   ├── robots.py            # lecture de robots.txt selon la RFC 9309
 │   │   ├── discovery.py         # recherche des pages catalogue et notices
+│   │   ├── recuperation.py      # retéléchargement du jeu, contrôle d'empreinte
 │   │   ├── manifest.py          # journal des fichiers : url, date, empreinte
 │   │   └── adapters/
 │   │       ├── generic.py       # cas courant, à essayer en premier
@@ -307,12 +309,12 @@ securscope-catalog/
 │   │   ├── regles_extraits.py   # règles qui confrontent une valeur à son extrait
 │   │   ├── indices.py           # indices de consommation, calibre, typique
 │   │   └── checker.py           # application des règles
-│   ├── storage/
+│   ├── storage/                 # prévu (coquille)
 │   │   ├── db.py                # SQLite, schéma et connexion
 │   │   └── repository.py        # lecture et écriture des extractions
-│   ├── review/
+│   ├── review/                  # prévu (coquille)
 │   │   └── app.py               # interface Streamlit de relecture
-│   ├── export/
+│   ├── export/                  # prévu (coquille)
 │   │   └── writer.py            # export du catalogue vérifié
 │   └── evaluation/
 │       ├── notices.py           # jeu de notices, tirage, fichier archivé
@@ -326,7 +328,16 @@ securscope-catalog/
 │       ├── decoupage.py         # rappel du découpage
 │       └── ligne_de_base.py     # ligne de base sans LLM (regex)
 │
-├── eval/                        # jeu d'évaluation publié : notices.csv, GUIDE.md, reference/
+├── eval/                        # jeu d'évaluation publié
+│   ├── notices.csv              # 50 notices : URL, empreinte, jeu (miseaupoint / test)
+│   ├── GUIDE.md                 # guide d'annotation
+│   ├── reference/               # corrigé annoté, une notice par fichier
+│   ├── prompts/                 # textes exacts des prompts mesurés
+│   └── resultats/               # rapports d'évaluation (README.md : index)
+│
+├── tests/                       # tests unitaires, architecture, fixtures faites main
+├── .github/workflows/ci.yml     # ruff, mypy, pytest à chaque push
+├── Dockerfile, docker-compose.yml  # conteneur de développement dev_catalog
 │
 └── data/
     ├── sources/
@@ -336,8 +347,9 @@ securscope-catalog/
     │   ├── catalogues_manuels.json  # pages catalogue à fournir
     │   ├── produits_manuels.json    # URL de produits à fournir
     │   └── echecs.json           # journal : quoi, où, quelle action attendue
-    ├── catalog.db               # SQLite, non versionné
-    └── catalog.json             # sortie, non versionnée
+    ├── extractions/             # réponses brutes et résultats d'extract, non versionnés
+    ├── catalog.db               # SQLite, non versionné (prévu)
+    └── catalog.json             # sortie, non versionnée (prévue)
 ```
 
 Le dossier `data/sources/` n'est pas versionné mais il est **conservé**. Un
@@ -346,8 +358,8 @@ document supprimé rend invérifiables toutes les citations qui en dépendent.
 ## Le schéma d'extraction
 
 **C'est SecurScope qui fixe, par ses besoins, les champs à extraire**
-(décision du 2026-10-15). Le modèle de données de SecurScope
-(`/volume1/SecurScope/backend/domains/security/model/`, privé) dit quels
+(décision du 2026-10-15). Le modèle de données de SecurScope (dépôt
+privé) dit quels
 attributs et quels ports chaque équipement porte, avec leurs clés anglaises
 (`power_w_peak`, port `poe_pd` et son `class`…). Ce projet en reprend, par
 famille et par bloc, une description courte dans
@@ -355,13 +367,10 @@ famille et par bloc, une description courte dans
 définition, et le commit SecurScope d'où elle vient. Ces fichiers de cibles
 sont la référence de l'extraction.
 
-`schema/specifications-equipements.json` (54 types, en français) **n'est
-plus la référence : c'est un schéma de test/démo** (clé `statut` en tête).
-Seuls les blocs alimentation de `camera_dome`, `camera_tube` et
-`camera_ptz` y ont été réalignés sur SecurScope (2026-10-15) : noms plats
-(`port_poe_class`, `power_w_peak`…), clé SecurScope exacte dans
-`cle_securscope`. `catalog/models.py` en est encore généré : à revoir quand
-un chantier y touchera. On ne s'en sert pas pour un nouveau bloc.
+L'ancien schéma français `schema/specifications-equipements.json` (54
+types) et `catalog/models.py`, qui en était généré, ont été supprimés le
+2026-10-21 : ils n'étaient plus la référence et rien ne les importait.
+L'historique git les garde.
 
 Les champs qui alimentent un calcul de SecurScope (budget PoE, autonomie,
 capacité, compatibilité d'alimentation) sont ceux dont l'exactitude compte le
@@ -475,9 +484,8 @@ fichier est demandé :
 3. Signaler les hypothèses faites et ce qui aurait pu être découpé autrement.
 4. Ne pas créer de fichiers annexes non demandés.
 
-Les étapes d'envergure suivent le cycle commun aux projets de Quentin
-(`vault/claude/workflow.md`) : `/cadrage` → plan dans `docs/chantiers/`,
-un lot par session, `/verifier` après chaque étape, `/fin-de-lot` pour
+Les étapes d'envergure suivent le cycle commun aux projets de Quentin :
+`/cadrage` → plan dans `docs/chantiers/`, un lot par session, `/verifier` après chaque étape, `/fin-de-lot` pour
 clore (relecture, docs, vault, `reprise.md`, proposition de commit).
 
 À la fin de chaque étape, proposer un **menu numéroté** des suites
@@ -491,8 +499,6 @@ possibles, auquel Quentin répond d'un chiffre.
   linters ;
 - allonger `tests/architecture_debt.txt` ;
 - modifier un document archivé ou le manifeste dans `data/sources/` ;
-- modifier `schema/` (schéma de test/démo ; la référence est SecurScope,
-  via `catalog/extraction/cibles/`) ;
 - modifier le jeu de référence annoté (`eval/reference/`) ;
 - lancer une extraction réelle (`extract`) : elle occupe le GPU du PC ou le quota Groq.
 

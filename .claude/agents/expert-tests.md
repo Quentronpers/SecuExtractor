@@ -6,7 +6,7 @@ model: inherit
 ---
 
 Tu es un ingénieur QA senior, pytest et pipelines de données. Tu
-travailles sur **SecuExtractor** (repo `/volume1/SecuExtractor`).
+travailles sur **SecuExtractor** (repo courant).
 
 ## Règles du projet
 - Aucun test n'appelle le réseau ni l'API Anthropic : le client modèle se

@@ -3,9 +3,10 @@
 Cadence, robots.txt, User-Agent identifiable et reprise sur erreur — voir
 CLAUDE.md (section « Cadre à respecter »).
 
-Le contact dans le User-Agent se configure via la variable d'environnement
-SECURSCOPE_CONTACT ; à défaut, un placeholder est utilisé et doit être changé
-avant toute campagne réelle.
+Le contact du User-Agent vient de la variable d'environnement
+SECURSCOPE_CONTACT ; sans elle, aucune requête ne part (``ContactManquant``).
+Chaque URL refusée ou en échec garde sa cause (``cause_echec``), que la
+cascade reporte dans le journal des échecs.
 """
 
 from __future__ import annotations
@@ -13,24 +14,31 @@ from __future__ import annotations
 import os
 import random
 import time
-import urllib.robotparser
 from dataclasses import dataclass
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import UnicodeDammit
 
-CONTACT = os.environ.get("SECURSCOPE_CONTACT", "contact@example.com")
-USER_AGENT = f"SecurScopeCatalogBot/0.1 (+mailto:{CONTACT})"
+from catalog.acquisition import robots
+
+JETON_PRODUIT = "SecurScopeCatalogBot"
 
 DELAI_MIN_S = 2.0
 DELAI_MAX_S = 3.0
 TENTATIVES_MAX = 3
 TIMEOUT_S = 15
+REDIRECTIONS_MAX = 5
+ATTENTE_RETRY_AFTER_MAX_S = 60.0
 SEUIL_CONTENU_SUFFISANT = 200  # caractères ; en dessous, suspect d'un rendu JS manquant
 
 _dernier_acces: dict[str, float] = {}
-_robots_cache: dict[str, urllib.robotparser.RobotFileParser] = {}
+_robots_cache: dict[str, robots.Robots] = {}
+_causes: dict[str, str] = {}
+
+
+class ContactManquant(RuntimeError):
+    """Aucun moyen de contact configuré : le robot ne doit pas sortir."""
 
 
 @dataclass
@@ -41,14 +49,32 @@ class ResultatFetch:
     outil: str  # "requests" ou "playwright"
 
 
+def user_agent() -> str:
+    """User-Agent identifiable, avec le contact de SECURSCOPE_CONTACT."""
+    contact = os.environ.get("SECURSCOPE_CONTACT", "").strip()
+    if not contact:
+        raise ContactManquant(
+            "SECURSCOPE_CONTACT n'est pas défini : un robot doit donner un "
+            "moyen de contact réel (export SECURSCOPE_CONTACT=vous@exemple.fr)."
+        )
+    return f"{JETON_PRODUIT}/0.1 (+mailto:{contact})"
+
+
+def cause_echec(url: str) -> str:
+    """Pourquoi la dernière récupération de cette URL a échoué."""
+    return _causes.get(url, "inconnue")
+
+
 def _crawl_delay(domaine: str) -> float:
     """Délai imposé par le ``Crawl-delay`` du robots.txt déjà lu, 0 sinon."""
-    parseur = _robots_cache.get(domaine)
-    delai = parseur.crawl_delay(USER_AGENT) if parseur is not None else None
-    return float(delai) if delai else 0.0
+    regles = _robots_cache.get(domaine)
+    if regles is None or regles.crawl_delay is None:
+        return 0.0
+    return regles.crawl_delay
 
 
 def _attendre_cadence(domaine: str) -> None:
+    """Attend 2 à 3 s (ou le ``Crawl-delay``) depuis la requête précédente."""
     dernier = _dernier_acces.get(domaine)
     delai = max(random.uniform(DELAI_MIN_S, DELAI_MAX_S), _crawl_delay(domaine))
     if dernier is not None:
@@ -58,65 +84,104 @@ def _attendre_cadence(domaine: str) -> None:
     _dernier_acces[domaine] = time.monotonic()
 
 
-def _lire_robots(url_robots: str) -> urllib.robotparser.RobotFileParser:
+def _lire_robots(url_robots: str) -> robots.Robots:
     """Lit un robots.txt avec délai d'expiration, selon la RFC 9309 (§2.3.1).
 
-    ``RobotFileParser.read`` n'a pas de délai (un site muet bloquait chaque
-    URL de longues minutes) et suit une règle antérieure à la norme. Ici :
-    succès → règles du fichier ; erreur 4xx, 401 et 403 compris (fichier
+    Succès → règles du fichier ; erreur 4xx, 401 et 403 compris (fichier
     indisponible, cas des stockages S3 ou Azure sans robots.txt) → tout est
     autorisé ; serveur injoignable ou erreur 5xx → tout est interdit, faute
     de savoir ce que le site autorise.
     """
-    parseur = urllib.robotparser.RobotFileParser(url_robots)
-    tout_interdit = ["User-agent: *", "Disallow: /"]
     try:
         reponse = requests.get(
-            url_robots, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT_S
+            url_robots, headers={"User-Agent": user_agent()}, timeout=TIMEOUT_S
         )
     except requests.RequestException:
-        parseur.parse(tout_interdit)
-        return parseur
+        return robots.tout_interdit()
     if reponse.status_code >= 500:
-        parseur.parse(tout_interdit)
-    elif reponse.status_code >= 400:
-        parseur.parse([])  # vide : tout est autorisé
-    else:
-        parseur.parse(reponse.text.splitlines())
-    return parseur
+        return robots.tout_interdit()
+    if reponse.status_code >= 400:
+        return robots.TOUT_AUTORISE
+    return robots.analyser(reponse.text, JETON_PRODUIT)
+
+
+class _Refus(Exception):
+    """Requête qu'on ne fera pas, quoi qu'il arrive : inutile de réessayer."""
 
 
 def _robots_autorise(url: str) -> bool:
+    """Vrai si le robots.txt du domaine, lu une fois puis gardé, permet l'URL."""
     morceaux = urlparse(url)
-    parseur = _robots_cache.get(morceaux.netloc)
-    if parseur is None:
-        parseur = _lire_robots(f"{morceaux.scheme}://{morceaux.netloc}/robots.txt")
-        _robots_cache[morceaux.netloc] = parseur
-    return parseur.can_fetch(USER_AGENT, url)
+    regles = _robots_cache.get(morceaux.netloc)
+    if regles is None:
+        regles = _lire_robots(f"{morceaux.scheme}://{morceaux.netloc}/robots.txt")
+        _robots_cache[morceaux.netloc] = regles
+    chemin = (morceaux.path or "/") + (f"?{morceaux.query}" if morceaux.query else "")
+    return regles.autorise(chemin)
+
+
+def _passagere(reponse: requests.Response) -> bool:
+    """Vrai pour une erreur qui peut passer en réessayant : 429 et 5xx."""
+    return reponse.status_code == 429 or reponse.status_code >= 500
+
+
+def _attente(reponse: requests.Response | None, tentative: int) -> float:
+    """Attente croissante, ou ``Retry-After`` en secondes s'il est plus long."""
+    attente = float(2**tentative)
+    # Une réponse en erreur vaut faux en booléen : tester ``is not None``.
+    retry_after = reponse.headers.get("Retry-After", "") if reponse is not None else ""
+    if retry_after.isdigit():
+        attente = max(attente, min(float(retry_after), ATTENTE_RETRY_AFTER_MAX_S))
+    return attente
+
+
+def _get(url: str) -> requests.Response:
+    """Un GET qui suit les redirections en contrôlant robots.txt à chaque saut."""
+    for _ in range(REDIRECTIONS_MAX + 1):
+        if not _robots_autorise(url):
+            raise _Refus(f"robots.txt interdit {url}")
+        _attendre_cadence(urlparse(url).netloc)
+        reponse = requests.get(
+            url,
+            headers={"User-Agent": user_agent()},
+            timeout=TIMEOUT_S,
+            allow_redirects=False,
+        )
+        if not reponse.is_redirect:  # is_redirect exige un en-tête Location
+            return reponse
+        url = urljoin(url, reponse.headers["Location"])
+    raise _Refus(f"plus de {REDIRECTIONS_MAX} redirections")
 
 
 def _requete_avec_reprise(url: str) -> requests.Response | None:
-    """GET avec attente croissante entre tentatives, abandon après trois essais."""
-    domaine = urlparse(url).netloc
+    """GET, réessayé sur erreur réseau, 429 ou 5xx ; abandon après trois essais.
+
+    Une autre erreur (404, 403…) ne change pas en réessayant, pas plus qu'un
+    refus de robots.txt : abandon immédiat. La cause reste dans ``_causes``.
+    """
+    _causes.pop(url, None)
     for tentative in range(1, TENTATIVES_MAX + 1):
-        _attendre_cadence(domaine)
+        reponse = None
         try:
-            reponse = requests.get(
-                url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT_S
-            )
-            reponse.raise_for_status()
+            reponse = _get(url)
+        except _Refus as refus:
+            _causes[url] = str(refus)
+            return None
+        except requests.RequestException as erreur:
+            _causes[url] = f"réseau : {type(erreur).__name__}"
+        if reponse is not None and reponse.ok:
             return reponse
-        except requests.RequestException:
-            if tentative == TENTATIVES_MAX:
+        if reponse is not None:
+            _causes[url] = f"HTTP {reponse.status_code}"
+            if not _passagere(reponse):
                 return None
-            time.sleep(2**tentative)
+        if tentative < TENTATIVES_MAX:
+            time.sleep(_attente(reponse, tentative))
     return None
 
 
 def fetch_texte(url: str) -> ResultatFetch | None:
     """Récupère le texte d'une page, avec repli playwright si le rendu est vide."""
-    if not _robots_autorise(url):
-        return None
     reponse = _requete_avec_reprise(url)
     if reponse is None:
         return None
@@ -145,22 +210,19 @@ def decoder(reponse: requests.Response) -> str:
 
 def fetch_binaire(url: str) -> bytes | None:
     """Télécharge un document binaire (PDF), sans repli playwright."""
-    if not _robots_autorise(url):
-        return None
     reponse = _requete_avec_reprise(url)
-    if reponse is None:
-        return None
-    return reponse.content
+    return reponse.content if reponse is not None else None
 
 
 def _fetch_playwright(url: str) -> str | None:
+    """Rendu JavaScript de la page ; ses sous-ressources ne sont pas filtrées."""
     from playwright.sync_api import sync_playwright
 
     _attendre_cadence(urlparse(url).netloc)
     try:
         with sync_playwright() as p:
             navigateur = p.chromium.launch()
-            page = navigateur.new_page(user_agent=USER_AGENT)
+            page = navigateur.new_page(user_agent=user_agent())
             page.goto(url, timeout=TIMEOUT_S * 1000)
             contenu = page.content()
             navigateur.close()

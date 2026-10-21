@@ -45,6 +45,7 @@ def test_valeurs_ordinaires_sans_motif() -> None:
 @pytest.mark.parametrize(
     ("cle", "dedans", "dehors"),
     [
+        ("power_w", (1.0, 200.0), (0.99, 200.01)),
         ("power_w_peak", (1.0, 200.0), (0.99, 200.01)),
         ("ports.poe.power_w", (1.0, 90.0), (0.99, 90.01)),
         ("ports.dc.current_standby_ma", (20.0, 2000.0), (19.9, 2000.1)),

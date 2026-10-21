@@ -1,6 +1,7 @@
 """Point d'entrée en ligne de commande du pipeline.
 
-Sous-commandes : discover, acquire, extract, evaluate, recuperer, status, export.
+Sous-commandes : discover, acquire, extract, evaluate, recuperer. L'export
+et l'état du pipeline (export, status) sont prévus, pas encore construits.
 Voir CLAUDE.md (section « Commandes ») pour l'usage détaillé.
 """
 
@@ -12,7 +13,7 @@ from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
 
-from catalog.acquisition import discovery, recuperation
+from catalog.acquisition import discovery, fetcher, recuperation
 from catalog.evaluation.evaluate import ajouter_evaluate
 from catalog.evaluation.execution import ajouter_extract
 from catalog.evaluation.notices import NOTICES_PATH, charger_notices
@@ -63,16 +64,6 @@ def ajouter_recuperer(subparsers: argparse._SubParsersAction) -> None:
     sous.set_defaults(func=cmd_recuperer)
 
 
-def cmd_export(args: argparse.Namespace) -> None:
-    """Export du catalogue avec les niveaux de fiabilité."""
-    raise NotImplementedError
-
-
-def cmd_status(args: argparse.Namespace) -> None:
-    """État global : découvert, extrait, vérifié, échecs par étape."""
-    raise NotImplementedError
-
-
 _FABRICANT = ("--fabricant", "nom du fabricant à traiter")
 
 # Sous-commande → (fonction, aide, options obligatoires (nom, aide)).
@@ -85,12 +76,6 @@ SOUS_COMMANDES: dict[
         [("--fabricants", "chemin vers data/fabricants.txt")],
     ),
     "acquire": (cmd_acquire, "téléchargement et archivage", [_FABRICANT]),
-    "export": (
-        cmd_export,
-        "export du catalogue",
-        [("--out", "chemin du fichier de sortie")],
-    ),
-    "status": (cmd_status, "état du pipeline", []),
 }
 
 
@@ -113,7 +98,11 @@ def main(argv: list[str] | None = None) -> int:
     """Exécute la sous-commande demandée et retourne le code de sortie."""
     parser = build_parser()
     args = parser.parse_args(argv)
-    args.func(args)
+    try:
+        args.func(args)
+    except fetcher.ContactManquant as erreur:
+        print(erreur, file=sys.stderr)
+        return 2
     return 0
 
 

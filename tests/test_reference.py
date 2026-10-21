@@ -91,7 +91,11 @@ def test_section_tient_lieu_de_page_pour_une_page_web(
     annotee = _present(8.3)
     del annotee["page"]
     annotee["section"] = "Power"
-    charger_corrige(_ecrire(tmp_path, _corrige(cible, power_w_peak=annotee)), cible)
+    donnees = _corrige(cible, power_w_peak=annotee)
+    corrige = charger_corrige(_ecrire(tmp_path, donnees), cible)
+
+    assert corrige.champs["power_w_peak"].section == "Power"
+    assert corrige.champs["power_w_peak"].page is None
 
 
 @pytest.mark.parametrize(

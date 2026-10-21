@@ -4,8 +4,8 @@ services:
   dev:
     build: .
     container_name: dev_catalog
-    # Sur le NAS Asustor, seul le bridge par défaut sort vers Internet
-    # (vault : connaissances/asustor-docker-reseaux) ; l'acquisition en a besoin.
+    # Sur la machine de développement, seul le bridge par défaut sort vers
+    # Internet ; l'acquisition en a besoin.
     network_mode: bridge
     volumes:
       - .:/app
@@ -25,6 +25,7 @@ services:
       SECURSCOPE_CONTACT: securscope.catalogue@gmail.com
     command: ["python", "-m", "catalog.cli", "--help"]
 
+  # Interface de relecture : prévue, encore une coquille (docs/pipeline.md).
   review:
     build: .
     volumes:

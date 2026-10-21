@@ -32,6 +32,8 @@ MOTS_CATALOGUE = (
 )
 MOTS_NOTICE = ("datasheet", "notice", "specification", "spec", "manual", "fiche", "pdf")
 
+PAGES_PRODUIT_MAX = 50
+
 PREFIXES_EXCLUS = ("mailto:", "tel:", "javascript:", "#")
 CHEMINS_EXCLUS = (
     "about",
@@ -95,36 +97,34 @@ class AdaptateurGenerique:
     def trouver_pages_produit(self, page_catalogue_url: str) -> list[str]:
         """Repère les pages produit individuelles depuis une page catalogue.
 
-        Heuristique générique : liens internes au même domaine, distincts de
-        la page catalogue et des rubriques manifestement hors sujet (about,
-        contact, blog…). Un fabricant dont la structure y résiste reçoit un
-        adaptateur dédié.
+        Heuristique générique : liens internes au même domaine, rangés sous
+        le chemin de la page catalogue ou dans une rubrique produit, hors
+        rubriques manifestement hors sujet (about, contact, blog…). Au plus
+        ``PAGES_PRODUIT_MAX`` par page catalogue : on cible des notices, on ne
+        parcourt pas un site. Un fabricant dont la structure y résiste reçoit
+        un adaptateur dédié.
         """
         resultat = fetcher.fetch_texte(page_catalogue_url)
         if resultat is None:
             return []
         soup = BeautifulSoup(resultat.contenu, "html.parser")
-        domaine = urlparse(page_catalogue_url).netloc
-        liens: set[str] = set()
-        for a in soup.find_all("a", href=True):
-            href = _href(a)
-            if href.startswith(PREFIXES_EXCLUS):
-                continue
-            url = urljoin(page_catalogue_url, href).split("#")[0]
-            if urlparse(url).netloc != domaine or url == page_catalogue_url:
-                continue
-            chemin = urlparse(url).path.lower()
-            if any(mot in chemin for mot in CHEMINS_EXCLUS):
-                continue
-            liens.add(url)
-        return sorted(liens)
+        liens = {
+            url
+            for a in soup.find_all("a", href=True)
+            if (url := _lien_produit(page_catalogue_url, _href(a))) is not None
+        }
+        return sorted(liens)[:PAGES_PRODUIT_MAX]
 
     def trouver_notice(self, page_produit_url: str) -> str | None:
         """Retourne l'URL du PDF de notice si la page produit en propose un."""
         resultat = fetcher.fetch_texte(page_produit_url)
         if resultat is None:
             return None
-        soup = BeautifulSoup(resultat.contenu, "html.parser")
+        return self.notice_dans(resultat.contenu, page_produit_url)
+
+    def notice_dans(self, contenu: str, page_produit_url: str) -> str | None:
+        """Le lien de notice d'une page produit déjà récupérée, s'il y en a un."""
+        soup = BeautifulSoup(contenu, "html.parser")
         for a in soup.find_all("a", href=True):
             href = _href(a)
             texte = a.get_text(strip=True).lower()
@@ -133,6 +133,23 @@ class AdaptateurGenerique:
             ):
                 return urljoin(page_produit_url, href)
         return None
+
+
+def _lien_produit(page_catalogue_url: str, href: str) -> str | None:
+    """L'URL absolue d'un lien qui ressemble à une page produit, sinon ``None``."""
+    if href.startswith(PREFIXES_EXCLUS):
+        return None
+    url = urljoin(page_catalogue_url, href).split("#")[0]
+    catalogue = urlparse(page_catalogue_url)
+    cible = urlparse(url)
+    if cible.netloc != catalogue.netloc or url == page_catalogue_url:
+        return None
+    chemin = cible.path.lower()
+    if any(mot in chemin for mot in CHEMINS_EXCLUS):
+        return None
+    sous_catalogue = chemin.startswith(catalogue.path.lower().rstrip("/") + "/")
+    rubrique_produit = any(mot in chemin for mot in MOTS_CATALOGUE)
+    return url if sous_catalogue or rubrique_produit else None
 
 
 def _normaliser_nom(fabricant: str) -> str:

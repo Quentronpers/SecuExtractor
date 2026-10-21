@@ -1,14 +1,14 @@
 [project]
 name = "securscope-catalog"
 version = "0.1.0"
-description = "Pipeline d'extraction des caractéristiques techniques d'équipements depuis les notices constructeur."
+description = "Measured LLM extraction of IP-camera power specs from manufacturer datasheets, with source quotes and deterministic checks."
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "requests>=2.32",
     "beautifulsoup4>=4.12",
     "playwright>=1.47",
     "pdfplumber>=0.11",
-    "anthropic>=0.40",
     "pydantic>=2.9",
     "streamlit>=1.38",
 ]

@@ -103,25 +103,37 @@ def _trouver_pages_produit(
 
 
 def _archiver_pdf(dossier: str, url: str) -> bool:
-    """Télécharge et archive un PDF ; faux si le téléchargement échoue."""
+    """Télécharge et archive un PDF ; faux si échec ou si ce n'est pas un PDF.
+
+    Le nom porte le début de l'empreinte : deux « datasheet.pdf » de produits
+    différents ne s'écrasent pas, et un document déjà archivé n'est pas
+    réécrit. Un lien « notice » qui renvoie une page HTML est refusé.
+    """
     contenu = fetcher.fetch_binaire(url)
-    if contenu is None:
+    if contenu is None or not contenu.startswith(b"%PDF"):
         return False
-    nom = Path(urlparse(url).path).name or _slug(url) + ".pdf"
-    nom_fichier = f"{dossier}/{nom}"
-    (manifest.SOURCES_DIR / nom_fichier).write_bytes(contenu)
-    manifest.enregistrer(nom_fichier, url, "pdf", "requests")
+    base = Path(urlparse(url).path).stem or _slug(url)
+    nom_fichier = f"{dossier}/{base}_{manifest.empreinte_sha256(contenu)[:12]}.pdf"
+    chemin = manifest.SOURCES_DIR / nom_fichier
+    if not chemin.exists():
+        chemin.write_bytes(contenu)
+        manifest.enregistrer(nom_fichier, url, "pdf", "requests")
     return True
 
 
-def _archiver_page(dossier: str, url: str) -> bool:
-    """Archive une page produit HTML, figée par l'horodatage du nom de fichier."""
-    resultat = fetcher.fetch_texte(url)
-    if resultat is None:
-        return False
+def _ecrire_page(dossier: str, url: str, resultat: fetcher.ResultatFetch) -> None:
+    """Archive une page HTML, figée par l'horodatage du nom de fichier."""
     nom_fichier = f"{dossier}/{_slug(url)}_{_horodatage_fichier()}.html"
     (manifest.SOURCES_DIR / nom_fichier).write_text(resultat.contenu, encoding="utf-8")
     manifest.enregistrer(nom_fichier, url, "html", resultat.outil)
+
+
+def _archiver_page(dossier: str, url: str) -> bool:
+    """Télécharge et archive une page produit HTML ; faux si l'accès échoue."""
+    resultat = fetcher.fetch_texte(url)
+    if resultat is None:
+        return False
+    _ecrire_page(dossier, url, resultat)
     return True
 
 
@@ -135,7 +147,7 @@ def _echec_produit(fabricant: str, url: str) -> None:
     journaliser_echec(
         fabricant,
         "0c_produit_inexploitable",
-        f"Ni PDF ni page exploitable pour {url}",
+        f"Ni PDF ni page exploitable pour {url} ({fetcher.cause_echec(url)})",
         f"Saisie manuelle de la référence dans {PRODUITS_MANUELS_PATH.name}",
     )
 
@@ -143,13 +155,20 @@ def _echec_produit(fabricant: str, url: str) -> None:
 def _archiver_produit(
     fabricant: str, page_produit_url: str, adaptateur: AdaptateurGenerique
 ) -> None:
-    """Applique [0c] à une page produit : PDF, sinon page elle-même, sinon échec."""
+    """Applique [0c] à une page produit : PDF, sinon page elle-même, sinon échec.
+
+    La page n'est récupérée qu'une fois : on y cherche la notice, et c'est
+    elle qu'on archive s'il n'y en a pas.
+    """
     dossier = _dossier(fabricant)
-    notice_url = adaptateur.trouver_notice(page_produit_url)
+    page = fetcher.fetch_texte(page_produit_url)
+    if page is None:
+        _echec_produit(fabricant, page_produit_url)
+        return
+    notice_url = adaptateur.notice_dans(page.contenu, page_produit_url)
     if notice_url is not None and _archiver_pdf(dossier, notice_url):
         return
-    if not _archiver_page(dossier, page_produit_url):
-        _echec_produit(fabricant, page_produit_url)
+    _ecrire_page(dossier, page_produit_url, page)
 
 
 def _archiver_manuel(fabricant: str, url: str) -> None:

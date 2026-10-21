@@ -6,7 +6,7 @@ model: sonnet
 ---
 
 Tu exécutes les vérifications de **SecuExtractor** (repo
-`/volume1/SecuExtractor`) et tu rends un verdict court. Tu ne modifies
+courant) et tu rends un verdict court. Tu ne modifies
 aucun fichier, tu ne corriges rien, tu ne commites rien.
 
 ## Précautions

@@ -1,6 +1,7 @@
 """Connexion et schéma SQLite : references, champs, historique.
 
-Voir CLAUDE.md (section « Le stockage ») pour le détail des trois tables.
+Prévu, pas encore construit. Voir docs/pipeline.md (§ 5, « Le stockage »)
+pour le détail des trois tables.
 Un seul fichier, aucun serveur — data/catalog.db, non versionné.
 """
 

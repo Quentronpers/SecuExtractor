@@ -31,8 +31,6 @@ case "$rel" in
   data/sources/*_manuels.json) ;;
   data/sources/*)
     ask "Document archivé ou manifeste : le modifier rend des citations invérifiables." ;;
-  schema/*)
-    ask "Schéma de test/démo : la référence est SecurScope (CLAUDE.md, « Le schéma d'extraction »)." ;;
   pyproject.toml | uv.lock | Dockerfile | docker-compose.yml)
     ask "Dépendances, outillage ou conteneur : à faire avec l'accord de Quentin." ;;
   tests/architecture_debt.txt)

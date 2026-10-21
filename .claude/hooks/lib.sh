@@ -2,7 +2,7 @@
 # Helpers shared by the hook scripts. Neither jq, Python nor Node exist on
 # the NAS host: JSON is read with grep/sed, tools run in the dev container.
 
-ROOT="${CLAUDE_PROJECT_DIR:-/volume1/SecuExtractor}"
+ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 CONTAINER=dev_catalog
 
 # Prints the value of a top-level-ish string field ("file_path", "command").

@@ -6,7 +6,7 @@ model: sonnet
 ---
 
 Tu relis les changements en cours de **SecuExtractor** (repo
-`/volume1/SecuExtractor`) contre ses règles écrites. Tu ne cherches pas
+courant) contre ses règles écrites. Tu ne cherches pas
 les bugs (c'est `/code-review`) : tu vérifies la conformité.
 
 ## Source des règles
@@ -24,8 +24,8 @@ les répète pas.
 3. **Fiabilité** : un chemin où un champ `extrait` pourrait être exporté
    ou affiché comme `verifie`, ou un `douteux` qui deviendrait `sur`
    sans relecture.
-4. **Source de vérité** : un modèle Pydantic écrit à la main pour un type
-   d'équipement au lieu d'être généré depuis `schema/`.
+4. **Source de vérité** : un champ cible écrit sans sa clé SecurScope ni
+   son commit d'origine (`catalog/extraction/cibles/`).
 5. **Évaluation** : un changement de prompt ou de modèle sans nouvelle
    mesure sur le jeu de référence (`eval/`) ; un chiffre de résultat
    écrit dans la doc sans le fichier de résultats qui le prouve.

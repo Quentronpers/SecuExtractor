@@ -1,6 +1,6 @@
 """Corrigé d'évaluation : format d'un fichier ``eval/reference/<id>.json``.
 
-Le corrigé est annoté à la main par Quentin (eval/GUIDE.md) ; ce module le
+Le corrigé est annoté par Claude et relu par Quentin (eval/GUIDE.md) ; ce module le
 lit et refuse ce qui est malformé, il ne l'écrit jamais. Chaque fichier
 porte les champs de la cible, tous : un champ absent de la notice s'écrit
 ``"valeur": null`` avec ``"etat_attendu": "absent"``, pour qu'un oubli
