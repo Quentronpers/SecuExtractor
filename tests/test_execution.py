@@ -177,6 +177,26 @@ def test_groq_exige_cle_et_modele(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
+def test_scaleway_heberge_en_france_et_exige_cle(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _sans_reglage(monkeypatch)
+    with pytest.raises(SystemExit, match="scaleway : définir LLM_API_KEY"):
+        choisir_serveur("scaleway")
+    monkeypatch.setenv("LLM_API_KEY", "k")
+    monkeypatch.setenv("LLM_MODEL", "gpt-oss-120b")
+    assert choisir_serveur("scaleway") == (
+        "https://api.scaleway.ai/v1",
+        "gpt-oss-120b",
+        "k",
+    )
+
+
+def test_scaleway_sans_reflexion_refuse() -> None:
+    with pytest.raises(SystemExit, match="--reflexion low"):
+        configurer(_args(fournisseur="scaleway"), "u", "m")
+
+
 def test_dossier_porte_le_jeu_et_le_sous_ensemble() -> None:
     config = ConfigModele("qwen3:14b", 16384, "d1", "none", 2048)
     complet = dossier_resultats(config, "test").name

@@ -3,7 +3,7 @@
 Lit ``eval/notices.csv``, retrouve chaque notice archivée par son empreinte,
 et lance le runner. Sans réglage, le serveur est Ollama en local
 (``qwen3:14b``) ; l'environnement le change (``LLM_BASE_URL``, ``LLM_MODEL``,
-et ``LLM_API_KEY`` pour Groq). Avec Ollama, le contexte réel et le digest du
+et ``LLM_API_KEY`` pour Groq ou Scaleway). Avec Ollama, le contexte réel et le digest du
 modèle sont lus dans ``/api/ps`` avant tout appel.
 
 Les réponses brutes vont dans ``data/extractions/brut/`` et les résultats
@@ -51,11 +51,17 @@ from catalog.extraction.runner import (
 RESULTATS_DIR = RACINE / "data" / "extractions" / "resultats"
 # La réflexion consomme le budget de sortie (``num_predict`` la compte).
 # ``none`` coupe la réflexion de qwen3 sur Ollama ; Groq refuse ``none`` pour
-# gpt-oss, qui veut ``low``, ``medium`` ou ``high``. Avec réflexion, 8192
-# jetons peuvent être courts : une troncature est comptée comme échec.
+# gpt-oss, qui veut ``low``, ``medium`` ou ``high`` (Scaleway, même modèle,
+# est réglé pareil). Avec réflexion, 8192 jetons peuvent être courts : une
+# troncature est comptée comme échec.
 MAX_JETONS = {"none": 2048, "low": 8192, "medium": 8192}
-# Serveur par défaut de chaque fournisseur ; Groq n'a pas de modèle par défaut.
-URLS = {"ollama": "http://127.0.0.1:11434/v1", "groq": "https://api.groq.com/openai/v1"}
+# Serveur par défaut de chaque fournisseur ; les hébergés n'ont pas de modèle
+# par défaut. Scaleway héberge en France (mode souverain).
+URLS = {
+    "ollama": "http://127.0.0.1:11434/v1",
+    "groq": "https://api.groq.com/openai/v1",
+    "scaleway": "https://api.scaleway.ai/v1",
+}
 MODELE_OLLAMA = "qwen3:14b"
 SANS_NOTICES = (
     "notices absentes de data/sources/ : lancer `catalog recuperer --archiver`, "
@@ -70,7 +76,7 @@ def ajouter_extract(subparsers: argparse._SubParsersAction) -> None:
     sous.add_argument("--jeu", choices=["miseaupoint", "test"], required=True)
     sous.add_argument("--ids", default="", help="identifiants séparés par des virgules")
     sous.add_argument("--executions", type=int, default=1)
-    sous.add_argument("--fournisseur", choices=["ollama", "groq"], default="ollama")
+    sous.add_argument("--fournisseur", choices=sorted(URLS), default="ollama")
     sous.add_argument("--reflexion", choices=sorted(MAX_JETONS), default="none")
     sous.add_argument("--max-jetons", type=int, default=None)
     sous.set_defaults(func=cmd_extract)
@@ -113,11 +119,11 @@ def configurer(
 ) -> tuple[ConfigModele, dict[str, object]]:
     """Réglages du modèle et ce que dit le serveur (Ollama : ``/api/ps``)."""
     max_jetons = args.max_jetons or MAX_JETONS[args.reflexion]
-    if args.fournisseur == "groq":
+    if args.fournisseur != "ollama":
         if args.reflexion == "none":
             raise SystemExit(
-                "Groq (gpt-oss) refuse --reflexion none (erreur 400 à chaque "
-                "notice) : lancer avec --reflexion low."
+                "gpt-oss hébergé refuse --reflexion none (erreur 400 à chaque "
+                "notice chez Groq) : lancer avec --reflexion low."
             )
         return ConfigModele(modele, None, None, args.reflexion, max_jetons), {}
     try:
@@ -231,8 +237,8 @@ def choisir_serveur(fournisseur: str) -> tuple[str, str, str | None]:
         return url, modele or MODELE_OLLAMA, cle
     if not cle or not modele:
         raise SystemExit(
-            "Groq : définir LLM_API_KEY (console.groq.com) et LLM_MODEL "
-            "(par exemple openai/gpt-oss-120b)."
+            f"{fournisseur} : définir LLM_API_KEY et LLM_MODEL (par exemple "
+            "openai/gpt-oss-120b chez Groq, gpt-oss-120b chez Scaleway)."
         )
     return url, modele, cle
 
@@ -263,7 +269,7 @@ def cmd_extract(args: argparse.Namespace) -> None:
     url, modele, cle = choisir_serveur(args.fournisseur)
     a_traiter = documents(args)
     config, serveur = configurer(args, url, modele)
-    champ = "max_completion_tokens" if args.fournisseur == "groq" else "max_tokens"
+    champ = "max_tokens" if args.fournisseur == "ollama" else "max_completion_tokens"
     client = ClientCompatibleOpenAI(url, cle, champ)
     moteur = Moteur(config, ArchiveBrute(), lambda r: client.executer(r, ReponseBloc))
     cible = charger_cible("camera", "alimentation")

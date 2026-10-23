@@ -14,6 +14,9 @@ truth.
   96.4 % [93.6 ; 98.7] of the values it marks confident are right.
 - `gpt-oss-120b` hosted on Groq: 92.2 % [86.8 ; 96.4]. The paired gap,
   +2.1 points [−2.9 ; +6.8], does not separate the two models on this set.
+- The same `gpt-oss-120b` hosted by Scaleway in Paris: 93.2 % [88.1 ; 97.4],
+  not separated from Groq (+1.0 point [−1.0 ; +3.1]), at 12.3 s per
+  datasheet against 2.6 s.
 - Both beat a regular-expression baseline (80.3 % cell accuracy); qwen3 by
   +9.9 points [+3.1 ; +16.4].
 - Groq makes fewer errors, but they are harder to catch: without the checks
@@ -308,6 +311,16 @@ qwen3 does separate from the baseline: +9.9 points of cell accuracy
 caveat on triage below applies to both models: three rules were shaped by
 Groq's test errors.
 
+**Hosted in France (2026-10-23).** I ran the same model on Scaleway in
+Paris (`gpt-oss-120b`, low reasoning, prompt v1, final rules). On the 35
+test datasheets it scores 93.2 % cell accuracy [88.1 ; 97.4], 97.9 % of its
+confident values are right, and no call failed. Paired against Groq, the
+gap is +1.0 point [−1.0 ; +3.1], and no metric separates the two providers.
+It takes 12.3 s per datasheet, against 2.6 s on Groq. For a client whose
+datasheets must stay in France, hosting there costs about five times the
+time and no measurable accuracy on this set. The run used about 124,000
+tokens.
+
 **Fewer errors, but silent ones.** Before the rules below, none of Groq's
 3 development errors and 3 of its 15 test errors came out doubtful (qwen3:
 8 of 10 and 14 of 23). These counts come from the `erreurs` list of the
@@ -519,9 +532,9 @@ ollama pull qwen3:14b
 ```
 
 `--jeu miseaupoint` is the development split (`test` for the test split);
-`--fournisseur groq --reflexion low` with `LLM_API_KEY` and `LLM_MODEL`
-set runs the comparison (Groq's reasoning models reject `none`, so the
-command refuses it); `LLM_BASE_URL` and `LLM_MODEL` point to another
+`--fournisseur groq` or `--fournisseur scaleway`, with `--reflexion low`
+and `LLM_API_KEY` and `LLM_MODEL` set, runs a hosted model (Groq's
+reasoning models reject `none`, so the command refuses it); `LLM_BASE_URL` and `LLM_MODEL` point to another
 server or model. Raw
 responses go to `data/extractions/` (not versioned: they contain datasheet
 text). `evaluate` replays checks and metrics from them without a model.
