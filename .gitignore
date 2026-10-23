@@ -15,7 +15,3 @@ data/extractions/
 reprise.md
 .mypy_cache/
 .ruff_cache/
-
-# Agents propres à l'environnement de l'auteur (liens symboliques locaux)
-.claude/agents/recruteur-ia.md
-.claude/agents/documentaliste.md

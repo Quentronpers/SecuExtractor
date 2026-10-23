@@ -735,7 +735,7 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
     accord de Quentin requis) : `catalog extract --jeu test` ;
   - messages d'erreur qui disent quoi faire (Ollama injoignable, modèle
     absent → `ollama pull`, notices manquantes → `catalog recuperer`) ;
-  - **section « Try it » du README**, pour un recruteur ou un tiers :
+  - **section « Try it » du README**, pour un lecteur extérieur :
     installation en venv, chemin sans GPU (`recuperer`, ligne de base,
     `evaluate`) et chemin avec Ollama, chacun en trois ou quatre commandes,
     durée et matériel indiqués, limite des 7 pages HTML non reproductibles
@@ -1130,7 +1130,7 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
   - *tests* (`expert-tests`) : couverture des modules publiés ;
   - *méthode* (`architecte-llm`) : chaque affirmation du README vraie dans
     le code, chiffres recopiés des fichiers de résultats ;
-  - *vitrine* (`recruteur-ia`) : lecture à 30 s et à 3 min.
+  - *vitrine* : lecture à 30 s et à 3 min par un lecteur extérieur.
   Les écarts sont corrigés puis l'audit est rejoué sur ce qui a changé.
 - Vault et portfolio mis à jour (via `/fin-de-lot`).
 
@@ -1208,6 +1208,6 @@ lecture et la sélection, pas l'extraction (pas de corrigé pour ces 10).
    2026-10-15).
 6. ~~Note `format-import-demo.md`~~ **Corrigée** le 2026-10-15.
 7. Identifiants du code en anglais : non avant le 2026-11-15
-   (recommandation de `recruteur-ia`, 2026-10-16 : sans effet sur la
-   décision d'un recruteur avant l'échéance, environ 4 200 lignes) ; à
+   (relecture vitrine du 2026-10-16 : sans effet sur un lecteur extérieur
+   avant l'échéance, environ 4 200 lignes) ; à
    reconsidérer en phase 3.
