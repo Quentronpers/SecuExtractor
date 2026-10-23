@@ -1,7 +1,8 @@
 # Chantier demo — démo publique de l'extraction, déployée sur Scaleway
 
 > Statut : **validé par Quentin le 2026-10-23**, après relecture le même
-> jour par `architecte-llm`, `expert-tests` et une relecture vitrine.
+> jour par `architecte-llm`, `expert-tests` et une relecture vitrine. L1
+> fait le 2026-10-23 : point d'arrêt franchi.
 
 ## 1. Le besoin
 
@@ -111,3 +112,39 @@ scripts/precalcul_demo.py   rejoue les réponses brutes Groq (règles finales)
 5. Le coût d'une notice et le tableau de bord Langfuse.
 6. En une phrase : Groq pour la démo publique, Scaleway à Paris pour un
    client, même justesse mesurée.
+
+## 7. Journal
+
+### L1 — essai Scaleway (2026-10-23)
+
+Page Streamlit minimale (`python:3.13-slim`, `streamlit==1.50.0`, image de
+796 Mo), envoyée au registre privé `rg.fr-par.scw.cloud/secuextractor`,
+déployée par l'API dans l'espace de conteneurs `secuextractor` (fr-par) :
+0 à 1 instance, 1 024 Mo, 560 mvCPU, port 8080, délai de requête 300 s.
+Conteneur et image d'essai supprimés ensuite ; les deux espaces sont gardés.
+
+- **Déploiement** : prêt 30 s après l'appel `deploy`.
+- **WebSocket** : poignée de main `101` ; Streamlit envoie un ping à 30 s et
+  ferme à 60 s sans pong (`1000 ping timed out`). Avec pong, la connexion
+  tient jusqu'au **délai de requête du conteneur** : coupure TCP à 301 s
+  pour 300 s réglées. Le délai se règle jusqu'à 15 minutes au moins
+  (documentation contradictoire : 900 s ou 60 minutes). Essai de Quentin
+  dans un navigateur : le compteur avance sans « Connecting ».
+- **Démarrage à froid** : 4,46 s puis 4,13 s sur `/_stcore/health`, après
+  plus de 15 minutes sans requête ; 0,06 s ensuite. Seuil d'arrêt (15 s)
+  loin. Extinction documentée : 15 minutes sans requête.
+- **Onglet ouvert** : le navigateur se reconnecte après chaque coupure, donc
+  l'instance ne s'éteint pas tant qu'un onglet reste ouvert. Ordre de
+  grandeur d'un mois allumé (560 mvCPU, 1 Go) : environ 1,45 million de
+  vCPU-s et 2,6 millions de Go-s, soit 12 à 15 € au-delà du palier gratuit.
+  La coupure d'inactivité doit donc **fermer la page côté navigateur**
+  (script de l'interface après 15 minutes sans action), pas seulement
+  arrêter le script Streamlit : à vérifier dans un navigateur en L5.
+- **Groq** (en-têtes de réponse du compte) : 1 000 requêtes par jour et
+  8 000 jetons par minute confirmés. `max_completion_tokens=8192` n'est pas
+  réservé d'avance : un appel de 74 jetons d'entrée passe avec ce réglage.
+  Groq rejette en 403 l'agent utilisateur par défaut de `urllib` ; le client
+  du projet (`requests`) n'est pas concerné.
+- **Registre** : privé facturé 0,027 € par Go et par mois ; public gratuit
+  jusqu'à 75 Go. L'image ne contient que du code public : décision à
+  prendre en L7.
