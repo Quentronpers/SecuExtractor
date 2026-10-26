@@ -7,7 +7,6 @@ requires-python = ">=3.12"
 dependencies = [
     "requests>=2.32",
     "beautifulsoup4>=4.12",
-    "playwright>=1.47",
     "pdfplumber>=0.11",
     "pydantic>=2.9",
     "streamlit>=1.38",
@@ -23,6 +22,13 @@ dev = [
     "pytest>=8.3",
     "types-requests>=2.32",
 ]
+# Repli JavaScript de l'acquisition : hors de l'image de la démo.
+acquisition = [
+    "playwright>=1.47",
+]
+
+[tool.uv]
+default-groups = ["dev", "acquisition"]
 
 [build-system]
 requires = ["hatchling"]
@@ -36,7 +42,7 @@ packages = ["catalog"]
 [tool.ruff]
 line-length = 88
 target-version = "py312"
-src = ["catalog", "tests"]
+src = ["catalog", "demo", "tests"]
 extend-exclude = ["data"]
 
 [tool.ruff.lint]
@@ -55,11 +61,11 @@ max-complexity = 8
 "tests/*" = ["D100", "D101", "D102", "D103"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["catalog"]
+known-first-party = ["catalog", "demo"]
 
 [tool.mypy]
 python_version = "3.12"
-packages = ["catalog", "tests"]
+packages = ["catalog", "demo", "tests"]
 plugins = ["pydantic.mypy"]
 disallow_untyped_defs = true
 check_untyped_defs = true

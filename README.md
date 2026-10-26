@@ -450,8 +450,10 @@ Two paths: one without a GPU (a few minutes), one with a local model.
 Both need Linux or macOS, Python 3.12 and git. Commands run from the
 repository root.
 
-**Install** (one or two minutes; the dependencies include Playwright and
-Streamlit, used elsewhere in the pipeline):
+**Install** (one or two minutes; the dependencies include Streamlit, used
+elsewhere in the pipeline). Playwright, the JavaScript fallback of
+`discover` and `acquire`, is not needed here; add it with
+`.venv/bin/pip install playwright` if you run those commands:
 
 ```bash
 git clone https://github.com/Quentronpers/SecuExtractor.git && cd SecuExtractor
@@ -505,8 +507,8 @@ English entry point. Tests and checks run in a container (or in a local virtual 
 
 ```bash
 docker compose up -d dev
-docker exec dev_catalog sh -c "cd /app && ruff format --check catalog tests \
-  && ruff check catalog tests && mypy && pytest"
+docker exec dev_catalog sh -c "cd /app && ruff format --check catalog demo tests \
+  && ruff check catalog demo tests && mypy && pytest"
 docker exec dev_catalog sh -c "cd /app && python -m catalog.evaluation.reference"  # validate ground truth
 ```
 

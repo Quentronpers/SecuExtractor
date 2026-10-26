@@ -7,7 +7,7 @@ input=$(cat)
 file=$(json_field "$input" file_path)
 case "$file" in "$ROOT"/*) rel=${file#"$ROOT"/} ;; *) exit 0 ;; esac
 [ -f "$file" ] || exit 0
-case "$rel" in catalog/*.py | tests/*.py | eval/*.py) ;; *) exit 0 ;; esac
+case "$rel" in catalog/*.py | demo/*.py | tests/*.py | eval/*.py) ;; *) exit 0 ;; esac
 
 problems=""
 if container_up; then

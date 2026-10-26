@@ -20,7 +20,7 @@ aucun fichier, tu ne corriges rien, tu ne commites rien.
 
 ## Commandes
 ```bash
-docker exec dev_catalog sh -c "cd /app && ruff format --check catalog tests && ruff check catalog tests"
+docker exec dev_catalog sh -c "cd /app && ruff format --check catalog demo tests && ruff check catalog demo tests"
 docker exec dev_catalog sh -c "cd /app && mypy"
 docker exec dev_catalog sh -c "cd /app && pytest <cibles>"
 ```

@@ -148,3 +148,23 @@ Conteneur et image d'essai supprimés ensuite ; les deux espaces sont gardés.
 - **Registre** : privé facturé 0,027 € par Go et par mois ; public gratuit
   jusqu'à 75 Go. L'image ne contient que du code public : décision à
   prendre en L7.
+
+### L2 — Réglages et dépendances (2026-10-26)
+
+- `URLS`, `MODELE_OLLAMA`, `MAX_JETONS`, le choix `max_tokens` /
+  `max_completion_tokens` (`champ_max_jetons`) et le refus de la réflexion
+  `none` chez un hébergé (`reflexion_admise`) sont passés dans
+  `catalog/extraction/fournisseurs.py`. Le message d'erreur propre à la
+  ligne de commande reste dans `execution.py`. Les tests de `extract`
+  passent sans changement.
+- Playwright a rejoint le groupe `acquisition`. `default-groups = ["dev",
+  "acquisition"]` le garde dans le conteneur de développement et en CI ;
+  l'image de la démo s'en passera (`--no-default-groups`). Le diff de
+  `uv.lock` se limite à ce déplacement. Sur le PC, `pip install -e .`
+  n'installe plus playwright : `recuperer` s'en passe.
+- **Écart au plan** : le groupe `demo` n'est pas encore créé. Sa seule
+  dépendance (Langfuse) arrive en L6, avec le code qui l'importe.
+- `demo/` est couvert par ruff, mypy, les limites de taille et la règle
+  d'import : par l'AST, et par un sous-processus qui importe chaque module
+  de `demo` et inspecte `sys.modules`. Les hooks de `.claude/` contrôlent
+  aussi `demo/*.py`.

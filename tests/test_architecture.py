@@ -5,6 +5,9 @@ Ce que CLAUDE.md énonce et qu'une machine peut contrôler est contrôlé ici :
 - **frontière de l'acquisition** : le pipeline lit ``data/sources/`` sans
   jamais savoir d'où viennent les documents. Seul ``catalog.cli`` importe
   ``catalog.acquisition`` ; l'acquisition, elle, n'importe rien de l'aval ;
+- **frontière de la démo** : ``demo`` fait tourner le code mesuré sans
+  importer ``catalog.acquisition`` ni ``catalog.evaluation``, ni dans son
+  texte, ni à l'exécution ;
 - **tailles** : fichier ≤ 300 lignes, fonction ≤ 30 lignes hors docstring,
   ≤ 5 paramètres.
 
@@ -16,6 +19,8 @@ liste ne peut que rétrécir (une entrée qui n'est plus en infraction fait
 from __future__ import annotations
 
 import ast
+import subprocess
+import sys
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -23,6 +28,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE = ROOT / "catalog"
+DEMO = ROOT / "demo"
 DEBT_FILE = Path(__file__).with_name("architecture_debt.txt")
 
 MAX_FILE_LINES = 300
@@ -41,11 +47,14 @@ DOWNSTREAM = (
     "catalog.export",
     "catalog.evaluation",
 )
+# Ce que la démo ne charge jamais : elle fait tourner le code mesuré, sans
+# l'acquisition ni l'évaluation.
+DEMO_FORBIDDEN = (ACQUISITION, "catalog.evaluation")
 
 
 def _python_files() -> Iterator[Path]:
-    """Énumère les fichiers Python du paquet et des tests."""
-    for base in (PACKAGE, ROOT / "tests"):
+    """Énumère les fichiers Python du paquet, de la démo et des tests."""
+    for base in (PACKAGE, DEMO, ROOT / "tests"):
         yield from sorted(base.rglob("*.py"))
 
 
@@ -143,6 +152,36 @@ def test_acquisition_does_not_import_downstream(path: Path) -> None:
         f"{_module_name(path)} importe {offending} : l'acquisition doit pouvoir "
         "casser sans emporter le reste du pipeline."
     )
+
+
+@pytest.mark.parametrize("path", sorted(DEMO.rglob("*.py")), ids=lambda p: p.name)
+def test_demo_does_not_import_acquisition_nor_evaluation(path: Path) -> None:
+    offending = {
+        m for m in _imports(path) if any(_is_under(m, f) for f in DEMO_FORBIDDEN)
+    }
+    assert not offending, (
+        f"{_module_name(path)} importe {offending} : la démo fait tourner "
+        "l'extraction, ni l'acquisition ni l'évaluation."
+    )
+
+
+@pytest.mark.parametrize("path", sorted(DEMO.rglob("*.py")), ids=lambda p: p.name)
+def test_demo_does_not_load_acquisition_nor_evaluation(path: Path) -> None:
+    """Même règle à l'exécution : un import indirect passerait l'AST."""
+    script = (
+        "import importlib, sys\n"
+        f"importlib.import_module({_module_name(path)!r})\n"
+        "print('\\n'.join(sys.modules))\n"
+    )
+    sortie = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split()
+    charges = {m for m in sortie if any(_is_under(m, f) for f in DEMO_FORBIDDEN)}
+    assert not charges, f"importer {_module_name(path)} charge {charges}"
 
 
 def test_no_new_size_violation() -> None:

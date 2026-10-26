@@ -28,7 +28,7 @@ size_exception() {
 acquisition_forbidden() {
   case "$1" in
     catalog/acquisition/* | catalog/cli.py) return 1 ;;
-    catalog/*.py) return 0 ;;
+    catalog/*.py | demo/*.py) return 0 ;;
   esac
   return 1
 }

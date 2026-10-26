@@ -1615,13 +1615,15 @@ source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "pdfplumber" },
-    { name = "playwright" },
     { name = "pydantic" },
     { name = "requests" },
     { name = "streamlit" },
 ]
 
 [package.dev-dependencies]
+acquisition = [
+    { name = "playwright" },
+]
 dev = [
     { name = "mypy" },
     { name = "pytest" },
@@ -1633,13 +1635,13 @@ dev = [
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.12" },
     { name = "pdfplumber", specifier = ">=0.11" },
-    { name = "playwright", specifier = ">=1.47" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "requests", specifier = ">=2.32" },
     { name = "streamlit", specifier = ">=1.38" },
 ]
 
 [package.metadata.requires-dev]
+acquisition = [{ name = "playwright", specifier = ">=1.47" }]
 dev = [
     { name = "mypy", specifier = ">=1.11" },
     { name = "pytest", specifier = ">=8.3" },

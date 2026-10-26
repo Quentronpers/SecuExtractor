@@ -33,6 +33,13 @@ from catalog.evaluation.notices import (
 from catalog.extraction.brut import ArchiveBrute, maintenant
 from catalog.extraction.cible import Cible, charger_cible
 from catalog.extraction.client import ClientCompatibleOpenAI, EchecAppel
+from catalog.extraction.fournisseurs import (
+    MAX_JETONS,
+    MODELE_OLLAMA,
+    URLS,
+    champ_max_jetons,
+    reflexion_admise,
+)
 from catalog.extraction.ollama import ModeleAbsent, decrire_modele, version_ollama
 from catalog.extraction.prompts import (
     VERSION_PROMPT,
@@ -49,20 +56,6 @@ from catalog.extraction.runner import (
 )
 
 RESULTATS_DIR = RACINE / "data" / "extractions" / "resultats"
-# La réflexion consomme le budget de sortie (``num_predict`` la compte).
-# ``none`` coupe la réflexion de qwen3 sur Ollama ; Groq refuse ``none`` pour
-# gpt-oss, qui veut ``low``, ``medium`` ou ``high`` (Scaleway, même modèle,
-# est réglé pareil). Avec réflexion, 8192 jetons peuvent être courts : une
-# troncature est comptée comme échec.
-MAX_JETONS = {"none": 2048, "low": 8192, "medium": 8192}
-# Serveur par défaut de chaque fournisseur ; les hébergés n'ont pas de modèle
-# par défaut. Scaleway héberge en France (mode souverain).
-URLS = {
-    "ollama": "http://127.0.0.1:11434/v1",
-    "groq": "https://api.groq.com/openai/v1",
-    "scaleway": "https://api.scaleway.ai/v1",
-}
-MODELE_OLLAMA = "qwen3:14b"
 SANS_NOTICES = (
     "notices absentes de data/sources/ : lancer `catalog recuperer --archiver`, "
     "ou copier data/sources/ d'une machine qui les a"
@@ -119,12 +112,12 @@ def configurer(
 ) -> tuple[ConfigModele, dict[str, object]]:
     """Réglages du modèle et ce que dit le serveur (Ollama : ``/api/ps``)."""
     max_jetons = args.max_jetons or MAX_JETONS[args.reflexion]
+    if not reflexion_admise(args.fournisseur, args.reflexion):
+        raise SystemExit(
+            "gpt-oss hébergé refuse --reflexion none (erreur 400 à chaque "
+            "notice chez Groq) : lancer avec --reflexion low."
+        )
     if args.fournisseur != "ollama":
-        if args.reflexion == "none":
-            raise SystemExit(
-                "gpt-oss hébergé refuse --reflexion none (erreur 400 à chaque "
-                "notice chez Groq) : lancer avec --reflexion low."
-            )
         return ConfigModele(modele, None, None, args.reflexion, max_jetons), {}
     try:
         charge = decrire_modele(url, modele)
@@ -269,8 +262,7 @@ def cmd_extract(args: argparse.Namespace) -> None:
     url, modele, cle = choisir_serveur(args.fournisseur)
     a_traiter = documents(args)
     config, serveur = configurer(args, url, modele)
-    champ = "max_tokens" if args.fournisseur == "ollama" else "max_completion_tokens"
-    client = ClientCompatibleOpenAI(url, cle, champ)
+    client = ClientCompatibleOpenAI(url, cle, champ_max_jetons(args.fournisseur))
     moteur = Moteur(config, ArchiveBrute(), lambda r: client.executer(r, ReponseBloc))
     cible = charger_cible("camera", "alimentation")
     sortie = dossier_resultats(config, args.jeu, args.ids)

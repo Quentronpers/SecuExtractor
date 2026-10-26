@@ -216,7 +216,7 @@ python -m catalog.cli status
 ### Vérifications
 
 ```bash
-ruff format --check catalog tests && ruff check catalog tests   # format + lint
+ruff format --check catalog demo tests && ruff check catalog demo tests   # format + lint
 mypy                                                             # types
 pytest                                                           # tests, architecture comprise
 ```
@@ -227,7 +227,9 @@ La CI (`.github/workflows/ci.yml`) rejoue les trois à chaque push sur
 
 `tests/test_architecture.py` garde : la frontière de l'acquisition (seul
 `catalog/cli.py` importe `catalog.acquisition`, et l'acquisition n'importe
-rien de l'aval), fichier ≤ 300 lignes, fonction ≤ 30 lignes hors
+rien de l'aval), la frontière de la démo (`demo/` ne charge ni
+`catalog.acquisition` ni `catalog.evaluation`, vérifié par l'AST et à
+l'import), fichier ≤ 300 lignes, fonction ≤ 30 lignes hors
 docstring, ≤ 5 paramètres. Les écarts gelés vont dans
 `tests/architecture_debt.txt`, qui ne peut que rétrécir.
 
@@ -259,7 +261,10 @@ Quentin, qui a un clone du dépôt et une copie de `data/sources/`.
    (`.venv/` est ignoré par git). Tests, ruff et mypy se lancent avec
    `.venv/bin/`. `recuperer`, `discover` et `acquire` exigent
    `SECURSCOPE_CONTACT` (contact du User-Agent), défini par le compose dans
-   le conteneur : hors conteneur, l'exporter.
+   le conteneur : hors conteneur, l'exporter. Playwright (groupe
+   `acquisition`) n'est pas installé : `discover` et `acquire` en ont
+   besoin pour leur repli JavaScript (`.venv/bin/pip install playwright`),
+   `recuperer` non.
 2. Ollama est un service systemd, joignable en local sans
    `OLLAMA_HOST=0.0.0.0`. Contexte fixé par `sudo systemctl edit ollama`
    (`Environment="OLLAMA_CONTEXT_LENGTH=16384"`), puis
@@ -302,6 +307,7 @@ SecuExtractor/
 │   │   ├── cibles/              # champs visés par famille et bloc (repris de SecurScope)
 │   │   ├── cible.py             # chargement des cibles, type d'une valeur
 │   │   ├── client.py            # client compatible OpenAI (Ollama, Groq), reprises
+│   │   ├── fournisseurs.py      # URL, budget de sortie, réflexion admise par fournisseur
 │   │   ├── ollama.py            # contexte réel et digest du modèle (/api/ps)
 │   │   ├── brut.py              # réponses brutes archivées et rejouées
 │   │   ├── prompts.py           # gabarit, message et schéma strict par bloc
@@ -339,6 +345,7 @@ SecuExtractor/
 │   ├── prompts/                 # textes exacts des prompts mesurés
 │   └── resultats/               # rapports d'évaluation (README.md : index)
 │
+├── demo/                        # démo publique (chantier demo, en cours)
 ├── tests/                       # tests unitaires, architecture, fixtures faites main
 ├── .github/workflows/ci.yml     # ruff, mypy, pytest à chaque push
 ├── Dockerfile, docker-compose.yml  # conteneur de développement dev_catalog

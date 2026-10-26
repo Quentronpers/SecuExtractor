@@ -24,8 +24,8 @@ jobs:
       - run: uv sync --frozen
       - name: Format and lint
         run: |
-          uv run ruff format --check catalog tests
-          uv run ruff check catalog tests
+          uv run ruff format --check catalog demo tests
+          uv run ruff check catalog demo tests
       - name: Types
         run: uv run mypy
       - name: Tests
